@@ -3,37 +3,30 @@ import type { List } from "../interfaces";
 import ListElem from "./ListElem";
 import chevronUp from '../assets/chevron-up.png';
 import chevronDown from '../assets/chevron-down.png'
+import { splitItemsToDoneAndUndoneLists } from "./utils";
 
-const PreviewComponent = ({ item, cardEdit, handleCheck, handleRemoveFieldItem }: {
+const PreviewComponent = ({ item, cardEdit, handleCheck, handleRemoveFieldItem, handleNewLine }: {
   item: List;
   cardEdit: boolean;
   handleCheck: (index: number, listId: string, checked: boolean) => void;
   handleRemoveFieldItem: (index: number) => void
+  handleNewLine: (e: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLFormElement>) => void,
 }) => {
   const [contentExpanded, setContentExpanded] = useState<boolean>(true)
-  const uncheckedItems = []
-  const checkedItems = []
+  const { uncheckedItems, checkedItems } = splitItemsToDoneAndUndoneLists(item.content)
 
-  for (let i = 0; i < item.content.length; i++) {
-    if (item.content[i].checked) {
-      checkedItems.push({ ...item.content[i], index: i })
-    } else {
-      uncheckedItems.push({ ...item.content[i], index: i })
-    }
-  }
   return (
     <>
       <h2 className="p-2 text-2xl font-bold border-0 text-secondary">{item.title}</h2>
       {uncheckedItems.length > 0 && (
         <ul className="w-full" data-testid={'uncheckedItems'}>
-          {uncheckedItems.map((contentItem, index) => {
+          {uncheckedItems.map((contentItem) => {
             return (
               <ListElem
                 key={contentItem.listItemId}
                 item={contentItem}
-                index={index}
+                index={contentItem.index}
                 cardEdit={cardEdit}
-                mode="preview"
                 listId={item.id}
                 handleCheck={handleCheck}
                 handleRemoveFieldItem={handleRemoveFieldItem}
@@ -42,6 +35,8 @@ const PreviewComponent = ({ item, cardEdit, handleCheck, handleRemoveFieldItem }
           })}
         </ul>
       )}
+      <button onClick={handleNewLine} className="self-start text-accent hover:text-secondary">+ Element listy</button>
+
       {checkedItems.length > 0 && (
         <>
           <div className="border-t border-mist-300 w-full" />
@@ -51,14 +46,13 @@ const PreviewComponent = ({ item, cardEdit, handleCheck, handleRemoveFieldItem }
             </h6>
           </button>          
           {contentExpanded && <ul className="w-full" data-testid={'checkedItems'}>
-            {checkedItems?.map((contentItem, index) => {
+            {checkedItems?.map((contentItem) => {
               return (
                 <ListElem
                   key={contentItem.listItemId}
                   item={contentItem}
-                  index={index}
+                  index={contentItem.index}
                   cardEdit={cardEdit}
-                  mode="preview"
                   listId={item.id}
                   handleCheck={handleCheck}
                   handleRemoveFieldItem={handleRemoveFieldItem}

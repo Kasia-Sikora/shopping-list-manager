@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import ListComponent from './ListComponent';
+import ListComponent from './CardContent';
 
 const Card = () => {
   const [edit, setEdit] = useState<boolean>(false);

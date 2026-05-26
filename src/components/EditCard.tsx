@@ -1,8 +1,9 @@
 import { useRef, useState, type MouseEventHandler } from 'react';
 import type { List } from '../interfaces';
-import ListComponent from './ListComponent';
+import ListComponent from './CardContent';
 // import tick from '../assets/tick.svg';
-import menu from '../assets/icons8-dots-30.png'
+import EditIndicator from './atoms/EditIndicator';
+import MenuButton from './atoms/MenuButton';
 
 const EditCard = ({ editedItem }: { editedItem: List }) => {
   const [edit, setEdit] = useState<boolean>(false);
@@ -28,18 +29,9 @@ const EditCard = ({ editedItem }: { editedItem: List }) => {
       data-id={`card-${editedItem.id}`}
       data-testid={`card-${editedItem.id}`}
     >
-
-      <div data-testid={`card-${editedItem.id}-edit-indicator`} className={`transition-opacity duration-300 ${edit ? 'opacity-100' : 'opacity-0'}`} aria-hidden={`${edit ? "false": "true"}`}>
-        <div className={`absolute -top-1 -left-2.5 size-8 rounded-full bg-accent `} />
-        <div className={`absolute -top-2 -left-3.5 size-8 rounded-full border-3 border-mist-700 `} />
-        <div className={`absolute -top-1 -left-1.5 size-8 `} />
-        <div className={`tick absolute -top-0.5 -left-0.5 w-2 h-4 inset-shadow-[-3px_-3px_#394447] rotate-45 `} />
-      </div>
+      <EditIndicator id={editedItem.id} isEdit={edit}/>
       <ListComponent cardEdit={edit} setEditCard={setEdit} item={editedItem} cardRef={cardRef} />
-      <button className='absolute bottom-1.5 right-1.5 rounded-full bg-transparent hover:bg-white/75  size-7' onClick={() => console.log('open menu')}>
-        <div className='absolute -bottom-0.5 -right-0.5 rounded-full bg-accent size-6' />
-        <img src={menu} alt="menu button" className='size-7 absolute bottom-0 right-0 border-3 hover:bg-white/75 border-mist-700 rounded-full' />
-      </button>
+      <MenuButton/>
     </div >
   );
 };

@@ -4,6 +4,7 @@ import type { List } from "../interfaces";
 import React, { useEffect, useState } from "react";
 import chevronUp from "../assets/chevron-up.png";
 import chevronDown from "../assets/chevron-down.png";
+import { handleKeyDown, splitItemsToDoneAndUndoneLists } from "./utils";
 
 
 const FormComponent = ({
@@ -25,45 +26,19 @@ const FormComponent = ({
 }) => {
 
   const [contentExpanded, setContentExpanded] = useState<boolean>(true)
-  const uncheckedItems = []
-  const checkedItems = []
-
-  for (let i = 0; i < fields.length; i++) {
-    if (fields[i].checked) {
-      checkedItems.push({ ...fields[i], index: i })
-    } else {
-      uncheckedItems.push({ ...fields[i], index: i })
-    }
-  }
+  const { uncheckedItems, checkedItems } = splitItemsToDoneAndUndoneLists(fields)
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const cardId = item ? `card-${item.id}` : 'empty-card';
+
+    const onKeyDown = (e: KeyboardEvent) => {
       if (!e || !(e.target as HTMLTextAreaElement).name) return;
-      const elName = (e.target as HTMLTextAreaElement).name
-      const indexOfEl: number = parseInt(elName.split('.')[1])
-      let focusedEl;
-      if (e.key === "ArrowDown") {
-        if (isNaN(indexOfEl)) {
-          focusedEl = document.querySelector(`${item ? `[data-id='card-${item.id}'] [name='content.0.value']` : `[data-id='empty-card'] [name='content.0.value']`}`) as HTMLTextAreaElement
-        } else {
-          const indexOfNextEl = indexOfEl + 1
-          focusedEl = document.querySelector(`${item ? `[data-id='card-${item.id}'] [name='content.${indexOfNextEl}.value']` : `[data-id='empty-card'] [name='content.${indexOfNextEl}.value']`}`) as HTMLTextAreaElement
-        }
-      } else if (e.key === "ArrowUp") {
-        if (indexOfEl === 0) {
-          focusedEl = document.querySelector(`${item ? `[data-id='card-${item.id}'] [name='title']` : `[data-id='empty-card'] [name='title']`}`) as HTMLTextAreaElement
-        } else {
-          const indexOfPrevEl = indexOfEl - 1
-          focusedEl = document.querySelector(`${item ? `[data-id='card-${item.id}'] [name='content.${indexOfPrevEl}.value']` : `[data-id='empty-card'] [name='content.${indexOfPrevEl}.value']`}`) as HTMLTextAreaElement
-        }
-      }
-      if (focusedEl) focusedEl.focus()
-      //ustaw karete na koniec linijki jeśli jest text 
+      handleKeyDown(e, cardId)
     }
 
-    const listItems = document.querySelectorAll(item ? `[data-id='card-${item.id}'] textarea` : `[data-id='empty-card'] textarea`) as NodeListOf<HTMLTextAreaElement>
-    listItems?.forEach((item: HTMLTextAreaElement) => item.addEventListener('keydown', handleKeyDown))
-    return () => listItems?.forEach((item: HTMLTextAreaElement) => item.removeEventListener('keydown', handleKeyDown))
+    const listItems = document.querySelectorAll(`[data-id='card-${cardId}'] textarea`) as NodeListOf<HTMLTextAreaElement>
+    listItems?.forEach((item: HTMLTextAreaElement) => item.addEventListener('keydown', onKeyDown))
+    return () => listItems?.forEach((item: HTMLTextAreaElement) => item.removeEventListener('keydown', onKeyDown))
   }, [fields, item])
 
   return (
@@ -80,8 +55,7 @@ const FormComponent = ({
                   key={field.listItemId}
                   item={field}
                   index={field.index}
-                  cardEdit={cardEdit}
-                  mode="form"
+                  cardEdit={cardEdit} 
                   register={register}
                   listId={item?.id ?? ''}
                   handleCheck={item && handleCheck}
@@ -90,11 +64,11 @@ const FormComponent = ({
               ))}
             </ul>
           )}
-          {cardEdit && <button onClick={handleNewLine} className="self-start text-black/75 hover:text-black">+ Element listy</button>}
+          {(cardEdit || item) && <button onClick={handleNewLine} className="self-start text-accent hover:text-secondary">+ Element listy</button>}
           {checkedItems.length > 0 && (
             <>
               <div className="border-t border-mist-300 w-full" />
-              <button onClick={(e) => { e.preventDefault(); setContentExpanded(!contentExpanded) }} className="flex flex-row items-center"><img src={contentExpanded ? chevronUp : chevronDown} alt={`${contentExpanded}? 'hide content':'expand content`} className="size-4" aria-expanded={`${contentExpanded? 'true': 'false'}`} />
+              <button onClick={(e) => { e.preventDefault(); setContentExpanded(!contentExpanded) }} className="flex flex-row items-center"><img src={contentExpanded ? chevronUp : chevronDown} alt={`${contentExpanded}? 'hide content':'expand content`} className="size-4" aria-expanded={`${contentExpanded ? 'true' : 'false'}`} />
                 <h6 className="p-2 text-l border-0 text-gray-500">
                   {fields.filter((elem) => elem.checked).length} ukończonych elementów
                 </h6>
@@ -107,7 +81,6 @@ const FormComponent = ({
                       item={field}
                       index={field.index}
                       cardEdit={cardEdit}
-                      mode="form"
                       register={register}
                       listId={item?.id ?? ''}
                       handleCheck={item && handleCheck}

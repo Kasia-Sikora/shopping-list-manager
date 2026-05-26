@@ -84,7 +84,6 @@ const ListComponent: FC<ListComponentProps> = ({ cardEdit, setEditCard, item, ca
   };
 
   const handleNewLine = (e: React.KeyboardEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
-    // e.preventDefault();
     if (!e) return
     if (e.nativeEvent instanceof KeyboardEvent && 'key' in e && e.key === 'Enter' && e.shiftKey) {
       e.preventDefault();
@@ -125,9 +124,8 @@ const ListComponent: FC<ListComponentProps> = ({ cardEdit, setEditCard, item, ca
       {(!item || cardEdit) ? (
         <FormComponent cardEdit={cardEdit} fields={fields} item={item} handleRemoveFieldItem={remove} handleNewLine={handleNewLine} register={register} handleCheck={handleCheck} />
       ) : (
-        <PreviewComponent cardEdit={cardEdit} item={item} handleCheck={handleCheck} handleRemoveFieldItem={remove} />
+          <PreviewComponent cardEdit={cardEdit} item={item} handleCheck={handleCheck} handleNewLine={handleNewLine}  handleRemoveFieldItem={remove} />
       )}
-
     </>
   )
 }
