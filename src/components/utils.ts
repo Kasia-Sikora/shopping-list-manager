@@ -1,6 +1,10 @@
 import type { FieldArrayWithId } from 'react-hook-form';
 import type { List, ListItem } from '../interfaces';
 
+export const generateId = () => {
+  return crypto.randomUUID();
+}
+
 export const splitItemsToDoneAndUndoneLists = (items: FieldArrayWithId<List, 'content', 'id'>[] | ListItem[]) => {
   const uncheckedItems = [];
   const checkedItems = [];
@@ -17,8 +21,7 @@ export const splitItemsToDoneAndUndoneLists = (items: FieldArrayWithId<List, 'co
 };
 
 const getFocusedElement = (id: string, selector: string) => {
-  const focusedEl = document.querySelector(`[data-id='${id}'] ${selector}}`) as HTMLTextAreaElement;
-  return focusedEl;
+  return document.querySelector(`[data-id='${id}'] ${selector}`) as HTMLTextAreaElement;
 };
 
 export const handleKeyDown = (e: KeyboardEvent, cardId: string) => {
@@ -43,3 +46,4 @@ export const handleKeyDown = (e: KeyboardEvent, cardId: string) => {
   if (focusedEl) focusedEl.focus();
 };
 //ustaw karete na koniec linijki jeśli jest text
+//poruszanie sie po podzielonej liście nie działa dobrze

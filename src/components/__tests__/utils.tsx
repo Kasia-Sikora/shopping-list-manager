@@ -25,14 +25,3 @@ export const editCardElem = {
   uncheckedItemsList: (id: string = "0") => within(editCardElem.getEditCard(id)).queryByTestId("uncheckedItems"),
   checkedItemsList: (id: string = "0") => within(editCardElem.getEditCard(id)).queryByTestId("checkedItems")
 }
-
-export const getByText = (text: string) => screen.getByText(text)
-
-
-// export const getEmptyCard = () => screen.getByTestId('empty-card');
-// export const getTitleEl = () => within((getEmptyCard()) => screen.queryByPlaceholderText('Tytuł...'));
-// export const getListItemTextarea = () => within((getEmptyCard()) => screen.getAllByPlaceholderText('Utwórz listę...')) as unknown as HTMLTextAreaElement[];
-// export const getListItems = () => within(getEmptyCard()).getAllByRole('listitem');
-// export const getAddElButton = () => within(getEmptyCard()).getByRole('button', { name: '+ Element listy' });
-// export const getDeleteButton = (index: number = 0) => within(getListItems()[index]).getByLabelText('Delete');
-// export const getCheckboxes = () => within(getEmptyCard()).getAllByRole('checkbox') as unknown as HTMLInputElement[];

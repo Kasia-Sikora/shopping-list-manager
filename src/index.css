@@ -44,7 +44,7 @@ li:has(textarea:focus) {
   border-bottom: 1px solid #6a7282;
 }
 
-li:has(textarea:focus) > button {
+li:has(textarea:focus) > button::after {
   text-decoration: none;
 }
 

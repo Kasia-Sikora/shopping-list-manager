@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import Card from './components/Card';
-import EditCard from './components/EditCard';
-import { useStore } from './store';
+import { useStore } from './stores/store';
 import { useLocalStorage } from 'usehooks-ts'
 
 const App = () => {
@@ -10,7 +9,7 @@ const App = () => {
   const [theme, setTheme] = useLocalStorage('theme', defaultDark ? 'dark' : 'light');
 
   const switchTheme = () => {
-    const newTheme = theme ==='light'? 'dark': 'light'
+    const newTheme = theme === 'light' ? 'dark' : 'light'
     setTheme(newTheme)
   }
 
@@ -27,15 +26,15 @@ const App = () => {
       <div className="toggle-switch">
         <label className="switch-label">
           <input type="checkbox" className="checkbox" onChange={switchTheme} checked={theme === 'light'} />
-            <span className="slider"></span>
+          <span className="slider"></span>
         </label>
-      </div>  
+      </div>
       {/* temp theme button toggle */}
 
       <Card />
       <div className="grid grid-cols-3 gap-4 pt-2">
         {items?.map((item, index) => {
-          return <EditCard key={index} editedItem={item} />;
+          return <Card key={index} editedItem={item} />;
         })}
       </div>
     </div>

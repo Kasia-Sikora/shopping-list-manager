@@ -3,7 +3,7 @@ import { render, waitFor } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import App from '../../App';
 import { emptyCardElem } from "./utils";
-import { useStore } from '../../store'
+import { useStore } from '../../stores/store'
 
 const initialState = useStore.getState();
 
@@ -65,43 +65,43 @@ describe('<App>', () => {
   })
 
   it('should move trough list using arrow up and down', async () => {
-    userEvent.type(getListItemTextarea()[0], 'Kup chleb{Enter}')
+    await userEvent.type(getListItemTextarea()[0], 'Kup chleb{Enter}')
     await waitFor(() => expect(getListItems()).toHaveLength(2))
 
     expect(getListItemTextarea()[1]).toBeVisible()
-    userEvent.type(getListItemTextarea()[1], 'Kup mleko{Enter}')
+    await userEvent.type(getListItemTextarea()[1], 'Kup mleko{Enter}')
     await waitFor(() => expect(getListItems()).toHaveLength(3))
     expect(getListItemTextarea()[2]).toHaveFocus()
 
-    userEvent.keyboard('{arrowup}')
+    await userEvent.keyboard('{arrowup}')
     await waitFor(() => expect(getListItemTextarea()[1]).toHaveFocus())
 
-    userEvent.keyboard('{arrowup}')
+    await userEvent.keyboard('{arrowup}')
     await waitFor(() => expect(getListItemTextarea()[0]).toHaveFocus())
 
-    userEvent.keyboard('{arrowup}')
+    await userEvent.keyboard('{arrowup}')
     await waitFor(() => expect(getTitleEl()).toHaveFocus())
 
-    userEvent.keyboard('{arrowup}')
+    await userEvent.keyboard('{arrowup}')
     await waitFor(() => expect(getTitleEl()).toHaveFocus())
 
-    userEvent.keyboard('{arrowdown}')
+    await userEvent.keyboard('{arrowdown}')
     await waitFor(() => expect(getListItemTextarea()[0]).toHaveFocus())
 
-    userEvent.keyboard('{arrowdown}')
+    await userEvent.keyboard('{arrowdown}')
     await waitFor(() => expect(getListItemTextarea()[1]).toHaveFocus())
 
-    userEvent.keyboard('{arrowdown}')
+    await userEvent.keyboard('{arrowdown}')
     await waitFor(() => expect(getListItemTextarea()[2]).toHaveFocus())
 
-    userEvent.keyboard('{arrowdown}')
+    await userEvent.keyboard('{arrowdown}')
     await waitFor(() => expect(getListItemTextarea()[2]).toHaveFocus())
   })
 
   it('should remove element when delete button was clicked', async () => {
 
     await waitFor(() => expect(getListItems()).toHaveLength(1))
-    userEvent.type(getListItemTextarea()[0], 'Kup chleb{Enter}')
+    await userEvent.type(getListItemTextarea()[0], 'Kup chleb{Enter}')
     await waitFor(() => expect(getListItems()).toHaveLength(2))
     await waitFor(() => expect(getListItemTextarea()[0].value).toBe('Kup chleb'))
 

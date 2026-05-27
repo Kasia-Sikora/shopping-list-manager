@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { cleanup, render, waitFor } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import App from '../../App';
-import { editCardElem, getByText } from "./utils";
+import { editCardElem } from "./utils";
 import type { List } from "../../interfaces";
-import { useStore } from '../../store'
+import { useStore } from '../../stores/store'
 
 const initialState = useStore.getState();
 
@@ -13,7 +13,7 @@ describe('<App>', () => {
   const { getEditCard, getEditIndicator, getTitleEl, getListItems, getListItemTextarea, queryCheckbox, getAddElButton, getDeleteButton, getCheckbox, checkedItemsList, uncheckedItemsList, getDoneElemExpandButton } = editCardElem
 
   const defaultStoreState = [{
-    id: "0", type: 'list', title: "First Card", content: [{
+    id: "0", title: "First Card", content: [{
       listItemId: "1",
       value: "first el in First List",
       checked: false
@@ -31,9 +31,6 @@ describe('<App>', () => {
       checked: false
     }]
   }] as List[]
-
-
-
 
   const prepareComponent = async () => {
     useStore.setState({
@@ -90,8 +87,6 @@ describe('<App>', () => {
 
   it('should move trough list using arrow up and down', async () => {
 
-    // userEvent.type(getListItemTextarea()[1], 'Kup mleko{Enter}')
-    // await waitFor(() => expect(getListItems()).toHaveLength(3))
     await user.click(getListItemTextarea()[4])
     expect(getListItemTextarea()[4]).toHaveFocus()
 
@@ -189,7 +184,6 @@ describe('<App>', () => {
     expect(getCheckbox("0", "4")).toHaveProperty("checked", false)
   })
 
-  //TODO Fill after fixing the test above
   it('should remove separate list in card when no checked items', async () => {
     await user.click(getCheckbox("0", "1"))
     await user.click(getCheckbox("0", "4"))
@@ -241,10 +235,10 @@ describe('<App>', () => {
     await user.type(getListItemTextarea()[2], "updated element")
     await user.keyboard('{Shift>}{Enter}{/Shift}')
     expect(getListItems()).toHaveLength(5)
-    expect(getByText('updated element')).toBeVisible
+    expect(getListItemTextarea()[2].value).toEqual('updated element')
   })
 
-  it('should hide and expand list with checked items', async() => {
+  it('should hide and expand list with checked items', async () => {
     await user.click(getCheckbox("0", "1"))
     await user.click(getCheckbox("0", "2"))
 
@@ -258,7 +252,7 @@ describe('<App>', () => {
     expect(checkedItemsList()).not.toBeInTheDocument()
 
     await user.click(getDoneElemExpandButton()!)
-  
+
     expect(checkedItemsList()).toBeVisible()
     expect(checkedItemsList()?.children).toHaveLength(2)
   })

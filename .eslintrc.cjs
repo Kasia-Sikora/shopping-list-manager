@@ -22,7 +22,7 @@ module.exports = {
   },
   plugins: ['react', 'react-hooks', 'jsx-a11y', 'import', 'testing-library'],
   rules: {
-    'react/prop-types': 'off', // Disable prop-types rule if you're using TypeScript
+    'react/prop-types': 'off',
     'testing-library/await-async-queries': 'error',
     'testing-library/no-await-sync-queries': 'error',
     'testing-library/no-debugging-utils': 'warn',
@@ -35,7 +35,6 @@ module.exports = {
   },
   overrides: [
     {
-      // 3) Now we enable eslint-plugin-testing-library rules or preset only for matching testing files!
       files: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
       extends: ['plugin:testing-library/react'],
     },

@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
-import { useStore } from '../src/store';
+import { useStore } from '../src/stores/store';
 const initialState = useStore.getState();
 
 afterEach(() => {
