@@ -12,7 +12,6 @@ export type ListItem = {
 
 type FieldIndex = {
   index: number;
-}
+};
 
-export type FieldListItem = FieldIndex & ListItem
-
+export type FieldListItem = FieldIndex & ListItem;

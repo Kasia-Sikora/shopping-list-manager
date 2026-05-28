@@ -3,7 +3,7 @@ import type { List, ListItem } from '../interfaces';
 
 export const generateId = () => {
   return crypto.randomUUID();
-}
+};
 
 export const splitItemsToDoneAndUndoneLists = (items: FieldArrayWithId<List, 'content', 'id'>[] | ListItem[]) => {
   const uncheckedItems = [];
@@ -45,5 +45,3 @@ export const handleKeyDown = (e: KeyboardEvent, cardId: string) => {
   }
   if (focusedEl) focusedEl.focus();
 };
-//ustaw karete na koniec linijki jeśli jest text
-//poruszanie sie po podzielonej liście nie działa dobrze

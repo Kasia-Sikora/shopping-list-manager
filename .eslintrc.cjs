@@ -10,7 +10,7 @@ module.exports = {
     'plugin:jsx-a11y/recommended',
     'plugin:import/errors',
     'plugin:import/warnings',
-    'prettier',
+    'plugin:prettier/recommended',
     'plugin:testing-library/react',
   ],
   parserOptions: {
@@ -20,9 +20,9 @@ module.exports = {
     ecmaVersion: 12,
     sourceType: 'module',
   },
-  plugins: ['react', 'react-hooks', 'jsx-a11y', 'import', 'testing-library'],
+  plugins: ['react', 'react-hooks', 'jsx-a11y', 'import', 'testing-library', 'prettier'],
   rules: {
-    'react/prop-types': 'off',
+    'react/prop-types': 'off', // Disable prop-types rule if you're using TypeScript
     'testing-library/await-async-queries': 'error',
     'testing-library/no-await-sync-queries': 'error',
     'testing-library/no-debugging-utils': 'warn',

@@ -65,7 +65,7 @@ export type StoreState = {
 };
 
 export const useStore = create<StoreState>((set) => ({
-  items: [],
+  items: DEFAULT_VALUES,
   addItem: (item) => set((state) => ({ items: [...state.items, item] })),
   updateItem: (item) => set((state) => ({ items: state.items.map((i) => (i.id === item.id ? item : i)) })),
   removeItem: (itemId, listItemId) =>
