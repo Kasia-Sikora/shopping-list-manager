@@ -1,10 +1,9 @@
 import { create } from 'zustand';
-import type { List } from './interfaces';
+import type { List } from '../interfaces';
 
 const DEFAULT_VALUES: List[] = [
   {
     id: '0',
-    type: 'list',
     title: 'First Card',
     content: [
       {
@@ -31,7 +30,6 @@ const DEFAULT_VALUES: List[] = [
   },
   {
     id: '2',
-    type: 'list',
     title: 'Second Card',
     content: [
       {
@@ -59,7 +57,6 @@ const DEFAULT_VALUES: List[] = [
 ];
 
 export type StoreState = {
-  loading: boolean;
   items: List[];
   addItem: (item: List) => void;
   updateItem: (item: List) => void;
@@ -68,7 +65,6 @@ export type StoreState = {
 };
 
 export const useStore = create<StoreState>((set) => ({
-  loading: false,
   items: DEFAULT_VALUES,
   addItem: (item) => set((state) => ({ items: [...state.items, item] })),
   updateItem: (item) => set((state) => ({ items: state.items.map((i) => (i.id === item.id ? item : i)) })),
@@ -80,8 +76,8 @@ export const useStore = create<StoreState>((set) => ({
             ...item,
             content: item.content.filter((listItem) => listItem.listItemId !== listItemId),
           };
-        } else{
-          return item
+        } else {
+          return item;
         }
       }),
     })),

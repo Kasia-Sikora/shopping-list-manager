@@ -10,7 +10,8 @@
     "format": "prettier --write .",
     "preview": "vite preview",
     "test": "vitest --config ./vitest.config.ts --ui",
-    "coverage": "vitest --coverage"
+    "coverage": "vitest --coverage",
+    "prepare": "husky"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.0",
@@ -41,6 +42,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "eslint-plugin-testing-library": "^7.16.2",
     "globals": "^17.6.0",
+    "husky": "^9.1.7",
     "jsdom": "^29.1.1",
     "postcss": "^8.5.14",
     "prettier": "^3.8.3",
