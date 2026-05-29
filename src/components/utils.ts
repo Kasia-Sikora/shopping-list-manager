@@ -11,9 +11,9 @@ export const splitItemsToDoneAndUndoneLists = (items: FieldArrayWithId<List, 'co
 
   for (let i = 0; i < items.length; i++) {
     if (items[i].checked) {
-      checkedItems.push({ ...items[i], index: i });
+      checkedItems.push({ ...items[i], fieldArrayId: i });
     } else {
-      uncheckedItems.push({ ...items[i], index: i });
+      uncheckedItems.push({ ...items[i], fieldArrayId: i });
     }
   }
 

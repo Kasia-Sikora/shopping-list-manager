@@ -18,14 +18,14 @@ const App = () => {
   }, [theme]);
 
   return (
-    <div className="text-primary">
+    <div>
       <label className="inline-flex items-center">
         <input type="checkbox" value="" onChange={switchTheme} checked={theme === 'light'} className="sr-only peer" />
         <div className="relative w-9 h-5 bg-primary focus:outline-none focus:ring-4 focus:ring-brand-soft dark:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-secondary after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand"></div>
       </label>
 
       <Card />
-      <div className="grid grid-cols-3 gap-4 pt-2">
+      <div className="flex gap-4 pt-2">
         {items?.map((item, index) => {
           return <Card key={index} editedItem={item} />;
         })}

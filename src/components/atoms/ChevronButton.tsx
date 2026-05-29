@@ -1,4 +1,4 @@
-import type { FC, MouseEventHandler } from 'react';
+import type { MouseEventHandler } from 'react';
 
 type ChevronButton = {
   toggle: MouseEventHandler<HTMLButtonElement>;
@@ -6,7 +6,7 @@ type ChevronButton = {
   quantity: number;
 };
 
-export const ChevronButton: FC<ChevronButton> = ({ toggle, contentExpanded, quantity }) => {
+export const ChevronButton = ({ toggle, contentExpanded, quantity }: ChevronButton) => {
   return (
     <button
       onClick={toggle}

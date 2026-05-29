@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState, type FC } from 'react';
-import type { FieldListItem, List, ListItem } from '../interfaces';
+import { useCallback, useEffect, useState } from 'react';
+import type { List, ListItem } from '../interfaces';
 import { generateId, handleKeyDown, splitItemsToDoneAndUndoneLists } from './utils';
-import ListElem from './ListElem';
 import { ChevronButton } from './atoms/ChevronButton';
 import { useStore } from '../stores/store';
 import { useFieldArray, useForm } from 'react-hook-form';
+import AddListItemButton from './atoms/AddListItemButton';
+import ListOfItems from './ListOfItems';
 
 interface CardContentProps {
   cardEdit: boolean;
@@ -14,7 +15,7 @@ interface CardContentProps {
   cardDataId: string;
 }
 
-const CardContent: FC<CardContentProps> = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId }) => {
+const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId }: CardContentProps) => {
   const { updateItem, addItem, checkItem } = useStore();
 
   const defaultValues: List = editedItem
@@ -122,25 +123,6 @@ const CardContent: FC<CardContentProps> = ({ cardEdit, setEditCard, editedItem, 
     }
   };
 
-  const mapListItems = (list: FieldListItem[], checkedItems: boolean) => {
-    const dataId = checkedItems ? 'checkedItems' : 'uncheckedItems';
-    return (
-      <ul className="w-full" data-testid={dataId}>
-        {list.map((field) => (
-          <ListElem
-            key={field.listItemId}
-            item={field}
-            index={field.index}
-            listId={editedItem?.id ?? ''}
-            register={register}
-            handleCheck={editedItem && handleCheck}
-            remove={remove}
-          />
-        ))}
-      </ul>
-    );
-  };
-
   return (
     <form onKeyDown={handleFormEvents}>
       <div className="flex flex-col align-baseline gap-2">
@@ -154,17 +136,31 @@ const CardContent: FC<CardContentProps> = ({ cardEdit, setEditCard, editedItem, 
             placeholder="Tytuł..."
           />
         )}
-        {uncheckedItems.length > 0 && mapListItems(uncheckedItems, false)}
-        {(cardEdit || editedItem) && (
-          <button onClick={handleCreateNewLine} className="self-start text-accent hover:text-secondary">
-            + Element listy
-          </button>
+        {uncheckedItems.length > 0 && (
+          <ListOfItems
+            listId={editedItem?.id}
+            list={uncheckedItems}
+            checkedItems={false}
+            register={register}
+            remove={remove}
+            handleCheck={editedItem && handleCheck}
+          />
         )}
+        {(cardEdit || editedItem) && <AddListItemButton handleCreateNewLine={handleCreateNewLine} />}
         {doneTaskQuantity > 0 && (
           <>
-            <div className="border-t border-mist-300 w-full" />
+            <div className="border-t border-primary w-full" />
             <ChevronButton toggle={toggleExpand} contentExpanded={contentExpanded} quantity={doneTaskQuantity} />
-            {contentExpanded && mapListItems(checkedItems, true)}
+            {contentExpanded && (
+              <ListOfItems
+                listId={editedItem?.id}
+                list={checkedItems}
+                checkedItems={true}
+                register={register}
+                remove={remove}
+                handleCheck={editedItem && handleCheck}
+              />
+            )}
           </>
         )}
       </div>

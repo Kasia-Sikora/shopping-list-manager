@@ -1,11 +1,9 @@
-import type { FC } from 'react';
-
 type EditIndicator = {
   id: string;
   isEdit: boolean;
 };
 
-const EditIndicator: FC<EditIndicator> = ({ id, isEdit }) => {
+const EditIndicator = ({ id, isEdit }: EditIndicator) => {
   return (
     <div
       data-testid={`card-${id}-edit-indicator`}
