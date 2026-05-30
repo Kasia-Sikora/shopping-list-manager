@@ -3,15 +3,24 @@ import CardContent from './CardContent';
 import type { List } from '../interfaces';
 import EditIndicator from './atoms/EditIndicator';
 import MenuButton from './atoms/MenuButton';
+import { useSortable } from '@dnd-kit/react/sortable';
 
 type Card = {
   editedItem?: List;
+  index?: number
+  styles?: string
 };
 
-const Card = ({ editedItem }: Card) => {
-  const [edit, setEdit] = useState<boolean>(false);
-
+const Card = ({ editedItem, index, styles }: Card) => {
   const cardRef = useRef<HTMLDivElement>(null);
+
+  const { isDragging } = useSortable({
+    id: editedItem?.id ?? 'empty-card',
+    index: index ?? 0,
+    element: cardRef,
+    disabled: index === undefined
+  })
+  const [edit, setEdit] = useState<boolean>(false);
 
   const handleEdit = () => {
     if (!edit) {
@@ -32,7 +41,7 @@ const Card = ({ editedItem }: Card) => {
     <section
       ref={cardRef}
       onClick={handleEdit}
-      className={`${editedItem? 'w-75': 'min-w-75'} border-t border-mist-300 shadow-md shadow-shadow flex flex-col align-baseline gap-2 height-10 rounded-lg p-4 relative ${editedItem ? 'pb-8' : 'pb-4'} ${!editedItem && 'w-3xl m-auto'}`}
+      className={`${editedItem ? 'w-75' : 'min-w-75'} border-t border-mist-300 shadow-md shadow-shadow flex flex-col align-baseline gap-2 height-10 rounded-lg p-4 relative ${editedItem ? 'pb-8' : 'pb-4'} ${!editedItem && 'max-w-3xl m-auto'} ${styles} ${isDragging && 'bg-background'}`}
       data-id={cardDataId}
       data-testid={cardDataId}
     >

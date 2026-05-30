@@ -1,7 +1,6 @@
 import type { UseFormRegister } from 'react-hook-form';
 import type { List, ListItem } from '../interfaces';
 import { useStore } from '../stores/store';
-import DropIndicator from './atoms/DropIndicator';
 import { useSortable } from '@dnd-kit/react/sortable';
 import DeleteButton from './atoms/DeleteButton';
 
@@ -27,10 +26,9 @@ const ListElement = ({ item, fieldArrayId, sortableIndex, register, listId = '',
 
   return (
     <>
-      <DropIndicator beforeId={fieldArrayId} />
-      <li ref={ref} draggable={true} className={`flex ${item.value ? 'items-baseline' : 'items-center'} gap-2`}>
-        {/* drag button */}
-        <div className='size-5 rounded-sm bg-primary/20 flex justify-center items-center text-primary after:text-s after:content-["⇅"]' />
+      {/* remove drop indicator or resolve problem with display */}
+      <li ref={ref} className={`relative flex ${item.value ? 'items-baseline' : 'items-center'} gap-2`}>
+        {<div className='cursor-grab size-5 rounded-sm bg-primary/20 flex justify-center items-center text-primary after:text-l after:content-["⣶"] after:absolute after:top-0' />}
         <input {...register(`content.${fieldArrayId}.listItemId` as const)} type="hidden" />
         <input
           type="checkbox"

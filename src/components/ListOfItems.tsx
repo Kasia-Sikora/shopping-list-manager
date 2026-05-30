@@ -36,7 +36,7 @@ const ListOfItems = ({ list, listId, checkedItems, register, remove, handleCheck
     >
       <ul
         ref={ref}
-        className={`${active ? 'bg-secondary/50' : ''} transition-all duration-300 rounded-sm w-full`}
+        className={`${active ? 'bg-active/50 outline-2 outline-dashed' : ''} transition-all duration-300 outline-active rounded-sm w-full`}
         data-testid={dataId}
       >
         {list.map((field, index) => (

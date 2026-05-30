@@ -21,10 +21,10 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId }:
   const defaultValues: List = editedItem
     ? editedItem
     : {
-        id: '',
-        title: '',
-        content: [{ listItemId: generateId(), value: '', checked: false } as ListItem],
-      };
+      id: '',
+      title: '',
+      content: [{ listItemId: generateId(), value: '', checked: false } as ListItem],
+    };
 
   const { register, getValues, control, reset } = useForm<List>({
     defaultValues,
@@ -47,6 +47,13 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId }:
   useEffect(() => {
     if (cardEdit) {
       const onKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          setEditCard(false)
+          const activeEl = document.activeElement
+          if (activeEl instanceof HTMLElement) {
+            activeEl.blur()
+          }
+        }
         if (!e || !(e.target as HTMLTextAreaElement).name) return;
         handleKeyDown(e, cardDataId);
       };
@@ -57,7 +64,7 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId }:
       listItems?.forEach((item: HTMLTextAreaElement) => item.addEventListener('keydown', onKeyDown));
       return () => listItems?.forEach((item: HTMLTextAreaElement) => item.removeEventListener('keydown', onKeyDown));
     }
-  }, [cardDataId, cardEdit, fields]);
+  }, [cardDataId, cardEdit, fields, setEditCard]);
 
   const handleSubmit = useCallback(() => {
     const data = getValues();
