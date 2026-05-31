@@ -1,13 +1,24 @@
 import { useEffect, useState } from 'react';
 import Card from './components/Card';
-import { useStore } from './stores/store';
-import { useLocalStorage } from 'usehooks-ts';
 import { DragDropProvider, useDroppable } from '@dnd-kit/react';
+import { DEFAULT_VALUES, useStore, useThemeStore } from './stores/store';
 
+let consentAskCount = 0
 const App = () => {
-  const { items } = useStore();
-  const defaultDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const [theme, setTheme] = useLocalStorage('theme', defaultDark ? 'dark' : 'light');
+  const { items, setItems } = useStore()
+  const {theme, setTheme} = useThemeStore()
+
+  useEffect(() => {
+    const localStorageItems = localStorage.getItem('shopping-lists')
+    if (!localStorageItems && !consentAskCount) {
+      const consent = window.confirm('Załadować testowe dane?')
+      consentAskCount++;
+      if (consent) {
+        setItems(DEFAULT_VALUES)
+      }
+    }
+  }, [setItems])
+
   const [active, setActive] = useState<boolean>(false)
   const { ref } = useDroppable({ id: 'board' })
 
@@ -15,6 +26,14 @@ const App = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
   };
+
+  useEffect(() => {
+    const localStorageTheme = localStorage.getItem('theme')
+    if (!localStorageTheme) {
+      const defaultDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setTheme(defaultDark ? 'dark' : 'light')
+    }
+  }, [setTheme])
 
   useEffect(() => {
     document.body.setAttribute('data-theme', `theme-${theme}`);

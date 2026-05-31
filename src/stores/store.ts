@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import type { List } from '../interfaces';
+import { persist } from 'zustand/middleware';
 
-const DEFAULT_VALUES: List[] = [
+export const DEFAULT_VALUES: List[] = [
   {
     id: '0',
     title: 'First Card',
@@ -58,41 +59,62 @@ const DEFAULT_VALUES: List[] = [
 
 export type StoreState = {
   items: List[];
+  setItems: (items: List[]) => void;
   addItem: (item: List) => void;
   updateItem: (item: List) => void;
   removeItem: (itemId: string, listItemId: string) => void;
   checkItem: (itemId: string, listItemId: string, checked: boolean) => void;
 };
 
-export const useStore = create<StoreState>((set) => ({
-  items: DEFAULT_VALUES,
-  addItem: (item) => set((state) => ({ items: [...state.items, item] })),
-  updateItem: (item) => set((state) => ({ items: state.items.map((i) => (i.id === item.id ? item : i)) })),
-  removeItem: (itemId, listItemId) =>
-    set((state) => ({
-      items: state.items.filter((item) => {
-        if (item.id === itemId) {
-          return {
-            ...item,
-            content: item.content.filter((listItem) => listItem.listItemId !== listItemId),
-          };
-        } else {
-          return item;
-        }
-      }),
-    })),
-  checkItem: (itemId: string, listItemId: string, checked: boolean) =>
-    set((state) => ({
-      items: state.items.map((item) => {
-        if (item.id === itemId) {
-          return {
-            ...item,
-            content: item.content.map((listItem) =>
-              listItem.listItemId === listItemId ? { ...listItem, checked } : listItem
-            ),
-          };
-        }
-        return item;
-      }),
-    })),
-}));
+export const useStore = create<StoreState>()(
+  persist(
+    (set) => ({
+      items: [],
+      setItems: (items)=> set(() => ({items: [...items]})),
+      addItem: (item) => set((state) => ({ items: [...state.items, item] })),
+      updateItem: (item) => set((state) => ({ items: state.items.map((i) => (i.id === item.id ? item : i)) })),
+      removeItem: (itemId, listItemId) =>
+        set((state) => ({
+          items: state.items.filter((item) => {
+            if (item.id === itemId) {
+              return {
+                ...item,
+                content: item.content.filter((listItem) => listItem.listItemId !== listItemId),
+              };
+            } else {
+              return item;
+            }
+          }),
+        })),
+      checkItem: (itemId: string, listItemId: string, checked: boolean) =>
+        set((state) => ({
+          items: state.items.map((item) => {
+            if (item.id === itemId) {
+              return {
+                ...item,
+                content: item.content.map((listItem) =>
+                  listItem.listItemId === listItemId ? { ...listItem, checked } : listItem
+                ),
+              };
+            }
+            return item;
+          }),
+        })),
+    }),
+    { name: 'shopping-lists' }
+  ));
+
+  type StoreThemeState = {
+    theme: string;
+    setTheme: (theme: string) => void;
+  }
+
+
+  export const useThemeStore = create<StoreThemeState>()(
+  persist(
+    (set) => ({
+      theme: '',
+      setTheme: (theme)=> set(() => ({theme: theme})),
+    }),
+    { name: 'theme' }
+  ));
