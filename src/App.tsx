@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import Card from './components/Card';
 import { DragDropProvider, useDroppable } from '@dnd-kit/react';
-import { DEFAULT_VALUES, useStore, useThemeStore } from './stores/store';
+import { DEFAULT_VALUES, useStore } from './stores/store';
+import ThemeToggle from './components/atoms/ThemeToggle';
 
 let consentAskCount = 0
 const App = () => {
   const { items, setItems } = useStore()
-  const {theme, setTheme} = useThemeStore()
 
   useEffect(() => {
     const localStorageItems = localStorage.getItem('shopping-lists')
@@ -22,29 +22,9 @@ const App = () => {
   const [active, setActive] = useState<boolean>(false)
   const { ref } = useDroppable({ id: 'board' })
 
-  const switchTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-  };
-
-  useEffect(() => {
-    const localStorageTheme = localStorage.getItem('theme')
-    if (!localStorageTheme) {
-      const defaultDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setTheme(defaultDark ? 'dark' : 'light')
-    }
-  }, [setTheme])
-
-  useEffect(() => {
-    document.body.setAttribute('data-theme', `theme-${theme}`);
-  }, [theme]);
-
   return (
     <div className='text-primary placeholder:text-primary'>
-      <label className="inline-flex items-center">
-        <input type="checkbox" value="" onChange={switchTheme} checked={theme === 'light'} className="sr-only peer" />
-        <div className="relative w-9 h-5 bg-primary focus:outline-none focus:ring-4 focus:ring-brand-soft dark:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-secondary after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand"></div>
-      </label>
+      <ThemeToggle />
 
       <Card />
       <DragDropProvider

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { List } from '../interfaces';
 import { persist } from 'zustand/middleware';
+import { LOCAL_STORAGE_STORE_KEY, LOCAL_STORAGE_THEME_KEY } from '../consts';
 
 export const DEFAULT_VALUES: List[] = [
   {
@@ -101,7 +102,7 @@ export const useStore = create<StoreState>()(
           }),
         })),
     }),
-    { name: 'shopping-lists' }
+    { name: LOCAL_STORAGE_STORE_KEY }
   ));
 
   type StoreThemeState = {
@@ -116,5 +117,5 @@ export const useStore = create<StoreState>()(
       theme: '',
       setTheme: (theme)=> set(() => ({theme: theme})),
     }),
-    { name: 'theme' }
+    { name: LOCAL_STORAGE_THEME_KEY }
   ));
