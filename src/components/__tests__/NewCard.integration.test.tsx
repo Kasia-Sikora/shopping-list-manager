@@ -3,9 +3,6 @@ import { render } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import App from '../../App';
 import { elements } from './utils';
-import { useStore } from '../../stores/store';
-
-const initialState = useStore.getState();
 
 describe('<App>', () => {
   const {getCard, getTitleEl, getListItemTextarea, getAddElButton, getDeleteButton} = elements
@@ -25,7 +22,6 @@ describe('<App>', () => {
   };
 
   beforeEach(async () => {
-    useStore.setState({ ...initialState, items: [] }, true);
     await prepareComponent();
   });
 

@@ -16,7 +16,7 @@ type ListElement = {
 
 const ListElement = ({ item, fieldArrayId, sortableIndex, register, listId = '', handleCheck, remove }: ListElement) => {
   const { removeItem } = useStore();
-  const { ref } = useSortable({ id: `card-${listId}-item-${item.listItemId}`, index: sortableIndex });
+  const { ref } = useSortable({ id: `card-${listId}-item-${item.listItemId}`, index: sortableIndex, data: { fieldArrayId }, disabled: !listId });
 
   const handleRemoveItem = (e: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLButtonElement>) => {
     e.preventDefault();

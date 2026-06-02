@@ -20,7 +20,7 @@ export const elements = {
   getDoneElemExpandButton: (id?: string) =>
     within(elements.getCard(id)).queryByText('ukończonych elementów', { exact: false }),
   queryItemsList: (isChecked: boolean, id: string = '0') => {
-    const list = screen.queryByTestId(`card-${id}-${isChecked ? 'checkedItems' : 'uncheckedItems'}}`)
+    const list = screen.queryByTestId(`card-${id}-${isChecked ? 'checkedItems' : 'uncheckedItems'}`)
     if (list) {
       return within(list).queryAllByPlaceholderText('Utwórz listę...') as HTMLUListElement[]
     }

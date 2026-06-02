@@ -3,6 +3,8 @@ import ListElem from './ListElem';
 import { useState } from 'react';
 import type { FieldListItem, List } from '../interfaces';
 import type { UseFieldArrayRemove, UseFormRegister } from 'react-hook-form';
+import { isSortableOperation } from '@dnd-kit/react/sortable';
+import { useStore } from '../stores/store';
 
 type ListOfItem = {
   list: FieldListItem[];
@@ -14,18 +16,26 @@ type ListOfItem = {
 };
 
 const ListOfItems = ({ list, listId, checkedItems, register, remove, handleCheck }: ListOfItem) => {
+  const { moveListItem } = useStore()
   const { ref } = useDroppable({
     id: `card-${listId ?? 'empty'}`,
   });
   const [active, setActive] = useState<boolean>(false);
 
-  const dataId = `card-${listId}-${checkedItems ? 'checkedItems' : 'uncheckedItems'}}`;
+  const dataId = `card-${listId}-${checkedItems ? 'checkedItems' : 'uncheckedItems'}`;
   return (
     <DragDropProvider
       onDragEnd={(event) => {
         if (event.canceled) return;
         if (active) {
           setActive(false);
+        }
+        const { operation } = event
+        if (isSortableOperation(operation)) {
+          const {source, target} = operation
+          if (source && target && listId) {
+            moveListItem(listId, source.data.fieldArrayId, target.index)
+          }
         }
       }}
       onDragOver={() => {

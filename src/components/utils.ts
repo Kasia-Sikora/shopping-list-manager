@@ -1,5 +1,5 @@
 import type { FieldArrayWithId } from 'react-hook-form';
-import type { List, ListItem } from '../interfaces';
+import type { List, ListItem, PersistedShoppingListStore } from '../interfaces';
 
 export const generateId = () => {
   return crypto.randomUUID();
@@ -44,4 +44,15 @@ export const handleKeyDown = (e: KeyboardEvent, cardId: string) => {
   }
 
   if (focusedEl) focusedEl.focus();
+};
+
+export const sortList = (list: ListItem[]) => {
+  if (!list) return [];
+  const uncheckedList = list.filter((item) => !item.checked);
+  const checkedItems = list.filter((item) => item.checked);
+  return [...uncheckedList, ...checkedItems];
+};
+
+export const sortCards = (storage: PersistedShoppingListStore) => {
+  return storage.state?.items? storage.state.items.map((item) => ({...item, content: sortList(item.content)})): [];
 };

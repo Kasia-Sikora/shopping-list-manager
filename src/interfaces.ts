@@ -15,3 +15,9 @@ type FieldIndex = {
 };
 
 export type FieldListItem = FieldIndex & ListItem;
+
+export type PersistedShoppingListStore = {
+  state: {
+    items: List[]
+  }
+}

@@ -3,10 +3,8 @@ import { cleanup, render, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import App from '../../App';
 import { editedElements } from './utils';
-import type { List } from '../../interfaces';
+import { LOCAL_STORAGE_STORE_KEY } from '../../consts';
 import { useStore } from '../../stores/store';
-
-const initialState = useStore.getState();
 
 describe('<App>', () => {
   const user = userEvent.setup();
@@ -23,43 +21,46 @@ describe('<App>', () => {
     getDoneElemExpandButton,
   } = editedElements;
 
-  const defaultStoreState = [
-    {
-      id: '0',
-      title: 'First Card',
-      content: [
+  const defaultStoreState = {
+    state: {
+      items: [
         {
-          listItemId: '1',
-          value: 'first el in First List',
-          checked: false,
+          id: '0',
+          title: 'First Card',
+          content: [
+            {
+              listItemId: '1',
+              value: 'first el in First List',
+              checked: false,
+            },
+            {
+              listItemId: '2',
+              value: 'second el in First List',
+              checked: false,
+            },
+            {
+              listItemId: '3',
+              value: 'third el in First List',
+              checked: false,
+            },
+            {
+              listItemId: '4',
+              value: 'fourth el in First List',
+              checked: false,
+            },
+          ],
         },
-        {
-          listItemId: '2',
-          value: 'second el in First List',
-          checked: false,
-        },
-        {
-          listItemId: '3',
-          value: 'third el in First List',
-          checked: false,
-        },
-        {
-          listItemId: '4',
-          value: 'fourth el in First List',
-          checked: false,
-        },
-      ],
-    },
-  ] as List[];
+      ]
+    }
+  }
 
   const prepareComponent = async () => {
-    useStore.setState({
-      ...initialState,
-      items: defaultStoreState,
-    });
+    const dataToLoad = JSON.stringify(defaultStoreState)
+    localStorage.setItem(LOCAL_STORAGE_STORE_KEY, dataToLoad)
 
     render(<App />);
-    await waitFor(() => expect(getEditCard(defaultStoreState[0].id)).toBeVisible);
+    expect(localStorage.getItem(LOCAL_STORAGE_STORE_KEY)).not.toBeNull()
+    await waitFor(() => expect(getEditCard(defaultStoreState.state.items[0].id)).toBeVisible());
 
     await user.click(getEditCard());
     expect(getListItemTextarea()[3]).toBeVisible();
@@ -70,13 +71,16 @@ describe('<App>', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     cleanup();
-    useStore.setState(initialState, true);
     await prepareComponent();
+  });
+
+  afterEach(() => {
+    localStorage.clear()
   });
 
   it('should create new line when Enter key was hit', async () => {
     await user.type(getListItemTextarea("0")[4], 'Kup chleb{enter}');
-   expect(getListItemTextarea()).toHaveLength(6);
+    expect(getListItemTextarea()).toHaveLength(6);
   });
 
   it('should create new line when "+ Element List" button was clicked', async () => {
@@ -184,12 +188,14 @@ describe('<App>', () => {
     expect(queryItemsList(false)?.[0]).toBeVisible();
     expect(getListItemTextarea()).toHaveLength(5);
     expect(queryCheckbox('5')).toBeNull();
+    expect(useStore.getState().items[0].content.every(item => !item.checked))
 
     await user.click(getCheckbox('2')!);
     await user.click(getCheckbox('3')!);
 
     expect(getDoneElemExpandButton()).toBeVisible();
     expect(getDoneElemExpandButton()).toHaveTextContent('2 ukończonych elementów');
+    expect(useStore.getState().items[0].content.filter(item => item.checked).length).toEqual(2)
 
     expect(queryItemsList(true)).toHaveLength(2);
     expect(queryItemsList(true)?.[0]).toBeVisible();
