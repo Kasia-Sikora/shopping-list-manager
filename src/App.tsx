@@ -3,19 +3,25 @@ import Card from './components/Card';
 import { DragDropProvider, useDroppable } from '@dnd-kit/react';
 import { DEFAULT_VALUES, useStore } from './stores/store';
 import ThemeToggle from './components/atoms/ThemeToggle';
+import { sortCards } from './components/utils';
+import { LOCAL_STORAGE_STORE_KEY } from './consts';
 
 let consentAskCount = 0
 const App = () => {
   const { items, setItems } = useStore()
 
   useEffect(() => {
-    const localStorageItems = localStorage.getItem('shopping-lists')
+    const getItem = localStorage.getItem(LOCAL_STORAGE_STORE_KEY)
+    const localStorageItems = getItem? JSON.parse(getItem): null
     if (!localStorageItems && !consentAskCount) {
       const consent = window.confirm('Załadować testowe dane?')
       consentAskCount++;
       if (consent) {
-        setItems(DEFAULT_VALUES)
+        setItems(sortCards(DEFAULT_VALUES))
       }
+    }
+    else if (localStorageItems) {
+      setItems(sortCards(localStorageItems))
     }
   }, [setItems])
 

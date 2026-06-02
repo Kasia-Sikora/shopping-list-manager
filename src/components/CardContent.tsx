@@ -98,7 +98,7 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId }:
   const handleCheck = (index: number, itemId: string, checked: boolean) => {
     const { listItemId, value } = getValues(`content.${index}`);
     update(index, { listItemId, checked: checked, value });
-    checkItem(itemId, listItemId, checked);
+    checkItem(itemId, index, checked);
   };
 
   const handleCreateNewLine = (e: React.KeyboardEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
