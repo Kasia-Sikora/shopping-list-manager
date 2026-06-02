@@ -6,6 +6,7 @@
   --color-secondary: var(--text-secondary);
   --color-accent: var(--accent);
   --color-shadow: var(--shadow);
+  --color-active: var(--active);
 }
 
 @layer base {
@@ -16,6 +17,7 @@
     --text-secondary: var(--color-amber-700);
     --accent: var(--color-amber-500);
     --shadow: var(--color-mist-500);
+    --active: var(--color-white);
   }
 
   [data-theme='theme-dark'] {
@@ -24,6 +26,7 @@
     --text-secondary: var(--color-amber-700);
     --accent: var(--color-amber-500);
     --shadow: var(--color-mist-400);
+    --active: var(--color-white)/50;
   }
 }
 

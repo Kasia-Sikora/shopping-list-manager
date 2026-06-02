@@ -11,7 +11,7 @@ export type ListItem = {
 };
 
 type FieldIndex = {
-  index: number;
+  fieldArrayId: number;
 };
 
 export type FieldListItem = FieldIndex & ListItem;

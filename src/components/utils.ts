@@ -11,9 +11,9 @@ export const splitItemsToDoneAndUndoneLists = (items: FieldArrayWithId<List, 'co
 
   for (let i = 0; i < items.length; i++) {
     if (items[i].checked) {
-      checkedItems.push({ ...items[i], index: i });
+      checkedItems.push({ ...items[i], fieldArrayId: i });
     } else {
-      uncheckedItems.push({ ...items[i], index: i });
+      uncheckedItems.push({ ...items[i], fieldArrayId: i });
     }
   }
 
@@ -25,23 +25,23 @@ const getFocusedElement = (id: string, selector: string) => {
 };
 
 export const handleKeyDown = (e: KeyboardEvent, cardId: string) => {
-  const elName = (e.target as HTMLTextAreaElement).name;
-  const indexOfEl: number = parseInt(elName.split('.')[1]);
+  const elem = e.target as HTMLTextAreaElement;
+  const listArr = Array.from(document.querySelectorAll(`[data-id='${cardId}'] textarea`));
+  const indexOfCurrEl = listArr.indexOf(elem);
   let focusedEl;
   if (e.key === 'ArrowDown') {
-    if (isNaN(indexOfEl)) {
-      focusedEl = getFocusedElement(cardId, "[name='content.0.value']");
-    } else {
-      const indexOfNextEl = indexOfEl + 1;
-      focusedEl = getFocusedElement(cardId, `[name='content.${indexOfNextEl}.value']`);
+    if (indexOfCurrEl < 0) {
+      focusedEl = getFocusedElement(cardId, "[name='title']") as HTMLTextAreaElement;
+    } else if (indexOfCurrEl < listArr.length - 1) {
+      focusedEl = listArr[indexOfCurrEl + 1] as HTMLTextAreaElement;
     }
   } else if (e.key === 'ArrowUp') {
-    if (indexOfEl === 0) {
-      focusedEl = getFocusedElement(cardId, "[name='title']");
+    if (indexOfCurrEl < listArr.length) {
+      focusedEl = listArr[indexOfCurrEl - 1] as HTMLTextAreaElement;
     } else {
-      const indexOfPrevEl = indexOfEl - 1;
-      focusedEl = getFocusedElement(cardId, `[name='content.${indexOfPrevEl}.value']`);
+      focusedEl = listArr[listArr.length - 1] as HTMLTextAreaElement;
     }
   }
+
   if (focusedEl) focusedEl.focus();
 };

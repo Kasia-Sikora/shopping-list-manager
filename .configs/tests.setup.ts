@@ -23,4 +23,13 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
+
+class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+window.ResizeObserver = ResizeObserver;
+
 vi.mock('zustand');
