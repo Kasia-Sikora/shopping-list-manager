@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { render } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import App from '../../App';
-import { elements } from './utils';
+import { elements } from './testHelpers';
 
 describe('<App>', () => {
   const {getCard, getTitleEl, getListItemTextarea, getAddElButton, getDeleteButton} = elements

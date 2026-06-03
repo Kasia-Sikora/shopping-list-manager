@@ -13,6 +13,8 @@ type Card = {
 
 const Card = ({ editedItem, index, styles }: Card) => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const [openMenu, setOpenMenu] = useState<boolean>(false)
+  const [removeCheckedItemsFromFieldArray, setRemoveItemsFromFieldArray] = useState<boolean>(false)
 
   const { isDragging } = useSortable({
     id: editedItem?.id ?? 'empty-card',
@@ -41,7 +43,7 @@ const Card = ({ editedItem, index, styles }: Card) => {
     <section
       ref={cardRef}
       onClick={handleEdit}
-      className={`${editedItem ? 'w-75' : 'min-w-75'} border-t border-mist-300 shadow-md shadow-shadow flex flex-col align-baseline gap-2 height-10 rounded-lg p-4 relative ${editedItem ? 'pb-8' : 'pb-4'} ${!editedItem && 'max-w-3xl m-auto'} ${styles} ${isDragging && 'bg-background'}`}
+      className={`${editedItem ? 'w-75' : 'min-w-75'} border-t border-mist-300 shadow-md shadow-shadow flex flex-col align-baseline gap-2 height-10 rounded-lg p-4 relative ${editedItem ? 'pb-8' : 'pb-4'} ${!editedItem ? 'max-w-3xl m-auto' : ''} ${styles} ${isDragging && 'bg-background'}`}
       data-id={cardDataId}
       data-testid={cardDataId}
     >
@@ -52,8 +54,11 @@ const Card = ({ editedItem, index, styles }: Card) => {
         editedItem={editedItem}
         cardRef={cardRef}
         cardDataId={cardDataId}
+        setOpenMenu={setOpenMenu}
+        removeCheckedItemsFromFieldArray={removeCheckedItemsFromFieldArray}
+        setRemoveCheckedItemsFromFieldArray={setRemoveItemsFromFieldArray}
       />
-      {editedItem && <MenuButton />}
+      {editedItem && <MenuButton cardId={editedItem.id} openMenu={openMenu} setOpenMenu={setOpenMenu} setRemoveCheckedItemsFromFieldArray={setRemoveItemsFromFieldArray}/>}
     </section>
   );
 };

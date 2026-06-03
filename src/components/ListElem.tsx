@@ -26,8 +26,8 @@ const ListElement = ({ item, fieldArrayId, sortableIndex, register, listId = '',
 
   return (
     <>
-      {/* remove drop indicator or resolve problem with display */}
-      <li ref={ref} className={`relative flex ${item.value ? 'items-baseline' : 'items-center'} gap-2`}>
+      {/* TODO remove custom className */}
+      <li ref={ref} className={`listItem relative flex ${item.value ? 'items-baseline' : 'items-center'} gap-2`}>
         {<div className='cursor-grab size-5 rounded-sm bg-primary/20 flex justify-center items-center text-primary after:text-l after:content-["⣶"] after:absolute after:top-0' />}
         <input {...register(`content.${fieldArrayId}.listItemId` as const)} type="hidden" />
         <input

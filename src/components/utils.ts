@@ -20,27 +20,16 @@ export const splitItemsToDoneAndUndoneLists = (items: FieldArrayWithId<List, 'co
   return { uncheckedItems, checkedItems };
 };
 
-const getFocusedElement = (id: string, selector: string) => {
-  return document.querySelector(`[data-id='${id}'] ${selector}`) as HTMLTextAreaElement;
-};
 
-export const handleKeyDown = (e: KeyboardEvent, cardId: string) => {
+export const handleKeyDown = (e: KeyboardEvent, list: Element[]) => {
+  if (!list || !list.length) return;
   const elem = e.target as HTMLTextAreaElement;
-  const listArr = Array.from(document.querySelectorAll(`[data-id='${cardId}'] textarea`));
-  const indexOfCurrEl = listArr.indexOf(elem);
+  const indexOfCurrEl = list.indexOf(elem);
   let focusedEl;
   if (e.key === 'ArrowDown') {
-    if (indexOfCurrEl < 0) {
-      focusedEl = getFocusedElement(cardId, "[name='title']") as HTMLTextAreaElement;
-    } else if (indexOfCurrEl < listArr.length - 1) {
-      focusedEl = listArr[indexOfCurrEl + 1] as HTMLTextAreaElement;
-    }
+    focusedEl = list[indexOfCurrEl + 1] as HTMLTextAreaElement;
   } else if (e.key === 'ArrowUp') {
-    if (indexOfCurrEl < listArr.length) {
-      focusedEl = listArr[indexOfCurrEl - 1] as HTMLTextAreaElement;
-    } else {
-      focusedEl = listArr[listArr.length - 1] as HTMLTextAreaElement;
-    }
+    focusedEl = list[indexOfCurrEl - 1] as HTMLTextAreaElement;
   }
 
   if (focusedEl) focusedEl.focus();
@@ -54,5 +43,5 @@ export const sortList = (list: ListItem[]) => {
 };
 
 export const sortCards = (storage: PersistedShoppingListStore) => {
-  return storage.state?.items? storage.state.items.map((item) => ({...item, content: sortList(item.content)})): [];
+  return storage.state?.items ? storage.state.items.map((item) => ({ ...item, content: sortList(item.content) })) : [];
 };

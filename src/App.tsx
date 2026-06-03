@@ -49,7 +49,7 @@ const App = () => {
       >
         <div ref={ref} className={`${active ? 'bg-active/50 outline-2 outline-active outline-dashed' : ''}  rounded-sm w-full columns-1 sm:columns-2 lg:columns-4 my-10 gap-4`}>
           {items?.map((item, index) => {
-            return <Card key={index} index={index} editedItem={item} styles={'mb-4 break-inside-avoid'} />;
+            return <Card key={`${item.id}-${index}`} index={index} editedItem={item} styles={'mb-4 break-inside-avoid'} />;
           })}
         </div>
       </DragDropProvider>
