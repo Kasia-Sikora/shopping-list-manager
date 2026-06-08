@@ -1,8 +1,7 @@
 import { DragDropProvider, useDroppable } from '@dnd-kit/react';
 import ListElem from './ListElem';
 import { useState } from 'react';
-import type { FieldListItem, List } from '../interfaces';
-import type { UseFieldArrayRemove, UseFormRegister } from 'react-hook-form';
+import type { FieldListItem } from '../interfaces';
 import { isSortableOperation } from '@dnd-kit/react/sortable';
 import { useStore } from '../stores/store';
 
@@ -10,12 +9,9 @@ type ListOfItem = {
   list: FieldListItem[];
   listId?: string;
   checkedItems: boolean;
-  register: UseFormRegister<List>;
-  remove: UseFieldArrayRemove;
-  handleCheck?: (index: number, listId: string, checked: boolean) => void;
 };
 
-const ListOfItems = ({ list, listId, checkedItems, register, remove, handleCheck }: ListOfItem) => {
+const ListOfItems = ({ list, listId, checkedItems }: ListOfItem) => {
   const { moveListItem } = useStore()
   const { ref } = useDroppable({
     id: `card-${listId ?? 'empty'}`,
@@ -32,7 +28,7 @@ const ListOfItems = ({ list, listId, checkedItems, register, remove, handleCheck
         }
         const { operation } = event
         if (isSortableOperation(operation)) {
-          const {source, target} = operation
+          const { source, target } = operation
           if (source && target && listId) {
             moveListItem(listId, source.data.fieldArrayId, target.index)
           }
@@ -56,9 +52,6 @@ const ListOfItems = ({ list, listId, checkedItems, register, remove, handleCheck
             sortableIndex={index}
             fieldArrayId={field.fieldArrayId}
             listId={listId ?? ''}
-            register={register}
-            handleCheck={handleCheck}
-            remove={remove}
           />
         ))}
       </ul>

@@ -31,7 +31,6 @@ export const handleKeyDown = (e: KeyboardEvent, list: Element[]) => {
   } else if (e.key === 'ArrowUp') {
     focusedEl = list[indexOfCurrEl - 1] as HTMLTextAreaElement;
   }
-
   if (focusedEl) focusedEl.focus();
 };
 

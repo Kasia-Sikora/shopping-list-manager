@@ -6,6 +6,8 @@ import { useStore } from '../stores/store';
 import { useFieldArray, useForm } from 'react-hook-form';
 import AddListItemButton from './atoms/AddListItemButton';
 import ListOfItems from './ListOfItems';
+import MenuButton from './atoms/MenuButton';
+import { FieldArrayFormProvider, type FieldArrayFormProviderProps } from '../AllFormMethodsProvider';
 
 interface CardContentProps {
   cardEdit: boolean;
@@ -13,13 +15,10 @@ interface CardContentProps {
   editedItem?: List;
   cardRef: React.RefObject<HTMLDivElement | null>;
   cardDataId: string;
-  setOpenMenu: (value: boolean) => void
-  removeCheckedItemsFromFieldArray: boolean;
-  setRemoveCheckedItemsFromFieldArray: (value: boolean) => void
 }
 
-const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, setOpenMenu, removeCheckedItemsFromFieldArray, setRemoveCheckedItemsFromFieldArray }: CardContentProps) => {
-  const { updateItem, addItem, checkItem } = useStore();
+const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId }: CardContentProps) => {
+  const { updateItem, addItem, removeCard } = useStore();
 
   const defaultValues: List = editedItem
     ? editedItem
@@ -29,26 +28,20 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, s
       content: [{ listItemId: generateId(), value: '', checked: false } as ListItem],
     };
 
-  const { register, getValues, control, reset } = useForm<List>({
+  const methods = useForm<FieldArrayFormProviderProps<List[]>>({
     defaultValues,
   });
+  const { register, getValues, control, reset } = methods;
 
-  const { fields, insert, update, remove } = useFieldArray({
+  const fieldArrayMethods = useFieldArray<List[], 'content'>({
     control,
     name: 'content',
   });
 
-  //TODO find a better solution. 
-  useEffect(() => {
-    if (removeCheckedItemsFromFieldArray) {
-      for (let i = fields.length - 1; i >= 0; i--) {
-        if (fields[i].checked) {
-          remove(i)
-        }
-      }
-      setRemoveCheckedItemsFromFieldArray(false)
-    }
-  }, [fields, remove, removeCheckedItemsFromFieldArray, setRemoveCheckedItemsFromFieldArray])
+
+  const { fields, insert } = fieldArrayMethods
+
+  const [openMenu, setOpenMenu] = useState<boolean>(false)
 
   const { uncheckedItems, checkedItems } = splitItemsToDoneAndUndoneLists(fields);
   const [contentExpanded, setContentExpanded] = useState<boolean>(true);
@@ -63,7 +56,9 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, s
     if (cardEdit) {
       const listItems = document.querySelectorAll(
         `[data-testid='${cardDataId}'] textarea`
-      ) as NodeListOf<HTMLTextAreaElement>; const onKeyDown = (e: KeyboardEvent) => {
+      ) as NodeListOf<HTMLTextAreaElement>;
+
+      const onKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Escape") {
           setEditCard(false)
           const activeEl = document.activeElement
@@ -82,10 +77,8 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, s
 
   const handleSubmit = useCallback(() => {
     const data = getValues();
-    if (!data.title && data.content.every((el: ListItem) => !el.value)) {
-      reset();
-    } else {
-      data.content = data.content.filter((el: ListItem) => el.value);
+    data.content = data.content?.filter((el: ListItem) => el.value);
+    if (data.title || data.content.length) {
       if (editedItem) {
         updateItem({ ...editedItem, ...data });
         reset({ content: data.content, title: data.title });
@@ -93,8 +86,13 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, s
         addItem({ id: generateId(), title: data.title, content: data.content });
         reset();
       }
+    } else {
+      if (editedItem) {
+        removeCard(editedItem.id)
+      }
+      reset();
     }
-  }, [addItem, editedItem, getValues, reset, updateItem]);
+  }, [addItem, editedItem, getValues, reset, updateItem, removeCard]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -114,12 +112,6 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, s
 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [cardRef, setEditCard, cardEdit, handleSubmit, setOpenMenu, editedItem?.id]);
-
-  const handleCheck = (index: number, itemId: string, checked: boolean) => {
-    const { listItemId, value } = getValues(`content.${index}`);
-    update(index, { listItemId, checked: checked, value });
-    checkItem(itemId, index, checked);
-  };
 
   const handleCreateNewLine = (e: React.KeyboardEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -151,47 +143,44 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, s
   };
 
   return (
-    <form onKeyDown={handleFormEvents}>
-      <div className="flex flex-col align-baseline gap-2">
-        {!cardEdit && editedItem && (
-          <h2 className="p-2 text-2xl font-bold border-0 text-secondary">{editedItem.title}</h2>
-        )}
-        {cardEdit && (
-          <textarea
-            className="p-2 text-2xl font-bold border-0 text-secondary"
-            {...register('title')}
-            placeholder="Tytuł..."
-          />
-        )}
-        {uncheckedItems.length > 0 && (
-          <ListOfItems
-            listId={editedItem?.id}
-            list={uncheckedItems}
-            checkedItems={false}
-            register={register}
-            remove={remove}
-            handleCheck={editedItem && handleCheck}
-          />
-        )}
-        {(cardEdit || editedItem) && <AddListItemButton handleCreateNewLine={handleCreateNewLine} />}
-        {doneTaskQuantity > 0 && (
-          <>
-            <div className="border-t border-primary w-full" />
-            <ChevronButton toggle={toggleExpand} contentExpanded={contentExpanded} quantity={doneTaskQuantity} />
-            {contentExpanded && (
-              <ListOfItems
-                listId={editedItem?.id}
-                list={checkedItems}
-                checkedItems={true}
-                register={register}
-                remove={remove}
-                handleCheck={editedItem && handleCheck}
-              />
-            )}
-          </>
-        )}
-      </div>
-    </form>
+    <FieldArrayFormProvider {...methods} {...fieldArrayMethods}>
+      <form onKeyDown={handleFormEvents}>
+        <div className="flex flex-col align-baseline gap-2">
+          {!cardEdit && editedItem && (
+            <h2 className="p-2 text-2xl wrap-break-word font-bold border-0 text-secondary">{editedItem.title}</h2>
+          )}
+          {cardEdit && (
+            <textarea
+              className="p-2 text-2xl font-bold border-0 text-secondary"
+              {...register('title')}
+              placeholder="Tytuł..."
+            />
+          )}
+          {uncheckedItems.length > 0 && (
+            <ListOfItems
+              listId={editedItem?.id}
+              list={uncheckedItems}
+              checkedItems={false}
+            />
+          )}
+          {(cardEdit || editedItem) && <AddListItemButton handleCreateNewLine={handleCreateNewLine} />}
+          {doneTaskQuantity > 0 && (
+            <>
+              <div className="border-t border-primary w-full" />
+              <ChevronButton toggle={toggleExpand} contentExpanded={contentExpanded} quantity={doneTaskQuantity} />
+              {contentExpanded && (
+                <ListOfItems
+                  listId={editedItem?.id}
+                  list={checkedItems}
+                  checkedItems={true}
+                />
+              )}
+            </>
+          )}
+        </div>
+      </form>
+      {editedItem && <MenuButton cardId={editedItem.id} openMenu={openMenu} setOpenMenu={setOpenMenu} />}
+    </FieldArrayFormProvider>
   );
 };
 

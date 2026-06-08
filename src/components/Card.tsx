@@ -2,7 +2,6 @@ import { useRef, useState } from 'react';
 import CardContent from './CardContent';
 import type { List } from '../interfaces';
 import EditIndicator from './atoms/EditIndicator';
-import MenuButton from './atoms/MenuButton';
 import { useSortable } from '@dnd-kit/react/sortable';
 
 type Card = {
@@ -13,8 +12,6 @@ type Card = {
 
 const Card = ({ editedItem, index, styles }: Card) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [openMenu, setOpenMenu] = useState<boolean>(false)
-  const [removeCheckedItemsFromFieldArray, setRemoveItemsFromFieldArray] = useState<boolean>(false)
 
   const { isDragging } = useSortable({
     id: editedItem?.id ?? 'empty-card',
@@ -54,11 +51,7 @@ const Card = ({ editedItem, index, styles }: Card) => {
         editedItem={editedItem}
         cardRef={cardRef}
         cardDataId={cardDataId}
-        setOpenMenu={setOpenMenu}
-        removeCheckedItemsFromFieldArray={removeCheckedItemsFromFieldArray}
-        setRemoveCheckedItemsFromFieldArray={setRemoveItemsFromFieldArray}
       />
-      {editedItem && <MenuButton cardId={editedItem.id} openMenu={openMenu} setOpenMenu={setOpenMenu} setRemoveCheckedItemsFromFieldArray={setRemoveItemsFromFieldArray}/>}
     </section>
   );
 };
