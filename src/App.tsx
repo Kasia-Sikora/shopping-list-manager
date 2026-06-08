@@ -1,31 +1,36 @@
 import { useEffect, useState } from 'react';
 import Card from './components/Card';
-import { useStore } from './stores/store';
-import { useLocalStorage } from 'usehooks-ts';
 import { DragDropProvider, useDroppable } from '@dnd-kit/react';
+import { DEFAULT_VALUES, useStore } from './stores/store';
+import ThemeToggle from './components/atoms/ThemeToggle';
+import { sortCards } from './components/utils';
+import { LOCAL_STORAGE_STORE_KEY } from './consts';
 
+let consentAskCount = 0
 const App = () => {
-  const { items } = useStore();
-  const defaultDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const [theme, setTheme] = useLocalStorage('theme', defaultDark ? 'dark' : 'light');
+  const { items, setItems } = useStore()
+
+  useEffect(() => {
+    const getItem = localStorage.getItem(LOCAL_STORAGE_STORE_KEY)
+    const localStorageItems = getItem? JSON.parse(getItem): null
+    if (!localStorageItems && !consentAskCount) {
+      const consent = window.confirm('Załadować testowe dane?')
+      consentAskCount++;
+      if (consent) {
+        setItems(sortCards(DEFAULT_VALUES))
+      }
+    }
+    else if (localStorageItems) {
+      setItems(sortCards(localStorageItems))
+    }
+  }, [setItems])
+
   const [active, setActive] = useState<boolean>(false)
   const { ref } = useDroppable({ id: 'board' })
 
-  const switchTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-  };
-
-  useEffect(() => {
-    document.body.setAttribute('data-theme', `theme-${theme}`);
-  }, [theme]);
-
   return (
     <div className='text-primary placeholder:text-primary'>
-      <label className="inline-flex items-center">
-        <input type="checkbox" value="" onChange={switchTheme} checked={theme === 'light'} className="sr-only peer" />
-        <div className="relative w-9 h-5 bg-primary focus:outline-none focus:ring-4 focus:ring-brand-soft dark:ring-brand-soft rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-buffer after:content-[''] after:absolute after:top-0.5 after:inset-s-0.5 after:bg-secondary after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand"></div>
-      </label>
+      <ThemeToggle />
 
       <Card />
       <DragDropProvider
@@ -44,7 +49,7 @@ const App = () => {
       >
         <div ref={ref} className={`${active ? 'bg-active/50 outline-2 outline-active outline-dashed' : ''}  rounded-sm w-full columns-1 sm:columns-2 lg:columns-4 my-10 gap-4`}>
           {items?.map((item, index) => {
-            return <Card key={index} index={index} editedItem={item} styles={'mb-4 break-inside-avoid'} />;
+            return <Card key={`${item.id}-${index}`} index={index} editedItem={item} styles={'mb-4 break-inside-avoid'} />;
           })}
         </div>
       </DragDropProvider>
