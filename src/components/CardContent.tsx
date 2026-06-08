@@ -13,9 +13,12 @@ interface CardContentProps {
   editedItem?: List;
   cardRef: React.RefObject<HTMLDivElement | null>;
   cardDataId: string;
+  setOpenMenu: (value: boolean) => void
+  removeCheckedItemsFromFieldArray: boolean;
+  setRemoveCheckedItemsFromFieldArray: (value: boolean) => void
 }
 
-const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId }: CardContentProps) => {
+const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, setOpenMenu, removeCheckedItemsFromFieldArray, setRemoveCheckedItemsFromFieldArray }: CardContentProps) => {
   const { updateItem, addItem, checkItem } = useStore();
 
   const defaultValues: List = editedItem
@@ -35,6 +38,18 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId }:
     name: 'content',
   });
 
+  //TODO find a better solution. 
+  useEffect(() => {
+    if (removeCheckedItemsFromFieldArray) {
+      for (let i = fields.length - 1; i >= 0; i--) {
+        if (fields[i].checked) {
+          remove(i)
+        }
+      }
+      setRemoveCheckedItemsFromFieldArray(false)
+    }
+  }, [fields, remove, removeCheckedItemsFromFieldArray, setRemoveCheckedItemsFromFieldArray])
+
   const { uncheckedItems, checkedItems } = splitItemsToDoneAndUndoneLists(fields);
   const [contentExpanded, setContentExpanded] = useState<boolean>(true);
   const doneTaskQuantity = checkedItems.length;
@@ -46,7 +61,9 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId }:
 
   useEffect(() => {
     if (cardEdit) {
-      const onKeyDown = (e: KeyboardEvent) => {
+      const listItems = document.querySelectorAll(
+        `[data-testid='${cardDataId}'] textarea`
+      ) as NodeListOf<HTMLTextAreaElement>; const onKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Escape") {
           setEditCard(false)
           const activeEl = document.activeElement
@@ -55,12 +72,9 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId }:
           }
         }
         if (!e || !(e.target as HTMLTextAreaElement).name) return;
-        handleKeyDown(e, cardDataId);
+        handleKeyDown(e, Array.from(listItems));
       };
 
-      const listItems = document.querySelectorAll(
-        `[data-testid='${cardDataId}'] textarea`
-      ) as NodeListOf<HTMLTextAreaElement>;
       listItems?.forEach((item: HTMLTextAreaElement) => item.addEventListener('keydown', onKeyDown));
       return () => listItems?.forEach((item: HTMLTextAreaElement) => item.removeEventListener('keydown', onKeyDown));
     }
@@ -84,16 +98,22 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId }:
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (cardRef?.current && !cardRef.current.contains(e.target as Node)) {
-        handleSubmit();
-        setEditCard(false);
+      if (cardEdit) {
+        if (cardRef?.current && !cardRef.current.contains(e.target as Node)) {
+          handleSubmit();
+          setEditCard(false);
+        }
+      };
+      const dropdownCardEl = document.querySelector(`[data-id='card-${editedItem?.id}'] #dropdown`)
+      if (dropdownCardEl && !dropdownCardEl.contains(e.target as Node)) {
+        setOpenMenu(false)
       }
-    };
+    }
 
-    if (cardEdit) document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
 
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [cardRef, setEditCard, cardEdit, handleSubmit]);
+  }, [cardRef, setEditCard, cardEdit, handleSubmit, setOpenMenu, editedItem?.id]);
 
   const handleCheck = (index: number, itemId: string, checked: boolean) => {
     const { listItemId, value } = getValues(`content.${index}`);

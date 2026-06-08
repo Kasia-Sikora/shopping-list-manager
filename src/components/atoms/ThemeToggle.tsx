@@ -3,6 +3,7 @@ import { useThemeStore } from "../../stores/store";
 
 const ThemeToggle = () => {
   const { theme, setTheme } = useThemeStore()
+  
   const switchTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);

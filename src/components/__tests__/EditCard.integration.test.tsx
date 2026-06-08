@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { cleanup, render, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import App from '../../App';
-import { editedElements } from './utils';
+import { editedElements } from './testHelpers';
 import { LOCAL_STORAGE_STORE_KEY } from '../../consts';
 import { useStore } from '../../stores/store';
 
@@ -248,7 +248,6 @@ describe('<App>', () => {
 
     expect(queryItemsList(true)).not.toBeInTheDocument();
     expect(queryItemsList(false)).toHaveLength(4);
-    expect(queryItemsList(true)).not.toBeInTheDocument();
   });
 
   it('should update element', async () => {

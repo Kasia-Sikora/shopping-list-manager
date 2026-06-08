@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { List, PersistedShoppingListStore } from '../interfaces';
 import { persist } from 'zustand/middleware';
 import { LOCAL_STORAGE_STORE_KEY, LOCAL_STORAGE_THEME_KEY } from '../consts';
+import { generateId } from '../components/utils';
 
 export const DEFAULT_VALUES: PersistedShoppingListStore = {
   state: {
@@ -71,6 +72,9 @@ export type StoreState = {
   updateItem: (item: List) => void;
   removeItem: (itemId: string, listItemId: string) => void;
   checkItem: (itemId: string, index: number, checked: boolean) => void;
+  removeCard: (cardId: string) => void;
+  copyCard: (cardId: string) => void;
+  removeCheckedItems: (cardId: string) => void;
 };
 
 export const useStore = create<StoreState>()(
@@ -107,10 +111,10 @@ export const useStore = create<StoreState>()(
         set((state) => ({
           items: state.items.filter((item) => {
             if (item.id === itemId) {
-              return {
+              return ({
                 ...item,
                 content: item.content.filter((listItem) => listItem.listItemId !== listItemId),
-              };
+              });
             } else {
               return item;
             }
@@ -131,6 +135,26 @@ export const useStore = create<StoreState>()(
               return item;
             }
             return item;
+          }),
+        })),
+      removeCard: (cardId) => set((state) => ({ items: state.items.filter((item) => item.id !== cardId) })),
+      copyCard: (cardId) =>
+        set((state) => {
+          const itemToCopy = state.items.filter((item) => item.id === cardId)?.[0];
+          const index = state.items.indexOf(itemToCopy);
+          if (itemToCopy) {
+            state.items.splice(index + 1, 0, { ...itemToCopy, id: generateId() });
+          }
+          return { items: state.items };
+        }),
+      removeCheckedItems: (cardId) =>
+        set((state) => ({
+          items: state.items.map((item) => {
+            if (item.id === cardId) {
+              return ({ ...item, content: item.content.filter((el) => !el.checked) });
+            } else {
+              return item;
+            }
           }),
         })),
     }),

@@ -15,6 +15,7 @@ describe('Card', () => {
     render(<Card />);
     expect(getEmptyCardTitleEl()).toBeNull();
     expect(getListItem()).not.toBeNull();
+    expect(getEmptyCard()).toHaveClass('min-w-75')
   });
 
   it('should show title input when card is clicked', async () => {
@@ -30,6 +31,8 @@ describe('Card', () => {
 
     //check if item is rendered with given data
     expect(getCard()).toBeVisible();
+    expect(getCard()).toHaveClass('w-75')
+
     expect(getTitleEl().textContent).toEqual('list title');
     expect(getListTextarea().value).toEqual('kup bułki');
     expect(getAddElemButton()).toBeVisible();

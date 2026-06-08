@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { render, waitFor } from '@testing-library/react';
 import { LOCAL_STORAGE_STORE_KEY } from '../../consts';
 import { DEFAULT_VALUES } from '../../stores/store';
-import { elements } from './utils';
+import { elements } from './testHelpers';
 import App from '../../App';
 import { sortCards } from '../utils';
 

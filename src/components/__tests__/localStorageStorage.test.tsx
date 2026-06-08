@@ -2,7 +2,7 @@ import { expect } from 'vitest';
 import { render } from '@testing-library/react';
 import { LOCAL_STORAGE_STORE_KEY } from '../../consts';
 import { DEFAULT_VALUES } from '../../stores/store';
-import { elements } from './utils';
+import { elements } from './testHelpers';
 import App from '../../App';
 
 const { getListItemTextarea } = elements
