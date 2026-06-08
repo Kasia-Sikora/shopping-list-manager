@@ -1,22 +1,23 @@
 import { useStore } from "../../stores/store";
+import { useFieldArrayFormContext } from '../../AllFormMethodsProvider'
+import type { FieldListItem } from "../../interfaces";
 
 type MenuButton = {
   openMenu: boolean;
   cardId: string;
   setOpenMenu: (value: boolean) => void;
-  setRemoveCheckedItemsFromFieldArray: (value: boolean) => void;
 }
 
-const MenuButton = ({ cardId, openMenu, setOpenMenu,setRemoveCheckedItemsFromFieldArray }: MenuButton) => {
+const MenuButton = ({ cardId, openMenu, setOpenMenu }: MenuButton) => {
   return (
     <>
-      <button className="absolute bottom-1.5 right-1.5 rounded-full size-7 hover:cursor-pointer" aria-label={openMenu? 'close menu' : 'open menu'} onClick={(e) => { e.stopPropagation(); setOpenMenu(!openMenu) }}>
+      <button className="absolute bottom-1.5 right-1.5 rounded-full size-7 hover:cursor-pointer" aria-label={openMenu ? 'close menu' : 'open menu'} onClick={(e) => { e.stopPropagation(); setOpenMenu(!openMenu) }}>
         <div className="absolute -bottom-0.5 -right-0.5 rounded-full bg-accent size-6" />
         <div className="size-7 absolute bottom-0 border-3 bg-white/40 transition-all duration-200 hover:bg-white/75 border-mist-700 rounded-full">
           <div className='size-7 absolute text-mist-800 bottom-0 after:content-["\2807"] rounded-full after:text-2xl' />
         </div>
       </button>
-      <MenuDropdown open={openMenu} cardId={cardId} setOpen={setOpenMenu} setRemoveCheckedItemsFromFieldArray={setRemoveCheckedItemsFromFieldArray} />
+      <MenuDropdown open={openMenu} cardId={cardId} setOpen={setOpenMenu} />
     </>
   );
 };
@@ -28,7 +29,6 @@ type MenuDropdown = {
   open: boolean;
   cardId: string;
   setOpen: (value: boolean) => void
-  setRemoveCheckedItemsFromFieldArray: (value: boolean) => void
 }
 
 type MenuOperationTypes =
@@ -37,12 +37,22 @@ type MenuOperationTypes =
   | 'removeChecked';
 
 
-const MenuDropdown = ({ open, cardId, setOpen, setRemoveCheckedItemsFromFieldArray }: MenuDropdown) => {
+const MenuDropdown = ({ open, cardId, setOpen }: MenuDropdown) => {
 
   const { copyCard, removeCard, removeCheckedItems } = useStore()
+  const { remove, fields } = useFieldArrayFormContext<FieldListItem[]>()
   const popoverPlacement = () => {
     // return { 'translate(70px, 100px)'}
     return ({ position: 'absolute', margin: '0px', bottom: '35px', right: '0px' }) as React.CSSProperties
+  }
+
+  const removeCheckedItemsFromFieldsArray = () => {
+    for (let i = fields.length - 1; i >= 0; i--) {
+      const field = fields[i] as unknown as FieldListItem
+      if (field.checked) {
+        remove(i)
+      }
+    }
   }
 
   const handleMenuClick = (operation: MenuOperationTypes) => {
@@ -55,13 +65,13 @@ const MenuDropdown = ({ open, cardId, setOpen, setRemoveCheckedItemsFromFieldArr
         break;
       case "removeChecked":
         removeCheckedItems(cardId)
-        setRemoveCheckedItemsFromFieldArray(true)
+        removeCheckedItemsFromFieldsArray()
         break;
     }
     setOpen(false)
   }
   return (
-    <div id="dropdown" className={`z-10 ${!open ? 'hidden': ''} bg-menu-bg border border-mist-400 shadow-md shadow-shadow rounded-md w-auto`} aria-label="dropdown" style={{ ...popoverPlacement() }}>
+    <div id="dropdown" className={`z-10 ${!open ? 'hidden' : ''} bg-menu-bg border border-mist-400 shadow-md shadow-shadow rounded-md w-auto`} aria-label="dropdown" style={{ ...popoverPlacement() }}>
       <ul className="p-2 text-sm font-medium" aria-labelledby="dropdownDefaultButton">
         <li className="w-full"><button className="p-2 hover:text-secondary text-start hover:bg-menu-active hover:cursor-pointer w-full rounded" aria-label='delete card' onClick={() => handleMenuClick('remove')}>Usuń kartę</button></li>
         <li className="w-full"><button className="p-2 text-start text-gray-500 w-full rounded" disabled>Dodaj współpracownika</button></li>
