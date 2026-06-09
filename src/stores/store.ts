@@ -75,6 +75,7 @@ export type StoreState = {
   removeCard: (cardId: string) => void;
   copyCard: (cardId: string) => void;
   removeCheckedItems: (cardId: string) => void;
+  setContent: (cardId: string, content: ListItem[]) => void
 };
 
 export const useStore = create<StoreState>()(
@@ -111,10 +112,10 @@ export const useStore = create<StoreState>()(
         set((state) => ({
           items: state.items.filter((item) => {
             if (item.id === itemId) {
-              return ({
+              return {
                 ...item,
                 content: item.content.filter((listItem) => listItem.listItemId !== listItemId),
-              });
+              };
             } else {
               return item;
             }
@@ -151,12 +152,23 @@ export const useStore = create<StoreState>()(
         set((state) => ({
           items: state.items.map((item) => {
             if (item.id === cardId) {
-              return ({ ...item, content: item.content.filter((el) => !el.checked) });
+              return { ...item, content: item.content.filter((el) => !el.checked) };
             } else {
               return item;
             }
           }),
         })),
+      setContent: (cardId, content) => {
+        set((state) => ({
+          items: state.items.map((item) => {
+            if (item.id === cardId) {
+              return { ...item, content: content };
+            } else {
+              return item;
+            }
+          }),
+        }));
+      },
     }),
     { name: LOCAL_STORAGE_STORE_KEY }
   )

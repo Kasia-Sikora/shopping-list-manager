@@ -8,6 +8,7 @@ export type ListItem = {
   listItemId: string;
   value?: string;
   checked?: boolean;
+  children?: ListItem[]
 };
 
 type FieldIndex = {

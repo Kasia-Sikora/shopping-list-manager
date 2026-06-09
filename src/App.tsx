@@ -12,7 +12,7 @@ const App = () => {
 
   useEffect(() => {
     const getItem = localStorage.getItem(LOCAL_STORAGE_STORE_KEY)
-    const localStorageItems = getItem? JSON.parse(getItem): null
+    const localStorageItems = getItem ? JSON.parse(getItem) : null
     if (!localStorageItems && !consentAskCount) {
       const consent = window.confirm('Załadować testowe dane?')
       consentAskCount++;

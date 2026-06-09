@@ -15,9 +15,10 @@ interface CardContentProps {
   editedItem?: List;
   cardRef: React.RefObject<HTMLDivElement | null>;
   cardDataId: string;
+  cardIndex: number
 }
 
-const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId }: CardContentProps) => {
+const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, cardIndex }: CardContentProps) => {
   const { updateItem, addItem, removeCard } = useStore();
 
   const defaultValues: List = editedItem
@@ -161,6 +162,7 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId }:
               listId={editedItem?.id}
               list={uncheckedItems}
               checkedItems={false}
+              cardIndex={cardIndex}
             />
           )}
           {(cardEdit || editedItem) && <AddListItemButton handleCreateNewLine={handleCreateNewLine} />}
@@ -173,6 +175,7 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId }:
                   listId={editedItem?.id}
                   list={checkedItems}
                   checkedItems={true}
+                      cardIndex={cardIndex}
                 />
               )}
             </>

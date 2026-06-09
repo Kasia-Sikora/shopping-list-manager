@@ -64,12 +64,12 @@ input[type='checkbox'] {
   -webkit-appearance: none;
   appearance: none;
   background-color: transparent;
-  margin: 0 0 0 8px;
+  /* margin: 0 0 0 8px; */
 
   font: inherit;
   color: #6a7282;
-  width: 1.15em;
-  height: 1.15em;
+  width: 20px;
+  height: 20px;
   border: 0.1em solid currentColor;
   border-radius: 0.15em;
   transform: translateY(-0.075em);
@@ -79,16 +79,14 @@ input[type='checkbox'] {
 
 input[type='checkbox']:hover,
 input[type='checkbox']:focus {
-  border: 0.15em solid currentColor;
+  border: 0.8px solid currentColor;
 }
 
 input[type='checkbox']::before {
   content: '';
-  width: 0.65em;
-  height: 0.65em;
+  width: 12px;
+  height: 12px;
   transform: scale(0);
-  border-color: #6a7282;
-  transition: 120ms transform ease-in-out;
   box-shadow: inset 1em 1em var(--color-accent);
 }
 
@@ -110,7 +108,6 @@ input[type='checkbox']:focus ~ button {
 
 .chevron {
   --s: 3px;
-
   width: 12px;
   aspect-ratio: 5/3;
 }
@@ -125,10 +122,14 @@ input[type='checkbox']:focus ~ button {
 
 .hamburger-menu {
   --c: #705567;
-
   height: 16px;
   aspect-ratio: 1;
   background:
     radial-gradient(closest-side at 92.5% 25%, var(--c) 9%, #0000 11%) 0 0/40% 60%,
     linear-gradient(var(--c) 50%, #0000 0) top/80% 40% repeat-y;
+}
+
+
+.indent {
+  padding-left: 35px;
 }

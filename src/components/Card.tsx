@@ -51,6 +51,7 @@ const Card = ({ editedItem, index, styles }: Card) => {
         editedItem={editedItem}
         cardRef={cardRef}
         cardDataId={cardDataId}
+        cardIndex={index}
       />
     </section>
   );
