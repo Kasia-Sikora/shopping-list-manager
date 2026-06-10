@@ -1,9 +1,9 @@
 import { DragDropProvider, useDroppable } from '@dnd-kit/react';
 import ListElem from './ListElem';
 import { useState } from 'react';
-import type { FieldListItem } from '../interfaces';
+import type { FieldListItem, List } from '../interfaces';
 import { isSortableOperation } from '@dnd-kit/react/sortable';
-import { useStore } from '../stores/store';
+import { useFieldArrayFormContext } from '../AllFormMethodsProvider';
 
 type ListOfItem = {
   list: FieldListItem[];
@@ -12,7 +12,7 @@ type ListOfItem = {
 };
 
 const ListOfItems = ({ list, listId, checkedItems }: ListOfItem) => {
-  const { moveListItem } = useStore()
+  const { move } = useFieldArrayFormContext<List, 'content'>()
   const { ref } = useDroppable({
     id: `card-${listId ?? 'empty'}`,
   });
@@ -30,7 +30,8 @@ const ListOfItems = ({ list, listId, checkedItems }: ListOfItem) => {
         if (isSortableOperation(operation)) {
           const { source, target } = operation
           if (source && target && listId) {
-            moveListItem(listId, source.data.fieldArrayId, target.index)
+            const targetGlobalIndex = list[target.index].fieldArrayId;
+            move(source.data.fieldArrayId, targetGlobalIndex)
           }
         }
       }}

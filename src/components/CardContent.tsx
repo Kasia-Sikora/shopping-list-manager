@@ -7,7 +7,7 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import AddListItemButton from './atoms/AddListItemButton';
 import ListOfItems from './ListOfItems';
 import MenuButton from './atoms/MenuButton';
-import { FieldArrayFormProvider, type FieldArrayFormProviderProps } from '../AllFormMethodsProvider';
+import { FieldArrayFormProvider } from '../AllFormMethodsProvider';
 
 interface CardContentProps {
   cardEdit: boolean;
@@ -28,12 +28,12 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId }:
       content: [{ listItemId: generateId(), value: '', checked: false } as ListItem],
     };
 
-  const methods = useForm<FieldArrayFormProviderProps<List[]>>({
+  const methods = useForm<List>({
     defaultValues,
   });
   const { register, getValues, control, reset } = methods;
 
-  const fieldArrayMethods = useFieldArray<List[], 'content'>({
+  const fieldArrayMethods = useFieldArray<List, 'content'>({
     control,
     name: 'content',
   });

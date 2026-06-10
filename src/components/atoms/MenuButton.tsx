@@ -1,6 +1,6 @@
 import { useStore } from "../../stores/store";
 import { useFieldArrayFormContext } from '../../AllFormMethodsProvider'
-import type { FieldListItem } from "../../interfaces";
+import type { List, ListItem } from "../../interfaces";
 
 type MenuButton = {
   openMenu: boolean;
@@ -40,7 +40,7 @@ type MenuOperationTypes =
 const MenuDropdown = ({ open, cardId, setOpen }: MenuDropdown) => {
 
   const { copyCard, removeCard, removeCheckedItems } = useStore()
-  const { remove, fields } = useFieldArrayFormContext<FieldListItem[]>()
+  const { remove, fields } = useFieldArrayFormContext<List, 'content'>()
   const popoverPlacement = () => {
     // return { 'translate(70px, 100px)'}
     return ({ position: 'absolute', margin: '0px', bottom: '35px', right: '0px' }) as React.CSSProperties
@@ -48,7 +48,7 @@ const MenuDropdown = ({ open, cardId, setOpen }: MenuDropdown) => {
 
   const removeCheckedItemsFromFieldsArray = () => {
     for (let i = fields.length - 1; i >= 0; i--) {
-      const field = fields[i] as unknown as FieldListItem
+      const field = fields[i] as ListItem
       if (field.checked) {
         remove(i)
       }
