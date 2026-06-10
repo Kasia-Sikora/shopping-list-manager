@@ -1,5 +1,5 @@
 import { useStore } from "../../stores/store";
-import { useFieldArrayFormContext } from '../../AllFormMethodsProvider'
+import { useFormArrayContext } from '../../utils/useFormArray'
 import type { List, ListItem } from "../../interfaces";
 
 type MenuButton = {
@@ -40,7 +40,7 @@ type MenuOperationTypes =
 const MenuDropdown = ({ open, cardId, setOpen }: MenuDropdown) => {
 
   const { copyCard, removeCard, removeCheckedItems } = useStore()
-  const { remove, fields } = useFieldArrayFormContext<List, 'content'>()
+  const { remove, fields } = useFormArrayContext<List, 'content'>()
   const popoverPlacement = () => {
     // return { 'translate(70px, 100px)'}
     return ({ position: 'absolute', margin: '0px', bottom: '35px', right: '0px' }) as React.CSSProperties

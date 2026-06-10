@@ -1,7 +1,7 @@
 import type { List, ListItem } from '../interfaces';
 import { useSortable } from '@dnd-kit/react/sortable';
 import DeleteButton from './atoms/DeleteButton';
-import { useFieldArrayFormContext } from '../AllFormMethodsProvider';
+import { useFormArrayContext } from '../utils/useFormArray';
 
 type ListElement = {
   item: ListItem;
@@ -18,7 +18,7 @@ const ListElement = ({ item, fieldArrayId, sortableIndex, listId = '' }: ListEle
     disabled: !listId
   });
 
-  const { register, update, getValues, remove } = useFieldArrayFormContext<List, 'content'>()
+  const { register, update, getValues, remove } = useFormArrayContext<List, 'content'>()
 
   const handleCheck = (index: number, checked: boolean) => {
     const { listItemId, value } = getValues(`content.${index}`);

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import type { List, PersistedShoppingListStore } from '../interfaces';
 import { persist } from 'zustand/middleware';
 import { LOCAL_STORAGE_STORE_KEY, LOCAL_STORAGE_THEME_KEY } from '../consts';
-import { generateId } from '../components/utils';
+import { generateId } from '../utils/utils';
 
 export const DEFAULT_VALUES: PersistedShoppingListStore = {
   state: {

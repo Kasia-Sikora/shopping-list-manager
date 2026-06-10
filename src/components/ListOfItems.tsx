@@ -3,7 +3,7 @@ import ListElem from './ListElem';
 import { useState } from 'react';
 import type { FieldListItem, List } from '../interfaces';
 import { isSortableOperation } from '@dnd-kit/react/sortable';
-import { useFieldArrayFormContext } from '../AllFormMethodsProvider';
+import { useFormArrayContext } from '../utils/useFormArray';
 
 type ListOfItem = {
   list: FieldListItem[];
@@ -12,7 +12,7 @@ type ListOfItem = {
 };
 
 const ListOfItems = ({ list, listId, checkedItems }: ListOfItem) => {
-  const { move } = useFieldArrayFormContext<List, 'content'>()
+  const { move } = useFormArrayContext<List, 'content'>()
   const { ref } = useDroppable({
     id: `card-${listId ?? 'empty'}`,
   });
