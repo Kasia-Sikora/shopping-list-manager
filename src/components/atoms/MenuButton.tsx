@@ -39,7 +39,7 @@ type MenuOperationTypes =
 
 const MenuDropdown = ({ open, cardId, setOpen }: MenuDropdown) => {
 
-  const { copyCard, removeCard, removeCheckedItems } = useStore()
+  const { copyCard, removeCard } = useStore()
   const { remove, fields } = useFormArrayContext<List, 'content'>()
   const popoverPlacement = () => {
     // return { 'translate(70px, 100px)'}
@@ -64,7 +64,6 @@ const MenuDropdown = ({ open, cardId, setOpen }: MenuDropdown) => {
         copyCard(cardId)
         break;
       case "removeChecked":
-        removeCheckedItems(cardId)
         removeCheckedItemsFromFieldsArray()
         break;
     }
