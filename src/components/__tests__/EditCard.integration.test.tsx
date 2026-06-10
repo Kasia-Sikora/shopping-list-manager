@@ -4,7 +4,6 @@ import { userEvent } from '@testing-library/user-event';
 import App from '../../App';
 import { editedElements } from './testHelpers';
 import { LOCAL_STORAGE_STORE_KEY } from '../../consts';
-import { useStore } from '../../stores/store';
 
 describe('<App>', () => {
   const user = userEvent.setup();
@@ -188,14 +187,12 @@ describe('<App>', () => {
     expect(queryItemsList(false)?.[0]).toBeVisible();
     expect(getListItemTextarea()).toHaveLength(5);
     expect(queryCheckbox('5')).toBeNull();
-    expect(useStore.getState().items[0].content.every(item => !item.checked))
 
     await user.click(getCheckbox('2')!);
     await user.click(getCheckbox('3')!);
 
     expect(getDoneElemExpandButton()).toBeVisible();
     expect(getDoneElemExpandButton()).toHaveTextContent('2 ukończonych elementów');
-    expect(useStore.getState().items[0].content.filter(item => item.checked).length).toEqual(2)
 
     expect(queryItemsList(true)).toHaveLength(2);
     expect(queryItemsList(true)?.[0]).toBeVisible();

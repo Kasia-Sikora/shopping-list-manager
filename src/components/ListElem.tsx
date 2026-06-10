@@ -1,8 +1,7 @@
-import type { ListItem } from '../interfaces';
-import { useStore } from '../stores/store';
+import type { List, ListItem } from '../interfaces';
 import { useSortable } from '@dnd-kit/react/sortable';
 import DeleteButton from './atoms/DeleteButton';
-import { useFieldArrayFormContext } from '../AllFormMethodsProvider';
+import { useFormArrayContext } from '../utils/useFormArray';
 import { RestrictToElement } from '@dnd-kit/dom/modifiers';
 
 type ListElement = {
@@ -10,18 +9,17 @@ type ListElement = {
   fieldArrayId: number;
   sortableIndex: number;
   listId?: string;
-  listRef: HTMLLIElement;
+  listRef: HTMLElement;
   indent?: boolean
-  children: HTMLULElement
+  children: HTMLElement
 };
 
 const ListElement = ({ item, fieldArrayId, sortableIndex, listId = '', listRef, indent, children }: ListElement) => {
-  const { checkItem, removeItem } = useStore();
 
   const { ref } = useSortable({
     id: `card-${listId}-item-${item.listItemId}`,
     index: sortableIndex,
-    type: children? 'parent element': 'element',
+    type: children ? 'parent element' : 'element',
     accept: 'element',
     data: { fieldArrayId, id: item.listItemId, listId: listId },
     disabled: !listId,
@@ -30,24 +28,22 @@ const ListElement = ({ item, fieldArrayId, sortableIndex, listId = '', listRef, 
     })]
   });
 
-  const { register, update, getValues, remove } = useFieldArrayFormContext()
+  const { register, update, getValues, remove } = useFormArrayContext<List, 'content'>()
 
-  const handleCheck = (index: number, itemId: string, checked: boolean) => {
+  const handleCheck = (index: number, checked: boolean) => {
     const { listItemId, value } = getValues(`content.${index}`);
     update(index, { listItemId, checked: checked, value });
-    checkItem(itemId, index, checked);
   };
 
   const handleRemoveItem = (e: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    removeItem(listId, item.listItemId);
     remove(fieldArrayId);
   };
 
   return (
     <>
       {/* TODO remove custom className */}
-      <li ref={ref} className={`listItem relative flex ${children?'flex-col':'flex' }items-baseline gap-3 flex-wrap ${!sortableIndex ? 'w-full -mr-8.75' : 'w-[calc(100%-35px)] '} ${indent ? 'pl-7.75' : 'pl-0'} py-2`}>
+      <li ref={ref} className={`listItem relative flex ${children ? 'flex-col' : 'flex'}items-baseline gap-3 flex-wrap ${!sortableIndex ? 'w-full -mr-8.75' : 'w-[calc(100%-35px)] '} ${indent ? 'pl-7.75' : 'pl-0'} py-2`}>
         <div className={`listItem relative flex items-baseline gap-3`}>
           {listId && <div className='cursor-move size-5 rounded-sm bg-primary/20 shrink-0 flex justify-center align-baseline text-primary after:text-s after:content-["⣶"] after:-top-1.5 after:relative' />}
           <input {...register(`content.${fieldArrayId}.listItemId` as const)} type="hidden" />
@@ -57,9 +53,9 @@ const ListElement = ({ item, fieldArrayId, sortableIndex, listId = '', listRef, 
             disabled={!item}
             data-testid={item.listItemId ? `list-item-${item.listItemId}-checkbox` : ''}
             onChange={(e) => {
-              handleCheck(fieldArrayId, listId, e.target.checked);
+              handleCheck(fieldArrayId, e.target.checked);
             }}
-            className="w-6 h-6 shrink-0"
+            className="w-5 h-5 shrink-0 rounded-sm"
           />
           <textarea
             {...register(`content.${fieldArrayId}.value` as const)}
@@ -70,9 +66,9 @@ const ListElement = ({ item, fieldArrayId, sortableIndex, listId = '', listRef, 
           {item && (
             <DeleteButton handleRemoveItem={handleRemoveItem} indent={indent} />
           )}
-         
+
         </div>
-         {children}
+        {children}
       </li>
     </>
   );

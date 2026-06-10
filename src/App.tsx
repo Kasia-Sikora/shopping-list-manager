@@ -3,7 +3,7 @@ import Card from './components/Card';
 import { DragDropProvider, useDroppable } from '@dnd-kit/react';
 import { DEFAULT_VALUES, useStore } from './stores/store';
 import ThemeToggle from './components/atoms/ThemeToggle';
-import { sortCards } from './components/utils';
+import { sortCards } from './utils/utils';
 import { LOCAL_STORAGE_STORE_KEY } from './consts';
 
 let consentAskCount = 0

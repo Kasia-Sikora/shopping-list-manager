@@ -4,7 +4,7 @@ import { LOCAL_STORAGE_STORE_KEY } from '../../consts';
 import { DEFAULT_VALUES } from '../../stores/store';
 import { elements } from './testHelpers';
 import App from '../../App';
-import { sortCards } from '../utils';
+import { sortCards } from '../../utils/utils';
 
 const { getListItemTextarea } = elements
 

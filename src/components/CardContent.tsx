@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { List, ListItem } from '../interfaces';
-import { generateId, handleKeyDown, splitItemsToDoneAndUndoneLists } from './utils';
+import { generateId, handleKeyDown, splitItemsToDoneAndUndoneLists } from '../utils/utils';
 import { ChevronButton } from './atoms/ChevronButton';
 import { useStore } from '../stores/store';
-import { useFieldArray, useForm } from 'react-hook-form';
 import AddListItemButton from './atoms/AddListItemButton';
 import ListOfItems from './ListOfItems';
 import MenuButton from './atoms/MenuButton';
-import { FieldArrayFormProvider, type FieldArrayFormProviderProps } from '../AllFormMethodsProvider';
+import { FormArrayProvider } from '../utils/AllFormMethodsProvider';
+import { useFormWithArray } from '../utils/useFormArray';
 
 interface CardContentProps {
   cardEdit: boolean;
@@ -29,18 +29,8 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, c
       content: [{ listItemId: generateId(), value: '', checked: false } as ListItem],
     };
 
-  const methods = useForm<FieldArrayFormProviderProps<List[]>>({
-    defaultValues,
-  });
-  const { register, getValues, control, reset } = methods;
-
-  const fieldArrayMethods = useFieldArray<List[], 'content'>({
-    control,
-    name: 'content',
-  });
-
-
-  const { fields, insert } = fieldArrayMethods
+  const methods = useFormWithArray<List, 'content'>({ defaultValues }, 'content');
+  const { register, getValues, reset, fields, insert } = methods;
 
   const [openMenu, setOpenMenu] = useState<boolean>(false)
 
@@ -144,7 +134,7 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, c
   };
 
   return (
-    <FieldArrayFormProvider {...methods} {...fieldArrayMethods}>
+    <FormArrayProvider {...methods}>
       <form onKeyDown={handleFormEvents}>
         <div className="flex flex-col align-baseline gap-2">
           {!cardEdit && editedItem && (
@@ -183,7 +173,7 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, c
         </div>
       </form>
       {editedItem && <MenuButton cardId={editedItem.id} openMenu={openMenu} setOpenMenu={setOpenMenu} />}
-    </FieldArrayFormProvider>
+    </FormArrayProvider>
   );
 };
 

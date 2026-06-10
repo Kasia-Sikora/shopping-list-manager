@@ -61,17 +61,10 @@ textarea {
 }
 
 input[type='checkbox'] {
-  -webkit-appearance: none;
+  -webkit-appearance: none; 
   appearance: none;
-  background-color: transparent;
-  /* margin: 0 0 0 8px; */
-
-  font: inherit;
   color: #6a7282;
-  width: 20px;
-  height: 20px;
   border: 0.1em solid currentColor;
-  border-radius: 0.15em;
   transform: translateY(-0.075em);
   display: grid;
   place-content: center;
@@ -91,7 +84,7 @@ input[type='checkbox']::before {
 }
 
 input[type='checkbox']:checked::before {
-  transform: scale(1);
+  transform: scale(1.2);
 }
 
 .listItem > button {
