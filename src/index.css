@@ -50,7 +50,7 @@ li {
   border-bottom: 1px solid transparent;
 }
 
-.listItem:has(textarea:focus) {
+li:has(textarea:focus) {
   border-top: 1px solid var(--color-shadow);
   border-bottom: 1px solid var(--color-shadow);
 }
@@ -61,7 +61,7 @@ textarea {
 }
 
 input[type='checkbox'] {
-  -webkit-appearance: none; 
+  -webkit-appearance: none;
   appearance: none;
   color: #6a7282;
   border: 0.1em solid currentColor;
@@ -87,12 +87,12 @@ input[type='checkbox']:checked::before {
   transform: scale(1.2);
 }
 
-.listItem > button {
+li button {
   opacity: 0;
 }
 
 li button:focus,
-li:hover > button,
+li:hover button,
 textarea:focus ~ button,
 input[type='checkbox']:focus ~ button {
   opacity: 100%;
@@ -122,7 +122,10 @@ input[type='checkbox']:focus ~ button {
     linear-gradient(var(--c) 50%, #0000 0) top/80% 40% repeat-y;
 }
 
-
 .indent {
   padding-left: 35px;
+}
+
+#dropdown button {
+  opacity: 100;
 }

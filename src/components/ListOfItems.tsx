@@ -1,134 +1,73 @@
 import { DragDropProvider, useDroppable } from '@dnd-kit/react';
 import ListElem from './ListElem';
-import { useState } from 'react';
-import type { FieldListItem, List } from '../interfaces';
+import { useEffect, useState, useRef } from 'react';
+import type { FieldListItem } from '../interfaces';
 import { isSortableOperation } from '@dnd-kit/react/sortable';
-import { useFormArrayContext } from '../utils/useFormArray';
-import { SnapModifier } from '@dnd-kit/abstract/modifiers';
-
 
 type ListOfItem = {
   list: FieldListItem[];
   listId?: string;
   checkedItems: boolean;
-  cardIndex: number
+  cardIndex: number;
+  remove: (index: number) => void;
 };
 
-const ListOfItems = ({ list, listId, checkedItems }: ListOfItem) => {
-  const { move } = useFormArrayContext<List, 'content'>()
-  const listRef = useRef(null)
-  const nestedRef = useRef(null)
+const ListOfItems = ({ list, listId, checkedItems, remove }: ListOfItem) => {
+  const listRef = useRef<HTMLUListElement>(null)
+  const [listRefCurr, setListRefCurr] = useState<HTMLElement | null>(null)
 
   const { isDropTarget } = useDroppable({
-    id: `card-${listId ?? 'empty'}`,
+    id: `card-${listId ?? 'empty'}-${checkedItems ? 'checked' : 'unchecked'}`,
     element: listRef,
   });
 
-  const [active, setActive] = useState<boolean>(false);
-
   const dataId = `card-${listId}-${checkedItems ? 'checkedItems' : 'uncheckedItems'}`;
 
-  const snapToGrid = SnapModifier.configure({
-    size: {
-      x: Math.min(35, 0),
-      y: 1
-    }
-  })
-
   useEffect(() => {
-    if (listRef && listRef.current) {
+    if (listRef.current) {
       setListRefCurr(listRef.current)
     }
-    if (nestedRef && nestedRef.current) {
-      setNestedListRefCurr(nestedRef.current)
-    }
-  }, [listRef, nestedRef])
+  }, [listRef])
 
   return (
     <DragDropProvider
-      modifiers={[snapToGrid
-      ]}
       onDragEnd={(event) => {
         if (event.canceled) return;
-        if (active) {
-          setActive(false);
-        }
-        if (isDropTarget) {
-          console.log('isDropped ', isDropTarget)
-        }
-        const { operation } = event
+        const { operation } = event;
         if (isSortableOperation(operation)) {
-          const { source, target } = operation
+          const { source, target, position } = operation;
           if (source && target && listId) {
-            const targetGlobalIndex = list[target.index].fieldArrayId;
-            move(source.data.fieldArrayId, targetGlobalIndex)
 
             if (position.current.x && position.initial.x) {
-            const difference = position.current.x - position.initial.x
-            console.log({ difference })
+              const difference = position.current.x - position.initial.x
 
-            if (difference >= 35) {
-              console.log(target.data.id)
-              source.type = 'parent element'
+              if (difference >= 35) {
+                source.type = 'parent element'
+              }
+            }
           }
-        }
-        }
-      }}}
-
-      // onCollision={(event) => console.log('collision ', event)}
-      onDragOver={() => {
-        // if (event) {
-        //   console.log('position over', event.operation.position)
-        // }
-        // setContent((content) => move(content, event));
-        if (!active) {
-          setActive(true);
         }
       }}
     >
       <ul
         ref={listRef}
-        // style={containerStyle}
-        className={`${active ? 'bg-active/50 outline-2 outline-dashed' : ''} transition-all duration-300 outline-active rounded-sm w-full relative `}
+        className={`transition-all duration-300 outline-active rounded-sm relative ${isDropTarget ? 'bg-active/10' : ''}`}
         data-testid={dataId}
       >
-        {list.map((field, index) =>
-          field.children ? (
-            // <Fragment key={`${field.listItemId}-${index}`}>
-            <ListElem
-              key={field.listItemId}
-              item={field}
-              sortableIndex={index}
-              fieldArrayId={field.fieldArrayId}
-              listId={listId ?? ''}
-              listRef={listRefCurr}
-              children={(
-                <ul ref={nestedRef} className={'ml-7.75 w-full'}>
-                  {field.children.map((child, index) => (
-                    <ListElem
-                      key={child.listItemId}
-                      item={child}
-                      sortableIndex={index}
-                      fieldArrayId={index}
-                      listId={field.listItemId}
-                      listRef={nestedListRefCurr}
-                    />
-                  ))}
-                </ul>)}
-            />
-          ) : (
-            <ListElem
-              key={field.listItemId}
-              item={field}
-              sortableIndex={index}
-              fieldArrayId={field.fieldArrayId}
-              listId={listId ?? ''}
-              listRef={listRefCurr}
-            />
-          ))
-        }
+        {list.map((field, index) => (
+          <ListElem
+            key={field.id}
+            item={field}
+            sortableIndex={index}
+            globalArrayIndex={field.globalArrayIndex}
+            listId={listId ?? ''}
+            listRef={listRefCurr}
+            depth={field.depth}
+            remove={() => remove(field.globalArrayIndex)}
+          />
+        ))}
       </ul>
-    </DragDropProvider >
+    </DragDropProvider>
   );
 };
 

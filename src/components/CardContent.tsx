@@ -6,8 +6,7 @@ import { useStore } from '../stores/store';
 import AddListItemButton from './atoms/AddListItemButton';
 import ListOfItems from './ListOfItems';
 import MenuButton from './atoms/MenuButton';
-import { FormArrayProvider } from '../utils/AllFormMethodsProvider';
-import { useFormWithArray } from '../utils/useFormArray';
+import { FormProvider, useFieldArray, useForm, useWatch } from 'react-hook-form';
 
 interface CardContentProps {
   cardEdit: boolean;
@@ -26,15 +25,29 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, c
     : {
       id: '',
       title: '',
-      content: [{ listItemId: generateId(), value: '', checked: false } as ListItem],
+      content: [{ listItemId: generateId(), value: '', checked: false, depth: 0 } as ListItem],
     };
 
-  const methods = useFormWithArray<List, 'content'>({ defaultValues }, 'content');
-  const { register, getValues, reset, fields, insert } = methods;
+  const methods = useForm<List>({ defaultValues });
+  const { fields, insert, remove } = useFieldArray({
+    control: methods.control,
+    name: "content"
+  });
 
+  const watchedContent = useWatch({
+    control: methods.control,
+    name: "content",
+  });
+
+  const fieldsWithValues = fields.map((field, index) => ({
+    ...field,
+    ...(watchedContent ? watchedContent[index] : {})
+  }));
+
+  const { getValues, reset, register } = methods;
   const [openMenu, setOpenMenu] = useState<boolean>(false)
 
-  const { uncheckedItems, checkedItems } = splitItemsToDoneAndUndoneLists(fields);
+  const { uncheckedItems, checkedItems } = splitItemsToDoneAndUndoneLists(fieldsWithValues);
   const [contentExpanded, setContentExpanded] = useState<boolean>(true);
   const doneTaskQuantity = checkedItems.length;
 
@@ -117,7 +130,6 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, c
     insert(indexOfActiveEl + 1, newItem as ListItem, { focusName: `content.${indexOfActiveEl + 1}.value` });
   };
 
-  //TODO fix navigating trough checked+unchecked lists
   const handleFormEvents = (e: React.KeyboardEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
     if (!e) return;
     if (cardEdit && cardRef.current) {
@@ -134,7 +146,7 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, c
   };
 
   return (
-    <FormArrayProvider {...methods}>
+    <FormProvider {...methods}>
       <form onKeyDown={handleFormEvents}>
         <div className="flex flex-col align-baseline gap-2">
           {!cardEdit && editedItem && (
@@ -153,6 +165,7 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, c
               list={uncheckedItems}
               checkedItems={false}
               cardIndex={cardIndex}
+              remove={remove}
             />
           )}
           {(cardEdit || editedItem) && <AddListItemButton handleCreateNewLine={handleCreateNewLine} />}
@@ -165,15 +178,16 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, c
                   listId={editedItem?.id}
                   list={checkedItems}
                   checkedItems={true}
-                      cardIndex={cardIndex}
+                  cardIndex={cardIndex}
+                  remove={remove}
                 />
               )}
             </>
           )}
         </div>
       </form>
-      {editedItem && <MenuButton cardId={editedItem.id} openMenu={openMenu} setOpenMenu={setOpenMenu} />}
-    </FormArrayProvider>
+      {editedItem && <MenuButton cardId={editedItem.id} openMenu={openMenu} setOpenMenu={setOpenMenu} fields={checkedItems} remove={remove} />}
+    </FormProvider>
   );
 };
 

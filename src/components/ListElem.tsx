@@ -1,77 +1,78 @@
 import type { List, ListItem } from '../interfaces';
 import { useSortable } from '@dnd-kit/react/sortable';
 import DeleteButton from './atoms/DeleteButton';
-import { useFormArrayContext } from '../utils/useFormArray';
 import { RestrictToElement } from '@dnd-kit/dom/modifiers';
+import { useFormContext, type FieldPath } from 'react-hook-form';
 
 type ListElement = {
   item: ListItem;
-  fieldArrayId: number;
+  globalArrayIndex: number;
   sortableIndex: number;
   listId?: string;
-  listRef: HTMLElement;
-  indent?: boolean
-  children: HTMLElement
+  listRef: HTMLElement | null;
+  indent?: boolean;
+  depth: number;
+  remove: () => void;
 };
 
-const ListElement = ({ item, fieldArrayId, sortableIndex, listId = '', listRef, indent, children }: ListElement) => {
-
+const ListElem = ({
+  item,
+  globalArrayIndex,
+  sortableIndex,
+  listId = '',
+  listRef,
+  indent,
+  remove,
+  depth
+}: ListElement) => {
   const { ref } = useSortable({
-    id: `card-${listId}-item-${item.listItemId}`,
+    id: item.listItemId,
     index: sortableIndex,
-    type: children ? 'parent element' : 'element',
+    type: 'element',
     accept: 'element',
-    data: { fieldArrayId, id: item.listItemId, listId: listId },
+    data: { globalArrayIndex, id: item.listItemId, listId: listId, depth },
     disabled: !listId,
-    modifiers: [RestrictToElement.configure({
-      element: listRef
-    })]
+    modifiers: listRef ? [RestrictToElement.configure({ element: listRef })] : []
   });
 
-  const { register, update, getValues, remove } = useFormArrayContext<List, 'content'>()
-
-  const handleCheck = (index: number, checked: boolean) => {
-    const { listItemId, value } = getValues(`content.${index}`);
-    update(index, { listItemId, checked: checked, value });
-  };
+  const { register } = useFormContext<List>();
 
   const handleRemoveItem = (e: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    remove(fieldArrayId);
+    remove();
   };
 
   return (
-    <>
-      {/* TODO remove custom className */}
-      <li ref={ref} className={`listItem relative flex ${children ? 'flex-col' : 'flex'}items-baseline gap-3 flex-wrap ${!sortableIndex ? 'w-full -mr-8.75' : 'w-[calc(100%-35px)] '} ${indent ? 'pl-7.75' : 'pl-0'} py-2`}>
-        <div className={`listItem relative flex items-baseline gap-3`}>
-          {listId && <div className='cursor-move size-5 rounded-sm bg-primary/20 shrink-0 flex justify-center align-baseline text-primary after:text-s after:content-["⣶"] after:-top-1.5 after:relative' />}
-          <input {...register(`content.${fieldArrayId}.listItemId` as const)} type="hidden" />
-          <input
-            type="checkbox"
-            checked={item.checked}
-            disabled={!item}
-            data-testid={item.listItemId ? `list-item-${item.listItemId}-checkbox` : ''}
-            onChange={(e) => {
-              handleCheck(fieldArrayId, e.target.checked);
-            }}
-            className="w-5 h-5 shrink-0 rounded-sm"
-          />
-          <textarea
-            {...register(`content.${fieldArrayId}.value` as const)}
-            className={`${item.checked && 'line-through text-gray-500'} border-0 text-wrap`}
-            placeholder="Utwórz listę..."
-            data-testid={listId ? `card-${listId}-textarea` : 'card-empty-textarea'}
-          />
-          {item && (
-            <DeleteButton handleRemoveItem={handleRemoveItem} indent={indent} />
-          )}
+    <li ref={ref} className={`flex-wrap w-full max-w-[calc(100%-36px)] ${indent ? 'ml-7.75 ' : 'ml-0'} py-1 `}>
+      <div className="relative flex items-baseline gap-3  group">
+        {listId && (
+          <div className='cursor-move size-5 rounded-sm bg-primary/20 shrink-0 flex justify-center text-primary after:content-["⣶"] after:-top-1.5 after:relative' />
+        )}
+        <input {...register(`content.${globalArrayIndex}.listItemId` as FieldPath<List>)} type="hidden" />
+        <input
+          type="checkbox"
+          data-testid={item.listItemId ? `list-item-${item.listItemId}-checkbox` : ''}
 
-        </div>
-        {children}
-      </li>
-    </>
+          {...register(`content.${globalArrayIndex}.checked` as FieldPath<List>)}
+          className="w-5 h-5 shrink-0 rounded-sm cursor-pointer"
+        />
+        <textarea
+          {...register(`content.${globalArrayIndex}.value` as FieldPath<List>)}
+          className={`${item.checked && 'line-through text-gray-400'} border-0 grow text-wrap bg-transparent focus:ring-0 resize-none overflow-hidden py-1 `}
+          placeholder="Utwórz listę..."
+          // rows={1}
+          data-testid={listId ? `card-${listId}-textarea` : 'card-empty-textarea'}
+
+          // onInput={(e) => {
+          //   const target = e.target as HTMLTextAreaElement;
+          //   target.style.height = 'auto';
+          //   target.style.height = `${target.scrollHeight}px`;
+          // }}
+        />
+        <DeleteButton handleRemoveItem={handleRemoveItem} />
+      </div>
+    </li>
   );
 };
 
-export default ListElement;
+export default ListElem;

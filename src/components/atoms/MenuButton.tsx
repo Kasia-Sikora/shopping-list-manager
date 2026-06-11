@@ -1,14 +1,16 @@
 import { useStore } from "../../stores/store";
-import { useFormArrayContext } from '../../utils/useFormArray'
-import type { List, ListItem } from "../../interfaces";
+import type { FieldListItem } from "../../interfaces";
+import { type UseFieldArrayRemove } from "react-hook-form";
 
 type MenuButton = {
   openMenu: boolean;
   cardId: string;
   setOpenMenu: (value: boolean) => void;
+  fields: FieldListItem[]
+  remove: UseFieldArrayRemove
 }
 
-const MenuButton = ({ cardId, openMenu, setOpenMenu }: MenuButton) => {
+const MenuButton = ({ cardId, openMenu, setOpenMenu, fields, remove }: MenuButton) => {
   return (
     <>
       <button className="absolute bottom-1.5 right-1.5 rounded-full size-7 hover:cursor-pointer" aria-label={openMenu ? 'close menu' : 'open menu'} onClick={(e) => { e.stopPropagation(); setOpenMenu(!openMenu) }}>
@@ -17,7 +19,7 @@ const MenuButton = ({ cardId, openMenu, setOpenMenu }: MenuButton) => {
           <div className='size-7 absolute text-mist-800 bottom-0 after:content-["\2807"] rounded-full after:text-2xl' />
         </div>
       </button>
-      <MenuDropdown open={openMenu} cardId={cardId} setOpen={setOpenMenu} />
+      <MenuDropdown open={openMenu} cardId={cardId} setOpen={setOpenMenu} fields={fields} remove={remove} />
     </>
   );
 };
@@ -29,6 +31,8 @@ type MenuDropdown = {
   open: boolean;
   cardId: string;
   setOpen: (value: boolean) => void
+  fields: FieldListItem[]
+  remove: UseFieldArrayRemove
 }
 
 type MenuOperationTypes =
@@ -37,10 +41,9 @@ type MenuOperationTypes =
   | 'removeChecked';
 
 
-const MenuDropdown = ({ open, cardId, setOpen }: MenuDropdown) => {
+const MenuDropdown = ({ open, cardId, setOpen, fields, remove }: MenuDropdown) => {
 
   const { copyCard, removeCard } = useStore()
-  const { remove, fields } = useFormArrayContext<List, 'content'>()
   const popoverPlacement = () => {
     // return { 'translate(70px, 100px)'}
     return ({ position: 'absolute', margin: '0px', bottom: '35px', right: '0px' }) as React.CSSProperties
@@ -48,9 +51,8 @@ const MenuDropdown = ({ open, cardId, setOpen }: MenuDropdown) => {
 
   const removeCheckedItemsFromFieldsArray = () => {
     for (let i = fields.length - 1; i >= 0; i--) {
-      const field = fields[i] as ListItem
-      if (field.checked) {
-        remove(i)
+      if (fields[i].checked) {
+        remove(fields[i].globalArrayIndex)
       }
     }
   }
@@ -69,6 +71,7 @@ const MenuDropdown = ({ open, cardId, setOpen }: MenuDropdown) => {
     }
     setOpen(false)
   }
+
   return (
     <div id="dropdown" className={`z-10 ${!open ? 'hidden' : ''} bg-menu-bg border border-mist-400 shadow-md shadow-shadow rounded-md w-auto`} aria-label="dropdown" style={{ ...popoverPlacement() }}>
       <ul className="p-2 text-sm font-medium" aria-labelledby="dropdownDefaultButton">

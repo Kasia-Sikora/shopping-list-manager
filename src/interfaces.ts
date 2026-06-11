@@ -6,16 +6,17 @@ export type List = {
 
 export type ListItem = {
   listItemId: string;
-  value?: string;
-  checked?: boolean;
-  children?: ListItem[]
+  value: string;
+  checked: boolean;
+  depth: number
 };
 
-type FieldIndex = {
-  fieldArrayId: number;
+type ArrayFieldIndex = {
+  globalArrayIndex: number;
+  id: string
 };
 
-export type FieldListItem = FieldIndex & ListItem;
+export type FieldListItem = ArrayFieldIndex & ListItem;
 
 export type PersistedShoppingListStore = {
   state: {

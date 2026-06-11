@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { List, PersistedShoppingListStore } from '../interfaces';
+import type { List, ListItem, PersistedShoppingListStore } from '../interfaces';
 import { persist } from 'zustand/middleware';
 import { LOCAL_STORAGE_STORE_KEY, LOCAL_STORAGE_THEME_KEY } from '../consts';
 import { generateId } from '../utils/utils';
@@ -15,21 +15,25 @@ export const DEFAULT_VALUES: PersistedShoppingListStore = {
             listItemId: '1',
             value: 'first el in First List',
             checked: false,
+            depth: 0,
           },
           {
             listItemId: '2',
             value: 'second el in First List',
             checked: false,
+            depth: 0,
           },
           {
             listItemId: '3',
             value: 'third el in First List',
             checked: false,
+            depth: 0,
           },
           {
             listItemId: '4',
             value: 'fourth el in First List',
             checked: false,
+            depth: 0,
           },
         ],
       },
@@ -41,21 +45,25 @@ export const DEFAULT_VALUES: PersistedShoppingListStore = {
             listItemId: '1',
             value: 'first el in Second List',
             checked: true,
+            depth: 0,
           },
           {
             listItemId: '2',
             value: 'second el in Second List',
             checked: false,
+            depth: 0,
           },
           {
             listItemId: '3',
             value: 'third el in Second List',
             checked: false,
+            depth: 0,
           },
           {
             listItemId: '4',
             value: 'fourth el in Second List',
             checked: true,
+            depth: 0,
           },
         ],
       },

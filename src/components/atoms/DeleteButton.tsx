@@ -5,11 +5,11 @@ type DeleteButton = {
   indent?: boolean
 }
 
-const DeleteButton = ({ handleRemoveItem, indent }: DeleteButton) => {
+const DeleteButton = ({ handleRemoveItem }: DeleteButton) => {
   return (
     <button
       onClick={handleRemoveItem}
-      className={`${!indent ? 'absolute -right-6 top-1' : '' } shrink-0 justify-self-end rounded-full bg-transparent focus:bg-accent/50 hover:bg-accent/50 size-6 after:font-bold after:content-["\x00d7"] after:text-mist-900`}
+      className={`absolute -right-9 top-0 shrink-0 justify-self-end rounded-full bg-transparent text-mist-900 focus:bg-accent/50 hover:bg-accent/50 size-6 after:font-bold after:content-['×'] after:text-mist-900 opacity-0 group-hover:opacity-100 transition-opacity`}
       aria-label="Delete"
     />
   )
