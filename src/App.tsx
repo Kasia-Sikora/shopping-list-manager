@@ -32,7 +32,7 @@ const App = () => {
     <div className='text-primary placeholder:text-primary'>
       <ThemeToggle />
 
-      <Card />
+      <Card emptyCardId='empty' />
       <DragDropProvider
         onDragEnd={(event) => {
           if (event.canceled) return;

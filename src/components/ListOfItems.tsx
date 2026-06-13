@@ -1,18 +1,17 @@
 import { DragDropProvider, useDroppable } from '@dnd-kit/react';
 import ListElem from './ListElem';
 import { useEffect, useState, useRef } from 'react';
-import type { FieldListItem } from '../interfaces';
+import type { StoreListItem } from '../interfaces';
 import { isSortableOperation } from '@dnd-kit/react/sortable';
 
 type ListOfItem = {
-  list: FieldListItem[];
+  list: StoreListItem[];
   listId?: string;
   checkedItems: boolean;
   cardIndex: number;
-  remove: (index: number) => void;
 };
 
-const ListOfItems = ({ list, listId, checkedItems, remove }: ListOfItem) => {
+const ListOfItems = ({ list, listId, checkedItems }: ListOfItem) => {
   const listRef = useRef<HTMLUListElement>(null)
   const [listRefCurr, setListRefCurr] = useState<HTMLElement | null>(null)
 
@@ -59,11 +58,10 @@ const ListOfItems = ({ list, listId, checkedItems, remove }: ListOfItem) => {
             key={field.id}
             item={field}
             sortableIndex={index}
-            globalArrayIndex={field.globalArrayIndex}
+            globalArrayIndex={field.storeArrayIndex}
             listId={listId ?? ''}
             listRef={listRefCurr}
             depth={field.depth}
-            remove={() => remove(field.globalArrayIndex)}
           />
         ))}
       </ul>

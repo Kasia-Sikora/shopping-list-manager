@@ -1,53 +1,35 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { List, ListItem } from '../interfaces';
 import { generateId, handleKeyDown, splitItemsToDoneAndUndoneLists } from '../utils/utils';
 import { ChevronButton } from './atoms/ChevronButton';
-import { useStore } from '../stores/store';
+import { useActiveCardIdStore, useStore } from '../stores/store';
 import AddListItemButton from './atoms/AddListItemButton';
 import ListOfItems from './ListOfItems';
 import MenuButton from './atoms/MenuButton';
-import { FormProvider, useFieldArray, useForm, useWatch } from 'react-hook-form';
 
 interface CardContentProps {
-  cardEdit: boolean;
-  setEditCard: (edit: boolean) => void;
   editedItem?: List;
   cardRef: React.RefObject<HTMLDivElement | null>;
   cardDataId: string;
   cardIndex: number
+  cardId: string | null
 }
 
-const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, cardIndex }: CardContentProps) => {
+const CardContent = ({ editedItem, cardRef, cardDataId, cardIndex, cardId }: CardContentProps) => {
   const { updateItem, addItem, removeCard } = useStore();
+  const { editingCardId, resetStates } = useActiveCardIdStore()
 
-  const defaultValues: List = editedItem
+  const defaultValues: List = useMemo(() => editedItem
     ? editedItem
     : {
       id: '',
       title: '',
-      content: [{ listItemId: generateId(), value: '', checked: false, depth: 0 } as ListItem],
-    };
+      content: [{ id: generateId(), value: '', checked: false, depth: 0 } as ListItem],
+    }, [editedItem]);
 
-  const methods = useForm<List>({ defaultValues });
-  const { fields, insert, remove } = useFieldArray({
-    control: methods.control,
-    name: "content"
-  });
-
-  const watchedContent = useWatch({
-    control: methods.control,
-    name: "content",
-  });
-
-  const fieldsWithValues = fields.map((field, index) => ({
-    ...field,
-    ...(watchedContent ? watchedContent[index] : {})
-  }));
-
-  const { getValues, reset, register } = methods;
   const [openMenu, setOpenMenu] = useState<boolean>(false)
 
-  const { uncheckedItems, checkedItems } = splitItemsToDoneAndUndoneLists(fieldsWithValues);
+  const { uncheckedItems, checkedItems } = splitItemsToDoneAndUndoneLists(defaultValues.content);
   const [contentExpanded, setContentExpanded] = useState<boolean>(true);
   const doneTaskQuantity = checkedItems.length;
 
@@ -57,14 +39,14 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, c
   };
 
   useEffect(() => {
-    if (cardEdit) {
+    if (editingCardId === cardId) {
       const listItems = document.querySelectorAll(
         `[data-testid='${cardDataId}'] textarea`
       ) as NodeListOf<HTMLTextAreaElement>;
 
       const onKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Escape") {
-          setEditCard(false)
+          resetStates()
           const activeEl = document.activeElement
           if (activeEl instanceof HTMLElement) {
             activeEl.blur()
@@ -77,33 +59,33 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, c
       listItems?.forEach((item: HTMLTextAreaElement) => item.addEventListener('keydown', onKeyDown));
       return () => listItems?.forEach((item: HTMLTextAreaElement) => item.removeEventListener('keydown', onKeyDown));
     }
-  }, [cardDataId, cardEdit, fields, setEditCard]);
+  }, [cardDataId, cardId, editedItem?.content, editingCardId, resetStates]);
 
   const handleSubmit = useCallback(() => {
-    const data = getValues();
+    const data = { ...defaultValues } //TODO tere was getValue() from RHF
     data.content = data.content?.filter((el: ListItem) => el.value);
     if (data.title || data.content.length) {
       if (editedItem) {
         updateItem({ ...editedItem, ...data });
-        reset({ content: data.content, title: data.title });
+        // reset({ content: data.content, title: data.title });
       } else {
         addItem({ id: generateId(), title: data.title, content: data.content });
-        reset();
+        // reset();
       }
     } else {
       if (editedItem) {
         removeCard(editedItem.id)
       }
-      reset();
+      // reset();
     }
-  }, [addItem, editedItem, getValues, reset, updateItem, removeCard]);
+  }, [defaultValues, editedItem, updateItem, addItem, removeCard]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (cardEdit) {
+      if (editingCardId === cardId) {
         if (cardRef?.current && !cardRef.current.contains(e.target as Node)) {
           handleSubmit();
-          setEditCard(false);
+          resetStates();
         }
       };
       const dropdownCardEl = document.querySelector(`[data-id='card-${editedItem?.id}'] #dropdown`)
@@ -115,29 +97,29 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, c
     document.addEventListener('mousedown', handleClickOutside);
 
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [cardRef, setEditCard, cardEdit, handleSubmit, setOpenMenu, editedItem?.id]);
+  }, [cardRef, handleSubmit, setOpenMenu, editedItem?.id, resetStates, editingCardId, cardId]);
 
   const handleCreateNewLine = (e: React.KeyboardEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    let indexOfActiveEl: number;
-    const target = e.target instanceof HTMLTextAreaElement ? e.target.name : undefined;
-    if (e.nativeEvent instanceof KeyboardEvent && target) {
-      indexOfActiveEl = parseInt(target.split('.')[1] ?? '-1');
-    } else {
-      indexOfActiveEl = fields.length;
-    }
-    const newItem = { listItemId: generateId(), value: '', checked: false } as ListItem;
-    insert(indexOfActiveEl + 1, newItem as ListItem, { focusName: `content.${indexOfActiveEl + 1}.value` });
+    // let indexOfActiveEl: number;
+    // const target = e.target instanceof HTMLTextAreaElement ? e.target.name : undefined;
+    // if (e.nativeEvent instanceof KeyboardEvent && target) {
+    //   indexOfActiveEl = parseInt(target.split('.')[1] ?? '-1');
+    // } else {
+    //   indexOfActiveEl = editedItem.content.length;
+    // }
+    // const newItem = { id: generateId(), value: '', checked: false } as ListItem;
+    // insert(indexOfActiveEl + 1, newItem as ListItem, { focusName: `content.${indexOfActiveEl + 1}.value` });
   };
 
   const handleFormEvents = (e: React.KeyboardEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
     if (!e) return;
-    if (cardEdit && cardRef.current) {
+    if (editingCardId === cardId && cardRef.current) {
       const isETypeOfKeyboardEvent = e.nativeEvent instanceof KeyboardEvent && 'key' in e && e.key === 'Enter';
       if (isETypeOfKeyboardEvent && e.shiftKey) {
         e.preventDefault();
         handleSubmit();
-        setEditCard(false);
+        resetStates();
       } else if (isETypeOfKeyboardEvent || e.nativeEvent instanceof PointerEvent) {
         e.preventDefault();
         handleCreateNewLine(e);
@@ -146,29 +128,31 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, c
   };
 
   return (
-    <FormProvider {...methods}>
+    <>
       <form onKeyDown={handleFormEvents}>
         <div className="flex flex-col align-baseline gap-2">
-          {!cardEdit && editedItem && (
+          {/* {editingCardId !== cardId && editedItem && (
             <h2 className="p-2 text-2xl wrap-break-word font-bold border-0 text-secondary">{editedItem.title}</h2>
           )}
-          {cardEdit && (
+          {editingCardId === cardId && ( */}
             <textarea
               className="p-2 text-2xl font-bold border-0 text-secondary"
-              {...register('title')}
+              // {...register('title')}
+              defaultValue={editedItem?.title}
+              onBlur={(e) => console.log('target ', e.target.value)}
               placeholder="Tytuł..."
             />
-          )}
+          {/* )} */}
           {uncheckedItems.length > 0 && (
             <ListOfItems
               listId={editedItem?.id}
               list={uncheckedItems}
               checkedItems={false}
               cardIndex={cardIndex}
-              remove={remove}
+            // remove={remove}
             />
           )}
-          {(cardEdit || editedItem) && <AddListItemButton handleCreateNewLine={handleCreateNewLine} />}
+          {(editingCardId === cardId || editedItem) && <AddListItemButton handleCreateNewLine={handleCreateNewLine} />}
           {doneTaskQuantity > 0 && (
             <>
               <div className="border-t border-primary w-full" />
@@ -179,15 +163,14 @@ const CardContent = ({ cardEdit, setEditCard, editedItem, cardRef, cardDataId, c
                   list={checkedItems}
                   checkedItems={true}
                   cardIndex={cardIndex}
-                  remove={remove}
                 />
               )}
             </>
           )}
         </div>
       </form>
-      {editedItem && <MenuButton cardId={editedItem.id} openMenu={openMenu} setOpenMenu={setOpenMenu} fields={checkedItems} remove={remove} />}
-    </FormProvider>
+      {editedItem && <MenuButton cardId={editedItem.id} openMenu={openMenu} setOpenMenu={setOpenMenu} fields={checkedItems} />}
+    </>
   );
 };
 

@@ -1,40 +1,55 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import CardContent from './CardContent';
 import type { List } from '../interfaces';
 import EditIndicator from './atoms/EditIndicator';
 import { useSortable } from '@dnd-kit/react/sortable';
+import { useActiveCardIdStore } from '../stores/store';
 
 type Card = {
+  emptyCardId?: string,
   editedItem?: List;
   index?: number
   styles?: string
 };
 
-const Card = ({ editedItem, index, styles }: Card) => {
+const Card = ({ emptyCardId, editedItem, index, styles }: Card) => {
   const cardRef = useRef<HTMLDivElement>(null);
 
+  const { editingCardId, setEditingCardId, resetStates } = useActiveCardIdStore()
+
+  const cardId = editedItem?.id ?? emptyCardId ?? undefined
+
   const { isDragging } = useSortable({
-    id: editedItem?.id ?? 'empty-card',
+    id: cardId,
     index: index ?? 0,
     element: cardRef,
     disabled: index === undefined
   })
-  const [edit, setEdit] = useState<boolean>(false);
+
+  useEffect(() => {
+    return () => {
+      if (editingCardId === cardId) {
+        resetStates();
+      }
+    }
+  }, [cardId, editingCardId, resetStates])
 
   const handleEdit = () => {
-    if (!edit) {
-      setEdit(true);
+    if (editingCardId !== cardId) {
+      setEditingCardId(cardId);
       const activeElement = document.activeElement;
       if (!(activeElement instanceof HTMLTextAreaElement)) {
-        const el = document.querySelector(
-          `[data-id='card-${editedItem?.id ? editedItem.id : 'empty'}'] textarea`
-        ) as HTMLTextAreaElement;
-        if (el) el.focus();
+        requestAnimationFrame(() => {
+          const el = document.querySelector(
+            `[data-id='card-${cardId}'] textarea`
+          ) as HTMLTextAreaElement;
+          if (el) el.focus();
+        })
       }
     }
   };
 
-  const cardDataId = editedItem ? `card-${editedItem.id}` : 'card-empty';
+  const cardDataId = `card-${cardId}`
 
   return (
     <section
@@ -44,14 +59,13 @@ const Card = ({ editedItem, index, styles }: Card) => {
       data-id={cardDataId}
       data-testid={cardDataId}
     >
-      {editedItem && <EditIndicator id={editedItem.id} isEdit={edit} />}
+      {editedItem && <EditIndicator id={editedItem.id} isEdit={editingCardId === cardId} />}
       <CardContent
-        cardEdit={edit}
-        setEditCard={setEdit}
         editedItem={editedItem}
         cardRef={cardRef}
         cardDataId={cardDataId}
         cardIndex={index}
+        cardId={cardId}
       />
     </section>
   );

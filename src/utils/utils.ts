@@ -1,17 +1,16 @@
-import type { FieldArrayWithId } from 'react-hook-form';
-import type { FieldListItem, List, ListItem, PersistedShoppingListStore } from '../interfaces';
+import type { ListItem, PersistedShoppingListStore, StoreListItem } from '../interfaces';
 
 export const generateId = () => {
   return crypto.randomUUID();
 };
 
-export const splitItemsToDoneAndUndoneLists = (items: (FieldArrayWithId<List, 'content', 'id'>)[]) => {
-  const uncheckedItems: FieldListItem[] = [];
-  const checkedItems: FieldListItem[] = [];
+export const splitItemsToDoneAndUndoneLists = (items: ListItem[]) => {
+  const uncheckedItems: StoreListItem[] = [];
+  const checkedItems: StoreListItem[] = [];
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    const itemWithId = { ...item, globalArrayIndex: i, id: item.id ?? '' } as FieldListItem;
+    const itemWithId = { ...item, storeArrayIndex: i ?? '' } as StoreListItem;
     if (item.checked) {
       checkedItems.push(itemWithId);
     } else {

@@ -1,16 +1,14 @@
 import { useStore } from "../../stores/store";
-import type { FieldListItem } from "../../interfaces";
-import { type UseFieldArrayRemove } from "react-hook-form";
+import type { StoreListItem } from "../../interfaces";
 
 type MenuButton = {
   openMenu: boolean;
   cardId: string;
   setOpenMenu: (value: boolean) => void;
-  fields: FieldListItem[]
-  remove: UseFieldArrayRemove
+  fields: StoreListItem[]
 }
 
-const MenuButton = ({ cardId, openMenu, setOpenMenu, fields, remove }: MenuButton) => {
+const MenuButton = ({ cardId, openMenu, setOpenMenu, fields }: MenuButton) => {
   return (
     <>
       <button className="absolute bottom-1.5 right-1.5 rounded-full size-7 hover:cursor-pointer" aria-label={openMenu ? 'close menu' : 'open menu'} onClick={(e) => { e.stopPropagation(); setOpenMenu(!openMenu) }}>
@@ -19,7 +17,7 @@ const MenuButton = ({ cardId, openMenu, setOpenMenu, fields, remove }: MenuButto
           <div className='size-7 absolute text-mist-800 bottom-0 after:content-["\2807"] rounded-full after:text-2xl' />
         </div>
       </button>
-      <MenuDropdown open={openMenu} cardId={cardId} setOpen={setOpenMenu} fields={fields} remove={remove} />
+      <MenuDropdown open={openMenu} cardId={cardId} setOpen={setOpenMenu} fields={fields} />
     </>
   );
 };
@@ -31,8 +29,7 @@ type MenuDropdown = {
   open: boolean;
   cardId: string;
   setOpen: (value: boolean) => void
-  fields: FieldListItem[]
-  remove: UseFieldArrayRemove
+  fields: StoreListItem[]
 }
 
 type MenuOperationTypes =
@@ -41,7 +38,7 @@ type MenuOperationTypes =
   | 'removeChecked';
 
 
-const MenuDropdown = ({ open, cardId, setOpen, fields, remove }: MenuDropdown) => {
+const MenuDropdown = ({ open, cardId, setOpen, fields }: MenuDropdown) => {
 
   const { copyCard, removeCard } = useStore()
   const popoverPlacement = () => {
@@ -52,7 +49,7 @@ const MenuDropdown = ({ open, cardId, setOpen, fields, remove }: MenuDropdown) =
   const removeCheckedItemsFromFieldsArray = () => {
     for (let i = fields.length - 1; i >= 0; i--) {
       if (fields[i].checked) {
-        remove(fields[i].globalArrayIndex)
+        // remove(fields[i].globalArrayIndex)
       }
     }
   }

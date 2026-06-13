@@ -12,25 +12,25 @@ export const DEFAULT_VALUES: PersistedShoppingListStore = {
         title: 'First Card',
         content: [
           {
-            listItemId: '1',
+            id: '1',
             value: 'first el in First List',
             checked: false,
             depth: 0,
           },
           {
-            listItemId: '2',
+            id: '2',
             value: 'second el in First List',
             checked: false,
             depth: 0,
           },
           {
-            listItemId: '3',
+            id: '3',
             value: 'third el in First List',
             checked: false,
             depth: 0,
           },
           {
-            listItemId: '4',
+            id: '4',
             value: 'fourth el in First List',
             checked: false,
             depth: 0,
@@ -42,25 +42,25 @@ export const DEFAULT_VALUES: PersistedShoppingListStore = {
         title: 'Second Card',
         content: [
           {
-            listItemId: '1',
+            id: '1',
             value: 'first el in Second List',
             checked: true,
             depth: 0,
           },
           {
-            listItemId: '2',
+            id: '2',
             value: 'second el in Second List',
             checked: false,
             depth: 0,
           },
           {
-            listItemId: '3',
+            id: '3',
             value: 'third el in Second List',
             checked: false,
             depth: 0,
           },
           {
-            listItemId: '4',
+            id: '4',
             value: 'fourth el in Second List',
             checked: true,
             depth: 0,
@@ -153,3 +153,15 @@ export const useThemeStore = create<StoreThemeState>()(
     { name: LOCAL_STORAGE_THEME_KEY }
   )
 );
+
+type ActiveCardIdStore = {
+  editingCardId: string | null;
+  setEditingCardId: (id: string | null) => void;
+  resetStates: () => void;
+};
+
+export const useActiveCardIdStore = create<ActiveCardIdStore>((set) => ({
+  editingCardId: null,
+  setEditingCardId: (id) => set(() => ({ editingCardId: id })),
+  resetStates: () => set(() => ({editingCardId: null}))
+}));

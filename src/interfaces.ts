@@ -5,21 +5,16 @@ export type List = {
 };
 
 export type ListItem = {
-  listItemId: string;
+  id: string;
   value: string;
   checked: boolean;
-  depth: number
+  depth: number;
 };
 
-type ArrayFieldIndex = {
-  globalArrayIndex: number;
-  id: string
-};
-
-export type FieldListItem = ArrayFieldIndex & ListItem;
+export type StoreListItem = ListItem & { storeArrayIndex: number };
 
 export type PersistedShoppingListStore = {
   state: {
-    items: List[]
-  }
-}
+    items: List[];
+  };
+};
