@@ -9,6 +9,7 @@
   --color-active: var(--active);
   --color-menu-bg: var(--menu-bg);
   --color-menu-active: var(--menu-active);
+  --color-drag-item-active: var(--drag-item-active)
 }
 
 @layer base {
@@ -22,6 +23,7 @@
     --active: var(--color-white);
     --menu-bg: var(--color-amber-50);
     --menu-active: var(--color-amber-100);
+    --drag-item-active: var(--color-orange-200)
   }
 
   [data-theme='theme-dark'] {
@@ -30,9 +32,10 @@
     --text-secondary: var(--color-amber-700);
     --accent: var(--color-amber-500);
     --shadow: var(--color-mist-400);
-    --active: var(--color-white)/50;
+    --active: var(--color-mist-500);
     --menu-bg: var(--color-mist-900);
     --menu-active: var(--color-mist-800);
+    --drag-item-active: var(--color-mist-900)
   }
 }
 
@@ -55,16 +58,11 @@ li:has(textarea:focus) {
   border-bottom: 1px solid var(--color-shadow);
 }
 
-textarea {
-  field-sizing: content;
-  resize: none;
-}
-
 input[type='checkbox'] {
   -webkit-appearance: none;
   appearance: none;
   color: #6a7282;
-  border: 0.1em solid currentColor;
+  border: 1px solid currentColor;
   transform: translateY(-0.075em);
   display: grid;
   place-content: center;
@@ -72,7 +70,7 @@ input[type='checkbox'] {
 
 input[type='checkbox']:hover,
 input[type='checkbox']:focus {
-  border: 0.8px solid currentColor;
+  border: 2px solid currentColor;
 }
 
 input[type='checkbox']::before {
@@ -80,7 +78,8 @@ input[type='checkbox']::before {
   width: 12px;
   height: 12px;
   transform: scale(0);
-  box-shadow: inset 1em 1em var(--color-accent);
+  background-color: var(--color-accent);
+  border-radius: 2px;
 }
 
 input[type='checkbox']:checked::before {

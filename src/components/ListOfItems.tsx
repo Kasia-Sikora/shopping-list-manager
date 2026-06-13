@@ -14,8 +14,9 @@ type ListOfItem = {
 const ListOfItems = ({ list, listId, checkedItems }: ListOfItem) => {
   const listRef = useRef<HTMLUListElement>(null)
   const [listRefCurr, setListRefCurr] = useState<HTMLElement | null>(null)
+  const [active, setActive] = useState(false)
 
-  const { isDropTarget } = useDroppable({
+  useDroppable({
     id: `card-${listId ?? 'empty'}-${checkedItems ? 'checked' : 'unchecked'}`,
     element: listRef,
   });
@@ -31,7 +32,10 @@ const ListOfItems = ({ list, listId, checkedItems }: ListOfItem) => {
   return (
     <DragDropProvider
       onDragEnd={(event) => {
-        if (event.canceled) return;
+        if (event.canceled) {
+          setActive(false)
+          return
+        };
         const { operation } = event;
         if (isSortableOperation(operation)) {
           const { source, target, position } = operation;
@@ -46,11 +50,19 @@ const ListOfItems = ({ list, listId, checkedItems }: ListOfItem) => {
             }
           }
         }
+        if(active){
+          setActive(false)
+        }
+      }}
+      onDragStart={() => {
+        if(!active){
+          setActive(true)
+        }
       }}
     >
       <ul
         ref={listRef}
-        className={`transition-all duration-300 outline-active rounded-sm relative ${isDropTarget ? 'bg-active/10' : ''}`}
+        className={`transition-all duration-300 outline-active rounded-sm relative ${active ? 'bg-active/30 outline-2 outline-active/70 outline-dashed' : ''}`}
         data-testid={dataId}
       >
         {list.map((field, index) => (
@@ -62,6 +74,7 @@ const ListOfItems = ({ list, listId, checkedItems }: ListOfItem) => {
             listId={listId ?? ''}
             listRef={listRefCurr}
             depth={field.depth}
+            isHidden={false}
           />
         ))}
       </ul>

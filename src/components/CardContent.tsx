@@ -136,7 +136,7 @@ const CardContent = ({ editedItem, cardRef, cardDataId, cardIndex, cardId }: Car
           )}
           {editingCardId === cardId && ( */}
             <textarea
-              className="p-2 text-2xl font-bold border-0 text-secondary"
+              className="p-2 text-2xl font-bold border-0 text-secondary resize-none overflow-hidden field-sizing-content"
               // {...register('title')}
               defaultValue={editedItem?.title}
               onBlur={(e) => console.log('target ', e.target.value)}
