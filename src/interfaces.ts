@@ -15,6 +15,14 @@ export type StoreListItem = ListItem & { storeArrayIndex: number };
 
 export type PersistedShoppingListStore = {
   state: {
-    items: List[];
+    lists: List[];
   };
 };
+
+
+export type SetLocalDataActions = {
+  update: (updates: Partial<List>) => void;
+  sync: (dataToSync: List) => void;
+  save: (dataToSave: List) => void;
+  resetLocalState:() => void
+}

@@ -1,35 +1,29 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { List, ListItem } from '../interfaces';
-import { generateId, handleKeyDown, splitItemsToDoneAndUndoneLists } from '../utils/utils';
-import { ChevronButton } from './atoms/ChevronButton';
+import { useCallback, useEffect, useState } from 'react';
+import type { List, SetLocalDataActions } from '../interfaces';
 import { useActiveCardIdStore, useStore } from '../stores/store';
+import { generateId, handleKeyDown, setFocusOnElement, splitItemsToDoneAndUndoneLists } from '../utils/utils';
 import AddListItemButton from './atoms/AddListItemButton';
-import ListOfItems from './ListOfItems';
+import { ChevronButton } from './atoms/ChevronButton';
 import MenuButton from './atoms/MenuButton';
+import ListOfItems from './ListOfItems';
+import { EMPTY_CARD_ID } from '../consts';
 
 interface CardContentProps {
-  editedItem?: List;
+  editedList: List;
   cardRef: React.RefObject<HTMLDivElement | null>;
   cardDataId: string;
   cardIndex: number
-  cardId: string | null
+  cardId: string | null,
+  actions: SetLocalDataActions
 }
 
-const CardContent = ({ editedItem, cardRef, cardDataId, cardIndex, cardId }: CardContentProps) => {
-  const { updateItem, addItem, removeCard } = useStore();
-  const { editingCardId, resetStates } = useActiveCardIdStore()
+const CardContent = ({ editedList, cardRef, cardDataId, cardIndex, cardId, actions }: CardContentProps) => {
+  const { editingCardId, setEditingCardId } = useActiveCardIdStore()
+  const {removeList} = useStore()
 
-  const defaultValues: List = useMemo(() => editedItem
-    ? editedItem
-    : {
-      id: '',
-      title: '',
-      content: [{ id: generateId(), value: '', checked: false, depth: 0 } as ListItem],
-    }, [editedItem]);
 
   const [openMenu, setOpenMenu] = useState<boolean>(false)
-
-  const { uncheckedItems, checkedItems } = splitItemsToDoneAndUndoneLists(defaultValues.content);
+  const { uncheckedItems, checkedItems } = splitItemsToDoneAndUndoneLists(editedList.content);
   const [contentExpanded, setContentExpanded] = useState<boolean>(true);
   const doneTaskQuantity = checkedItems.length;
 
@@ -46,7 +40,7 @@ const CardContent = ({ editedItem, cardRef, cardDataId, cardIndex, cardId }: Car
 
       const onKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Escape") {
-          resetStates()
+          setEditingCardId(null)
           const activeEl = document.activeElement
           if (activeEl instanceof HTMLElement) {
             activeEl.blur()
@@ -59,57 +53,57 @@ const CardContent = ({ editedItem, cardRef, cardDataId, cardIndex, cardId }: Car
       listItems?.forEach((item: HTMLTextAreaElement) => item.addEventListener('keydown', onKeyDown));
       return () => listItems?.forEach((item: HTMLTextAreaElement) => item.removeEventListener('keydown', onKeyDown));
     }
-  }, [cardDataId, cardId, editedItem?.content, editingCardId, resetStates]);
+  }, [cardDataId, cardId, editedList.content, editingCardId, setEditingCardId]);
 
   const handleSubmit = useCallback(() => {
-    const data = { ...defaultValues } //TODO tere was getValue() from RHF
-    data.content = data.content?.filter((el: ListItem) => el.value);
+    if (!editingCardId) return;
+    const data = { ...editedList, content: editedList.content.filter(item => item.value) }
     if (data.title || data.content.length) {
-      if (editedItem) {
-        updateItem({ ...editedItem, ...data });
-        // reset({ content: data.content, title: data.title });
-      } else {
-        addItem({ id: generateId(), title: data.title, content: data.content });
-        // reset();
-      }
+      actions.save(data)
     } else {
-      if (editedItem) {
-        removeCard(editedItem.id)
-      }
-      // reset();
+      removeList(data.id)
+      actions.resetLocalState()
     }
-  }, [defaultValues, editedItem, updateItem, addItem, removeCard]);
+  }, [editingCardId, editedList, actions, removeList]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (editingCardId === cardId) {
         if (cardRef?.current && !cardRef.current.contains(e.target as Node)) {
           handleSubmit();
-          resetStates();
         }
+        // resetStates();
       };
-      const dropdownCardEl = document.querySelector(`[data-id='card-${editedItem?.id}'] #dropdown`)
+      const dropdownCardEl = document.querySelector(`[data-id='card-${editedList.id}'] #dropdown`)
       if (dropdownCardEl && !dropdownCardEl.contains(e.target as Node)) {
         setOpenMenu(false)
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mouseup', handleClickOutside);
 
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [cardRef, handleSubmit, setOpenMenu, editedItem?.id, resetStates, editingCardId, cardId]);
+    return () => document.removeEventListener('mouseup', handleClickOutside);
+  }, [cardRef, handleSubmit, setOpenMenu, editedList.id, editingCardId, cardId]);
 
   const handleCreateNewLine = (e: React.KeyboardEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    // let indexOfActiveEl: number;
-    // const target = e.target instanceof HTMLTextAreaElement ? e.target.name : undefined;
-    // if (e.nativeEvent instanceof KeyboardEvent && target) {
-    //   indexOfActiveEl = parseInt(target.split('.')[1] ?? '-1');
-    // } else {
-    //   indexOfActiveEl = editedItem.content.length;
-    // }
-    // const newItem = { id: generateId(), value: '', checked: false } as ListItem;
-    // insert(indexOfActiveEl + 1, newItem as ListItem, { focusName: `content.${indexOfActiveEl + 1}.value` });
+    let indexOfActiveEl: number;
+    let itemDepth = 0
+    if (e?.target instanceof HTMLTextAreaElement) {
+      const target = e.target instanceof HTMLTextAreaElement ? e.target.name : undefined;
+      if (e.nativeEvent instanceof KeyboardEvent && target) {
+        indexOfActiveEl = parseInt(target.split('.')[1] ?? '-1');
+        itemDepth = parseInt(e.target.dataset.depth ?? '0')
+      }
+    }
+    else {
+      indexOfActiveEl = editedList.content.length;
+    }
+    const newItem = { id: generateId(), value: '', checked: false, depth: itemDepth };
+    const newData = [...editedList.content]
+    newData.splice(indexOfActiveEl + 1, 0, newItem)
+    actions.update({ ...editedList, content: newData });
+    setFocusOnElement(cardId, indexOfActiveEl)
   };
 
   const handleFormEvents = (e: React.KeyboardEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
@@ -118,8 +112,8 @@ const CardContent = ({ editedItem, cardRef, cardDataId, cardIndex, cardId }: Car
       const isETypeOfKeyboardEvent = e.nativeEvent instanceof KeyboardEvent && 'key' in e && e.key === 'Enter';
       if (isETypeOfKeyboardEvent && e.shiftKey) {
         e.preventDefault();
-        handleSubmit();
-        resetStates();
+        setTimeout(() => handleSubmit(), 0);
+        // resetStates();
       } else if (isETypeOfKeyboardEvent || e.nativeEvent instanceof PointerEvent) {
         e.preventDefault();
         handleCreateNewLine(e);
@@ -131,45 +125,46 @@ const CardContent = ({ editedItem, cardRef, cardDataId, cardIndex, cardId }: Car
     <>
       <form onKeyDown={handleFormEvents}>
         <div className="flex flex-col align-baseline gap-2">
-          {/* {editingCardId !== cardId && editedItem && (
-            <h2 className="p-2 text-2xl wrap-break-word font-bold border-0 text-secondary">{editedItem.title}</h2>
-          )}
-          {editingCardId === cardId && ( */}
+          {(editingCardId !== cardId || (editingCardId !== cardId && cardId === EMPTY_CARD_ID)) ? (
+            editedList.title && <h2 className="pb-2 text-2xl wrap-break-word font-bold border-0 text-secondary">{editedList.title}</h2>
+          ) : (
             <textarea
-              className="p-2 text-2xl font-bold border-0 text-secondary resize-none overflow-hidden field-sizing-content"
-              // {...register('title')}
-              defaultValue={editedItem?.title}
-              onBlur={(e) => console.log('target ', e.target.value)}
+              className={`pb-2 text-2xl font-bold border-0 text-secondary resize-none overflow-hidden field-sizing-content ${(editingCardId === cardId || editedList) ? '' : 'hidden'}`}
+              value={editedList?.title || ''}
+              onChange={(e) => actions.update({ title: e.target?.value })}
               placeholder="Tytuł..."
-            />
-          {/* )} */}
+              name='title'
+            />)}
           {uncheckedItems.length > 0 && (
             <ListOfItems
-              listId={editedItem?.id}
+              listId={editedList?.id}
               list={uncheckedItems}
               checkedItems={false}
               cardIndex={cardIndex}
-            // remove={remove}
+              actions={actions}
+              editedList={editedList}
             />
           )}
-          {(editingCardId === cardId || editedItem) && <AddListItemButton handleCreateNewLine={handleCreateNewLine} />}
+          {(editingCardId === cardId || cardId !== EMPTY_CARD_ID) && <AddListItemButton handleCreateNewLine={handleCreateNewLine} />}
           {doneTaskQuantity > 0 && (
             <>
               <div className="border-t border-primary w-full" />
               <ChevronButton toggle={toggleExpand} contentExpanded={contentExpanded} quantity={doneTaskQuantity} />
               {contentExpanded && (
                 <ListOfItems
-                  listId={editedItem?.id}
+                  listId={editedList?.id}
                   list={checkedItems}
                   checkedItems={true}
                   cardIndex={cardIndex}
+                  actions={actions}
+                  editedList={editedList}
                 />
               )}
             </>
           )}
         </div>
       </form>
-      {editedItem && <MenuButton cardId={editedItem.id} openMenu={openMenu} setOpenMenu={setOpenMenu} fields={checkedItems} />}
+      {cardId !== EMPTY_CARD_ID && <MenuButton cardId={editedList.id} openMenu={openMenu} setOpenMenu={setOpenMenu} list={editedList} actions={actions} />}
     </>
   );
 };

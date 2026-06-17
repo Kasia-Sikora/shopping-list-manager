@@ -4,6 +4,7 @@ import { userEvent } from '@testing-library/user-event';
 import App from '../../App';
 import { editedElements } from './testHelpers';
 import { LOCAL_STORAGE_STORE_KEY } from '../../consts';
+import type { PersistedShoppingListStore } from '../../interfaces';
 
 describe('<App>', () => {
   const user = userEvent.setup();
@@ -20,32 +21,36 @@ describe('<App>', () => {
     getDoneElemExpandButton,
   } = editedElements;
 
-  const defaultStoreState = {
+  const defaultStoreState: PersistedShoppingListStore = {
     state: {
-      items: [
+      lists: [
         {
           id: '0',
           title: 'First Card',
           content: [
             {
-              listItemId: '1',
+              id: '1',
               value: 'first el in First List',
               checked: false,
+              depth: 0
             },
             {
-              listItemId: '2',
+              id: '2',
               value: 'second el in First List',
               checked: false,
+              depth: 0
             },
             {
-              listItemId: '3',
+              id: '3',
               value: 'third el in First List',
               checked: false,
+              depth: 0
             },
             {
-              listItemId: '4',
+              id: '4',
               value: 'fourth el in First List',
               checked: false,
+              depth: 0
             },
           ],
         },
@@ -59,7 +64,7 @@ describe('<App>', () => {
 
     render(<App />);
     expect(localStorage.getItem(LOCAL_STORAGE_STORE_KEY)).not.toBeNull()
-    await waitFor(() => expect(getEditCard(defaultStoreState.state.items[0].id)).toBeVisible());
+    await waitFor(() => expect(getEditCard(defaultStoreState.state.lists[0].id)).toBeVisible());
 
     await user.click(getEditCard());
     expect(getListItemTextarea()[3]).toBeVisible();

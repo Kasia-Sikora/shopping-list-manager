@@ -1,5 +1,5 @@
 import type { ListItem, PersistedShoppingListStore } from '../../interfaces';
-import { handleKeyDown, sortCards, sortList } from '../../utils/utils';
+import { handleKeyDown, sortListContent, sortList } from '../../utils/utils';
 
 vi.mock('../../utils/utils.ts', { spy: true })
 describe('edge cases utils tests', () => {
@@ -14,12 +14,12 @@ describe('edge cases utils tests', () => {
   describe('sortCards', () => {
     it('should return empty array if items are undefinedd', () => {
       const exampleStore = { state: undefined } as unknown as PersistedShoppingListStore
-      expect(sortCards(exampleStore)).toEqual([])
+      expect(sortListContent(exampleStore)).toEqual([])
     })
 
     it('should return empty array if items are empty', () => {
-      const exampleStore = { state: { items: [] } }
-      expect(sortCards(exampleStore)).toEqual([])
+      const exampleStore = { state: { lists: [] } }
+      expect(sortListContent(exampleStore)).toEqual([])
     })
   })
 

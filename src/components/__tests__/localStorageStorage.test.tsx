@@ -37,7 +37,7 @@ describe('LocalStorage without data', () => {
 
   it('should sort list from localStorage', () => {
     localStorage.setItem(LOCAL_STORAGE_STORE_KEY, JSON.stringify(DEFAULT_VALUES))
-    const defaultValuesSecondCardValues = DEFAULT_VALUES.state.items[1].content.map(item => item.value)
+    const defaultValuesSecondCardValues = DEFAULT_VALUES.state.lists[1].content.map(item => item.value)
     expect(defaultValuesSecondCardValues).toEqual(['first el in Second List', 'second el in Second List', 'third el in Second List', 'fourth el in Second List'])
 
     render(<App />)

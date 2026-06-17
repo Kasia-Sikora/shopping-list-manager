@@ -10,7 +10,7 @@ export const splitItemsToDoneAndUndoneLists = (items: ListItem[]) => {
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    const itemWithId = { ...item, storeArrayIndex: i ?? '' } as StoreListItem;
+    const itemWithId = { ...item, storeArrayIndex: i, id: item.id ?? '' };
     if (item.checked) {
       checkedItems.push(itemWithId);
     } else {
@@ -20,7 +20,6 @@ export const splitItemsToDoneAndUndoneLists = (items: ListItem[]) => {
 
   return { uncheckedItems, checkedItems };
 };
-
 
 export const handleKeyDown = (e: KeyboardEvent, list: Element[]) => {
   if (!list || !list.length) return;
@@ -42,6 +41,26 @@ export const sortList = (list: ListItem[]) => {
   return [...uncheckedList, ...checkedItems];
 };
 
-export const sortCards = (storage: PersistedShoppingListStore) => {
-  return storage.state?.items ? storage.state.items.map((item) => ({ ...item, content: sortList(item.content) })) : [];
+export const sortListContent = (storage: PersistedShoppingListStore) => {
+  return storage.state?.lists ? storage.state.lists.map((item) => ({ ...item, content: sortList(item.content) })) : [];
+};
+
+export const getSubtreeCount = (items: ListItem[], startIndex: number) => {
+  const parentDepth = items[startIndex].depth;
+  let count = 0;
+  for (let i = startIndex + 1; i < items.length; i++) {
+    if (items[i].depth > parentDepth) {
+      count++;
+    } else {
+      break;
+    }
+  }
+  return count;
+};
+
+export const setFocusOnElement = (cardId: string, indexOfActiveEl: number) => {
+  requestAnimationFrame(() => {
+    const focusEl = document.querySelector(`[data-id="card-${cardId}"] [name="content.${indexOfActiveEl + 1}.value"]`);
+    if (focusEl && focusEl instanceof HTMLTextAreaElement) focusEl.focus();
+  });
 };

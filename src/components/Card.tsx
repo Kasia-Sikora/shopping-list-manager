@@ -1,23 +1,26 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import CardContent from './CardContent';
-import type { List } from '../interfaces';
+import type { List, SetLocalDataActions } from '../interfaces';
 import EditIndicator from './atoms/EditIndicator';
 import { useSortable } from '@dnd-kit/react/sortable';
-import { useActiveCardIdStore } from '../stores/store';
+import { useActiveCardIdStore, useStore } from '../stores/store';
+import { generateId } from '../utils/utils';
+import { DEFAULT_CONTENT, EMPTY_CARD_ID } from '../consts';
 
 type Card = {
   emptyCardId?: string,
-  editedItem?: List;
+  editedList?: List;
   index?: number
   styles?: string
 };
 
-const Card = ({ emptyCardId, editedItem, index, styles }: Card) => {
+const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const { editingCardId, setEditingCardId, resetStates } = useActiveCardIdStore()
+  const { addList, updateList } = useStore()
+  const { editingCardId, setEditingCardId } = useActiveCardIdStore()
 
-  const cardId = editedItem?.id ?? emptyCardId ?? undefined
+  const cardId = editedList?.id ?? emptyCardId ?? undefined
 
   const { isDragging } = useSortable({
     id: cardId,
@@ -26,49 +29,93 @@ const Card = ({ emptyCardId, editedItem, index, styles }: Card) => {
     disabled: index === undefined
   })
 
-  useEffect(() => {
-    return () => {
-      if (editingCardId === cardId) {
-        resetStates();
-      }
-    }
-  }, [cardId, editingCardId, resetStates])
+  const defaultValues: List = useMemo(() => editedList
+    ? editedList
+    : {
+      id: null,
+      title: '',
+      content: DEFAULT_CONTENT,
+    }, [editedList]);
 
-  const handleEdit = () => {
-    if (editingCardId !== cardId) {
-      setEditingCardId(cardId);
-      const activeElement = document.activeElement;
-      if (!(activeElement instanceof HTMLTextAreaElement)) {
-        requestAnimationFrame(() => {
-          const el = document.querySelector(
-            `[data-id='card-${cardId}'] textarea`
-          ) as HTMLTextAreaElement;
-          if (el) el.focus();
-        })
-      }
-    }
-  };
+  const [localDraft, setLocalDraft] = useState<List | null>(null);
+
+  const currentData = localDraft || defaultValues;
 
   const cardDataId = `card-${cardId}`
+
+  const handleEdit = () => {
+    // e.stopPropagation();
+    if (editingCardId === cardId) return;
+    setLocalDraft(defaultValues);
+    setEditingCardId(cardId);
+
+    const activeElement = document.activeElement;
+
+    if (activeElement instanceof (HTMLTextAreaElement) ||
+      activeElement instanceof (HTMLInputElement) ||
+      activeElement instanceof (HTMLButtonElement)) {
+      return;
+    } else {
+      const el = document.querySelector(
+        `[data-id='card-${cardId}'] textarea`
+      ) as HTMLTextAreaElement;
+      if (el) el.focus();
+    }
+  }
+
+  const actions: SetLocalDataActions = useMemo(() => ({
+    update: (updates: Partial<List>) => {
+      setLocalDraft(prev => ({ ...(prev || currentData), ...updates }));
+    },
+    sync: (dataToSync: List) => {
+      if (cardId === 'empty') return;
+      updateList(dataToSync);
+    },
+    save: (dataToSave: List) => {
+      if (cardId === EMPTY_CARD_ID) {
+        addList({...dataToSave, id: generateId()})
+      } else {
+        updateList(dataToSave)
+      }
+      actions.resetLocalState();
+    },
+    resetLocalState: () => {
+      setLocalDraft(null); // Clear local memory
+      setEditingCardId(null);
+    }
+  }), [addList, cardId, currentData, setEditingCardId, updateList]);
+
+
+  useEffect(() => {
+    if (!localDraft || cardId === EMPTY_CARD_ID) return;
+    if (cardId === 'empty') return;
+    const timer = setTimeout(() => {
+      actions.sync(localDraft);
+    }, 1000); // Save after 1 second of inactivity
+
+    return () => clearTimeout(timer);
+  }, [cardId, localDraft]);
 
   return (
     <section
       ref={cardRef}
       onClick={handleEdit}
-      className={`${editedItem ? 'w-75' : 'min-w-75'} border-t border-mist-300 shadow-md shadow-shadow flex flex-col align-baseline gap-2 height-10 rounded-lg p-4 relative ${editedItem ? 'pb-8' : 'pb-4'} ${!editedItem ? 'max-w-3xl m-auto' : ''} ${styles} ${isDragging && 'bg-background'}`}
+      className={`${editedList ? 'w-75' : 'min-w-75'} border-t border-mist-300 shadow-md shadow-shadow flex flex-col align-baseline gap-2 height-10 rounded-lg p-4 relative ${editedList ? 'pb-8' : 'pb-4'} ${!editedList ? 'max-w-3xl m-auto' : ''} ${styles} ${isDragging && 'bg-background'}`}
       data-id={cardDataId}
       data-testid={cardDataId}
     >
-      {editedItem && <EditIndicator id={editedItem.id} isEdit={editingCardId === cardId} />}
+      {editedList && <EditIndicator id={editedList.id} isEdit={editingCardId === cardId} />}
       <CardContent
-        editedItem={editedItem}
+        editedList={currentData}
         cardRef={cardRef}
         cardDataId={cardDataId}
         cardIndex={index}
         cardId={cardId}
+        actions={actions}
       />
     </section>
   );
 };
 
-export default Card;
+
+export default Card

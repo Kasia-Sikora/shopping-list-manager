@@ -4,36 +4,41 @@ import { editedElements, elements } from "./testHelpers"
 import userEvent from "@testing-library/user-event"
 import { LOCAL_STORAGE_STORE_KEY } from "../../consts"
 import App from "../../App"
+import type { PersistedShoppingListStore } from "../../interfaces"
 
 const { getEditCard, getListItemTextarea, queryMenuButton, queryMenuDropdown, queryMenuCardButtons, queryEditCard } = editedElements
 const { queryElByText, queryItemsList } = elements
 
-const defaultStoreState = {
+const defaultStoreState: PersistedShoppingListStore = {
   state: {
-    items: [
+    lists: [
       {
         id: '0',
         title: 'First Card',
         content: [
           {
-            listItemId: '1',
+            id: '1',
             value: 'first el in First List',
             checked: true,
+            depth: 0
           },
           {
-            listItemId: '2',
+            id: '2',
             value: 'second el in First List',
             checked: false,
+            depth: 0
           },
           {
-            listItemId: '3',
+            id: '3',
             value: 'third el in First List',
             checked: true,
+            depth: 0
           },
           {
-            listItemId: '4',
+            id: '4',
             value: 'fourth el in First List',
             checked: false,
+            depth: 0
           },
         ],
       },
@@ -42,24 +47,30 @@ const defaultStoreState = {
         title: 'Second Card',
         content: [
           {
-            listItemId: '1',
+            id: '1',
             value: 'first el in Second List',
             checked: true,
+            depth: 0
           },
           {
-            listItemId: '2',
+            id: '2',
             value: 'second el in Second List',
             checked: false,
+            depth: 0
+
           },
           {
-            listItemId: '3',
+            id: '3',
             value: 'third el in Second List',
             checked: true,
+            depth: 0
+
           },
           {
-            listItemId: '4',
+            id: '4',
             value: 'fourth el in Second List',
             checked: false,
+            depth: 0
           },
         ],
       },
@@ -74,7 +85,7 @@ describe('Menu button functionality', () => {
   const user = userEvent.setup()
 
   it('should display button and not display menu dropdown', () => {
-    render(<Card editedItem={defaultStoreState.state.items[0]} />)
+    render(<Card editedList={defaultStoreState.state.lists[0]} />)
 
     const isDropdownOpen = false
     expect(getEditCard()).toBeVisible()
@@ -83,7 +94,7 @@ describe('Menu button functionality', () => {
   })
 
   it('should display menu dropdown on button click', async () => {
-    render(<Card editedItem={defaultStoreState.state.items[0]} />)
+    render(<Card editedList={defaultStoreState.state.lists[0]} />)
 
     expect(getEditCard()).toBeVisible()
     expect(queryMenuButton(dopdownClosed)).toBeVisible()
@@ -104,7 +115,7 @@ describe('<App/> dropdown buttons functionality', () => {
 
     render(<App />);
     expect(localStorage.getItem(LOCAL_STORAGE_STORE_KEY)).not.toBeNull()
-    await waitFor(() => expect(getEditCard(defaultStoreState.state.items[0].id)).toBeVisible());
+    await waitFor(() => expect(getEditCard(defaultStoreState.state.lists[0].id)).toBeVisible());
 
     await user.click(getEditCard());
     expect(getListItemTextarea()[3]).toBeVisible();
