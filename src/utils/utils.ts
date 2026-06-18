@@ -1,16 +1,16 @@
-import type { ListItem, PersistedShoppingListStore, StoreListItem } from '../interfaces';
+import type { ListItem, PersistedShoppingListStore } from '../interfaces';
 
 export const generateId = () => {
   return crypto.randomUUID();
 };
 
 export const splitItemsToDoneAndUndoneLists = (items: ListItem[]) => {
-  const uncheckedItems: StoreListItem[] = [];
-  const checkedItems: StoreListItem[] = [];
+  const uncheckedItems: ListItem[] = [];
+  const checkedItems: ListItem[] = [];
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    const itemWithId = { ...item, storeArrayIndex: i, id: item.id ?? '' };
+    const itemWithId = { ...item, id: item.id ?? '' };
     if (item.checked) {
       checkedItems.push(itemWithId);
     } else {

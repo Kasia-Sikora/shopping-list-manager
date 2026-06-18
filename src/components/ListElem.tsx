@@ -1,4 +1,4 @@
-import type { ListItem, SetLocalDataActions, StoreListItem } from '../interfaces';
+import type { ListItem, SetLocalDataActions } from '../interfaces';
 import { useSortable } from '@dnd-kit/react/sortable';
 import DeleteButton from './atoms/DeleteButton';
 import { RestrictToElement } from '@dnd-kit/dom/modifiers';
@@ -6,36 +6,36 @@ import { DELETE_BUTTON_W_GAP_SIZE, INDENT_VALUE } from '../consts';
 import { useActiveCardIdStore } from '../stores/store';
 
 type ListElement = {
-  item: StoreListItem;
-  globalArrayIndex: number;
-  sortableIndex: number;
+  item: ListItem;
+  sortableIndex: number | null;
   listId?: string;
   listRef: HTMLElement | null;
   depth: number;
-  isHidden: boolean;
+  isHidden?: boolean;
   actions: SetLocalDataActions,
-  list: ListItem[]
+  list: ListItem[];
+  isOverlay?: boolean;
 };
 
 const ListElem = ({
   item,
-  globalArrayIndex,
   sortableIndex,
   listId = '',
   listRef,
   depth,
   isHidden,
   actions,
-  list
+  list,
+  isOverlay = false,
 }: ListElement) => {
   const { editingCardId, setEditingCardId } = useActiveCardIdStore()
   const { ref, isDragging } = useSortable({
     id: item?.id,
-    index: sortableIndex,
+    index: sortableIndex ?? 0,
     type: 'element',
     accept: 'element',
-    data: { globalArrayIndex, listId: listId, depth },
-    disabled: !listId,
+    data: { listId: listId, depth },
+    disabled: !listId || isOverlay,
     modifiers: listRef ? [RestrictToElement.configure({ element: listRef })] : []
   });
 
@@ -56,7 +56,7 @@ const ListElem = ({
 
   return (
 
-    <li ref={ref} className={`flex-wrap ${isHidden ? 'h-0 opacity-0 pointer-events-none' : 'py-2'} rounded-sm relative flex items-baseline gap-3 group ${isDragging ? 'bg-drag-item-active' : ''}`} style={{
+    <li ref={ref} className={`transition-opacity  duration-200 flex-wrap ${isHidden ? 'h-0 opacity-0 pointer-events-none' : 'py-2'} rounded-sm relative flex items-baseline gap-3 group ${isDragging ? 'bg-drag-item-active' : ''}`} style={{
       maxWidth: `calc(100% - ${depth * DELETE_BUTTON_W_GAP_SIZE}px)`,
       marginLeft: `${depth * INDENT_VALUE}px`,
     }}
@@ -69,7 +69,7 @@ const ListElem = ({
           < input
             name={'id'}
             // {...register(`content.${globalArrayIndex}.listItemId` as FieldPath<List>)} 
-            value={item?.id}
+            value={item.id}
             type="hidden" />
           <input
             type="checkbox"
@@ -81,7 +81,7 @@ const ListElem = ({
           />
           <textarea
             value={item?.value}
-            name={`content.${globalArrayIndex}.value`}
+            name={`${item.id}.value`}
             // {...register(`content.${globalArrayIndex}.value` as FieldPath<List>)}
             className={`${item?.checked && 'line-through text-gray-400'} border-0 grow text-wrap bg-transparent focus:ring-0 resize-none overflow-hidden field-sizing-content`}
             placeholder="Utwórz listę..."

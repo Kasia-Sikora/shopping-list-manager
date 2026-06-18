@@ -94,7 +94,7 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
     }, 1000); // Save after 1 second of inactivity
 
     return () => clearTimeout(timer);
-  }, [cardId, localDraft]);
+  }, [actions, cardId, localDraft]);
 
   return (
     <section

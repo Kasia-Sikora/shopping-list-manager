@@ -1,15 +1,16 @@
-import { DragDropProvider, useDroppable } from '@dnd-kit/react';
+import { DragDropProvider, DragOverlay, useDroppable } from '@dnd-kit/react';
 import ListElem from './ListElem';
 import { useEffect, useState, useRef } from 'react';
 import { isSortableOperation } from '@dnd-kit/react/sortable';
 import { PointerSensor, PointerActivationConstraints } from '@dnd-kit/dom';
-import type { List, SetLocalDataActions, StoreListItem } from '../interfaces';
-import { EMPTY_CARD_ID } from '../consts';
+import type { List, ListItem, SetLocalDataActions, } from '../interfaces';
+import { EMPTY_CARD_ID, MAX_LIST_DEPTH } from '../consts';
+import { getSubtreeCount } from '../utils/utils';
 // import { getSubtreeCount } from '../utils/utils';
 
 
 type ListOfItems = {
-  list: StoreListItem[];
+  list: ListItem[];
   listId?: string;
   checkedItems: boolean;
   cardIndex: number;
@@ -21,8 +22,9 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOf
   const listRef = useRef<HTMLUListElement>(null)
   const [listRefCurr, setListRefCurr] = useState<HTMLElement | null>(null)
   const [active, setActive] = useState<boolean>(false)
-  // const [activeItem, setActiveItem] = useState(undefined)
-  // const [subtreeCount, setSubtreeCount] = useState(undefined)
+  const [activeItem, setActiveItem] = useState<{ id: string, globalIdx: number } | undefined>(undefined)
+  const [subtreeCount, setSubtreeCount] = useState<number | undefined>(undefined)
+  const [subtree, setSubtree] = useState<ListItem[]>([])
 
   useDroppable({
     id: `card-${listId ?? EMPTY_CARD_ID}-${checkedItems ? 'checked' : 'unchecked'}`,
@@ -39,8 +41,9 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOf
 
   const resetDragState = () => {
     setActive(false);
-    // setActiveItem(undefined);
-    // setSubtreeCount(undefined);
+    setActiveItem(undefined);
+    setSubtreeCount(undefined);
+    setSubtree([]);
   };
 
   return (
@@ -62,53 +65,60 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOf
         if (isSortableOperation(operation)) {
           const { source, target, position } = operation;
           if (source && target && listId) {
-            if (position.current.x && position.initial.x) {
-              const difference = position.current.x - position.initial.x
-              // const globalIndex = source.data.globalArrayIndex
-              // const itemToUpdate = fields[source.data.globalArrayIndex]
-              if (Math.abs(difference) >= 35 && source.index) {
-                // const newDepth = difference > 0 ? Math.min(itemToUpdate.depth + 1, MAX_LIST_DEPTH) : Math.max(itemToUpdate.depth - 1, 0)
-                // const { listItemId, value, checked } = itemToUpdate
-                // setValue(`content.${globalIndex}`, { listItemId, value, checked, depth: newDepth })
-              }
-            }
-            // const from = fields.findIndex(field => field.id === list[source.initialIndex].id);
-            // const to = fields.findIndex(field => field.id === list[source.index].id);
-            // if (from !== to) {
-            //   const numToMove = (subtreeCount || 0) + 1;
+            const newContent = [...editedList.content];
+            const fromIndex = newContent.findIndex(item => item.id === source.id);
 
-            //   if (from < to) {
-            //     for (let i = 0; i < numToMove; i++) {
-            //       move(from , to);
-            //     }
-            //   } else {
-            //     for (let i = 0; i < numToMove; i++) {
-            //       move(from + i, to + i);
-            //     }
-            //   }
-            // }
+            if (fromIndex !== -1) {
+              const count = getSubtreeCount(newContent, fromIndex);
+              const subtreeToMove = newContent.splice(fromIndex, count + 1);
+
+              if (position.current.x !== undefined && position.initial.x !== undefined) {
+                const difference = position.current.x - position.initial.x;
+                if (Math.abs(difference) >= 35) {
+                  const depthChange = difference > 0 ? 1 : -1;
+                  const oldDepth = subtreeToMove[0].depth;
+                  const newDepth = Math.max(0, Math.min(MAX_LIST_DEPTH, oldDepth + depthChange));
+                  const actualChange = newDepth - oldDepth;
+                  
+                  subtreeToMove.forEach(item => {
+                    item.depth = Math.max(0, Math.min(MAX_LIST_DEPTH, item.depth + actualChange));
+                  });
+                }
+              }
+
+              let toIndex = newContent.findIndex(item => item.id === target.id);
+              if (toIndex !== -1) {
+                if (source.index > source.initialIndex) {
+                  const targetSubtreeCount = getSubtreeCount(newContent, toIndex);
+                  toIndex += targetSubtreeCount + 1;
+                }
+                newContent.splice(toIndex, 0, ...subtreeToMove);
+              } else {
+                newContent.splice(fromIndex, 0, ...subtreeToMove);
+              }
+
+              actions.update({ content: newContent });
+            }
           }
-        }
-        if (active) {
-          setActive(false)
         }
         resetDragState()
       }}
-      onDragStart={() => {
+      onDragStart={(e) => {
         if (!active) {
           setActive(true);
         }
 
-        // const draggingId = e.operation.source.data.id;
-        // const globalIdx = fields.findIndex(f => f.listItemId === draggingId);
-        // if (globalIdx !== -1) {
-        //   const count = getSubtreeCount(fields, globalIdx);
-        //   setActiveItem({
-        //     listItemId: draggingId,
-        //     globalArrayIndex: globalIdx
-        //   });
-        //   setSubtreeCount(count);
-        // }
+        const draggingId = e.operation.source.id;
+        const globalIdx = editedList.content.findIndex(f => f.id === draggingId);
+        if (globalIdx !== -1) {
+          const count = getSubtreeCount(editedList.content, globalIdx);
+          setActiveItem({
+            id: draggingId,
+            globalIdx: globalIdx
+          });
+          setSubtreeCount(count);
+          setSubtree(editedList.content.slice(globalIdx, globalIdx + count + 1));
+        }
       }}
     >
       <ul
@@ -117,16 +127,15 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOf
         data-testid={dataId}
       >
         {list.map((field, index) => {
-          // const isChildOfDragging = activeItem &&
-          //   field.globalArrayIndex > activeItem.globalArrayIndex &&
-          //   field.globalArrayIndex <= activeItem.globalArrayIndex + subtreeCount;
-          const isChildOfDragging = false
+          const isChildOfDragging = activeItem &&
+            index > activeItem.globalIdx &&
+            index <= activeItem.globalIdx + (subtreeCount ?? 0);
+          
           return (
             <ListElem
               key={field.id}
               item={field}
               sortableIndex={index}
-              globalArrayIndex={field.storeArrayIndex}
               listId={listId ?? ''}
               listRef={listRefCurr}
               depth={field.depth}
@@ -136,6 +145,23 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOf
             />
           )
         })}
+        <DragOverlay>
+          <div className="opacity-80 pointer-events-none">
+            {subtree.map(item => (
+              <ListElem
+                key={`overlay-${item.id}`}
+                item={item}
+                sortableIndex={null}
+                listId={listId ?? ''}
+                listRef={listRefCurr}
+                depth={item.depth}
+                actions={actions}
+                list={editedList.content}
+                isOverlay={true}
+              />
+            ))}
+          </div>
+        </DragOverlay>
       </ul>
     </DragDropProvider>
   );

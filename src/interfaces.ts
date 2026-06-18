@@ -11,8 +11,6 @@ export type ListItem = {
   depth: number;
 };
 
-export type StoreListItem = ListItem & { storeArrayIndex: number };
-
 export type PersistedShoppingListStore = {
   state: {
     lists: List[];

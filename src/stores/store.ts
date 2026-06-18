@@ -78,7 +78,7 @@ export type StoreState = {
   moveListItem: (listId: string, originalIndex: number, targetIndex: number) => void;
   addList: (item: List) => void;
   updateList: (item: List) => void;
-  updateListTitle: (cardId: string, title: string) => void;
+  updateListItem: (listItem: ListItem, listId: string) => void;
   removeList: (listId: string) => void;
   copyList: (listId: string) => void;
   setListContent: (listId: string, content: ListItem[]) => void;
@@ -118,15 +118,23 @@ export const useStore = create<StoreState>()(
         })),
       addList: (item) => set((state) => ({ lists: [...state.lists, item] })),
       updateList: (item) => set((state) => ({ lists: state.lists.map((elem) => (elem.id === item.id ? item : elem)) })),
-      updateListTitle: (cardId: string, title: string) =>
-        set((state) => ({ lists: state.lists.map((list) => (list.id === cardId ? { ...list, title: title } : list)) })),
+      updateListItem: (listItem, listId) =>
+        set((state) => ({
+          lists: state.lists.map((list) => {
+            if (list.id === listId) {
+              return { ...list, content: list.content.map((item) => (item.id === listItem.id ? listItem : item)) };
+            } else {
+              return list;
+            }
+          }),
+        })),
       removeList: (listId) => set((state) => ({ lists: state.lists.filter((item) => item.id !== listId) })),
       copyList: (listId) =>
         set((state) => {
           const itemToCopy = state.lists.filter((item) => item.id === listId)?.[0];
           const index = state.lists.indexOf(itemToCopy);
           if (itemToCopy) {
-            state.lists.splice(index + 1, 0, { ...itemToCopy, id: generateId() });
+            state.lists.splice(index + 1, 0, { ...itemToCopy, title: `${itemToCopy.title}-copy`, id: generateId() });
           }
           return { lists: state.lists };
         }),
