@@ -19,7 +19,7 @@ interface CardContentProps {
 
 const CardContent = ({ editedList, cardRef, cardDataId, cardIndex, cardId, actions }: CardContentProps) => {
   const { editingCardId, setEditingCardId } = useActiveCardIdStore()
-  const {removeList} = useStore()
+  const { removeList } = useStore()
 
 
   const [openMenu, setOpenMenu] = useState<boolean>(false)
@@ -34,11 +34,11 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardIndex, cardId, actio
 
   useEffect(() => {
     if (editingCardId === cardId) {
-      const listItems = document.querySelectorAll(
-        `[data-testid='${cardDataId}'] textarea`
-      ) as NodeListOf<HTMLTextAreaElement>;
+      const container = document.querySelector(`[data-testid='${cardDataId}']`);
+
 
       const onKeyDown = (e: KeyboardEvent) => {
+        //todo edc is not clearing the empty items
         if (e.key === "Escape") {
           setEditingCardId(null)
           const activeEl = document.activeElement
@@ -47,13 +47,17 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardIndex, cardId, actio
           }
         }
         if (!e || !(e.target as HTMLTextAreaElement).name) return;
-        handleKeyDown(e, Array.from(listItems));
+
+        const currentListItems = document.querySelectorAll(
+          `[data-testid='${cardDataId}'] textarea`
+        ) as NodeListOf<HTMLTextAreaElement>;
+        handleKeyDown(e, Array.from(currentListItems));
       };
 
-      listItems?.forEach((item: HTMLTextAreaElement) => item.addEventListener('keydown', onKeyDown));
-      return () => listItems?.forEach((item: HTMLTextAreaElement) => item.removeEventListener('keydown', onKeyDown));
+      container.addEventListener('keydown', onKeyDown);
+      return () => container.removeEventListener('keydown', onKeyDown);
     }
-  }, [cardDataId, cardId, editedList.content, editingCardId, setEditingCardId]);
+  }, [cardDataId, cardId, editingCardId, editedList.content, setEditingCardId]);
 
   const handleSubmit = useCallback(() => {
     if (!editingCardId) return;
@@ -92,18 +96,19 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardIndex, cardId, actio
     if (e?.target instanceof HTMLTextAreaElement) {
       const target = e.target instanceof HTMLTextAreaElement ? e.target.name : undefined;
       if (e.nativeEvent instanceof KeyboardEvent && target) {
-        indexOfActiveEl = parseInt(target.split('.')[1] ?? '-1');
+        const targetId = target.split('.')[0];
+        indexOfActiveEl = editedList.content.findIndex(item => item.id === targetId)
         itemDepth = parseInt(e.target.dataset.depth ?? '0')
       }
     }
     else {
-      indexOfActiveEl = editedList.content.length;
+      indexOfActiveEl = editedList.content.length - 1;
     }
     const newItem = { id: generateId(), value: '', checked: false, depth: itemDepth };
     const newData = [...editedList.content]
     newData.splice(indexOfActiveEl + 1, 0, newItem)
     actions.update({ ...editedList, content: newData });
-    setFocusOnElement(cardId, indexOfActiveEl)
+    setTimeout(() => setFocusOnElement(cardId, newItem.id), 0)
   };
 
   const handleFormEvents = (e: React.KeyboardEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {

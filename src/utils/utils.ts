@@ -1,20 +1,39 @@
-import type { ListItem, PersistedShoppingListStore } from '../interfaces';
+import type { ListItem, ListItemWithRelations, PersistedShoppingListStore } from '../interfaces';
 
 export const generateId = () => {
   return crypto.randomUUID();
 };
 
 export const splitItemsToDoneAndUndoneLists = (items: ListItem[]) => {
-  const uncheckedItems: ListItem[] = [];
-  const checkedItems: ListItem[] = [];
+  const uncheckedItems: ListItemWithRelations[] = [];
+  const checkedItems: ListItemWithRelations[] = [];
+  let checkedParentId: string | null = null;
+  let uncheckedParentId: string | null = null;
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    const itemWithId = { ...item, id: item.id ?? '' };
+    const isNextItemRoot = i < items.length - 1 && items[i + 1].depth === 0;
+    const shouldResetParent = item.depth === 0 && (isNextItemRoot || i === items.length - 1);
+
+    const itemWithRelations = {
+      ...item,
+      parentId: item.depth === 0 ? null : (item.checked ? checkedParentId : uncheckedParentId),
+    };
+
     if (item.checked) {
-      checkedItems.push(itemWithId);
+      checkedItems.push(itemWithRelations);
+      if (item.depth === 0 && !shouldResetParent) {
+        checkedParentId = item.id;
+      } else if (shouldResetParent) {
+        checkedParentId = null;
+      }
     } else {
-      uncheckedItems.push(itemWithId);
+      uncheckedItems.push(itemWithRelations);
+      if (item.depth === 0 && !shouldResetParent) {
+        uncheckedParentId = item.id;
+      } else if (shouldResetParent) {
+        uncheckedParentId = null;
+      }
     }
   }
 
@@ -25,6 +44,7 @@ export const handleKeyDown = (e: KeyboardEvent, list: Element[]) => {
   if (!list || !list.length) return;
   const elem = e.target as HTMLTextAreaElement;
   const indexOfCurrEl = list.indexOf(elem);
+
   let focusedEl;
   if (e.key === 'ArrowDown') {
     focusedEl = list[indexOfCurrEl + 1] as HTMLTextAreaElement;
@@ -45,22 +65,9 @@ export const sortListContent = (storage: PersistedShoppingListStore) => {
   return storage.state?.lists ? storage.state.lists.map((item) => ({ ...item, content: sortList(item.content) })) : [];
 };
 
-export const getSubtreeCount = (items: ListItem[], startIndex: number) => {
-  const parentDepth = items[startIndex].depth;
-  let count = 0;
-  for (let i = startIndex + 1; i < items.length; i++) {
-    if (items[i].depth > parentDepth) {
-      count++;
-    } else {
-      break;
-    }
-  }
-  return count;
-};
-
-export const setFocusOnElement = (cardId: string, indexOfActiveEl: number) => {
+export const setFocusOnElement = (cardId: string, itemId: string) => {
   requestAnimationFrame(() => {
-    const focusEl = document.querySelector(`[data-id="card-${cardId}"] [name="content.${indexOfActiveEl + 1}.value"]`);
+    const focusEl = document.querySelector(`[data-id="card-${cardId}"] [name="${itemId}.value"]`);
     if (focusEl && focusEl instanceof HTMLTextAreaElement) focusEl.focus();
   });
 };

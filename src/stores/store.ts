@@ -75,7 +75,6 @@ export type StoreState = {
   lists: List[];
   setLists: (lists: List[]) => void;
   moveList: (originalIndex: number, targetIndex: number) => void;
-  moveListItem: (listId: string, originalIndex: number, targetIndex: number) => void;
   addList: (item: List) => void;
   updateList: (item: List) => void;
   updateListItem: (listItem: ListItem, listId: string) => void;
@@ -102,20 +101,6 @@ export const useStore = create<StoreState>()(
 
           return { lists: updatedItems };
         }),
-      moveListItem: (listId, originalIndex, targetIndex) =>
-        set((state) => ({
-          lists: state.lists.map((item) => {
-            if (item.id === listId) {
-              const uncheckedLength = item.content.filter((item) => !item.checked).length;
-              const [removed] = item.content.splice(originalIndex, 1);
-              if (removed) {
-                const moveToIndex = item.content[originalIndex].checked ? targetIndex + uncheckedLength : targetIndex;
-                item.content.splice(moveToIndex, 0, removed);
-              }
-            }
-            return item;
-          }),
-        })),
       addList: (item) => set((state) => ({ lists: [...state.lists, item] })),
       updateList: (item) => set((state) => ({ lists: state.lists.map((elem) => (elem.id === item.id ? item : elem)) })),
       updateListItem: (listItem, listId) =>
@@ -151,7 +136,7 @@ export const useStore = create<StoreState>()(
       },
       removeListItem: (itemId, listItemId) =>
         set((state) => ({
-          lists: state.lists.filter((item) => {
+          lists: state.lists.map((item) => {
             if (item.id === itemId) {
               return {
                 ...item,

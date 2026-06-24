@@ -39,6 +39,7 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
 
   const [localDraft, setLocalDraft] = useState<List | null>(null);
 
+
   const currentData = localDraft || defaultValues;
 
   const cardDataId = `card-${cardId}`

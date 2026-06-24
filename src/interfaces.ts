@@ -11,16 +11,19 @@ export type ListItem = {
   depth: number;
 };
 
+export type ListItemWithRelations = ListItem & {
+  parentId: string;
+};
+
 export type PersistedShoppingListStore = {
   state: {
     lists: List[];
   };
 };
 
-
 export type SetLocalDataActions = {
   update: (updates: Partial<List>) => void;
   sync: (dataToSync: List) => void;
   save: (dataToSave: List) => void;
-  resetLocalState:() => void
-}
+  resetLocalState: () => void;
+};

@@ -1,16 +1,13 @@
+import { move } from '@dnd-kit/helpers';
 import { DragDropProvider, DragOverlay, useDroppable } from '@dnd-kit/react';
+import { useEffect, useRef, useState } from 'react';
+import { EMPTY_CARD_ID, INDENT_VALUE } from '../consts';
+import type { List, ListItemWithRelations, SetLocalDataActions } from '../interfaces';
+import { buildTree, getDescendants, getDragDepth, getProjection } from '../utils/treeUtils';
 import ListElem from './ListElem';
-import { useEffect, useState, useRef } from 'react';
-import { isSortableOperation } from '@dnd-kit/react/sortable';
-import { PointerSensor, PointerActivationConstraints } from '@dnd-kit/dom';
-import type { List, ListItem, SetLocalDataActions, } from '../interfaces';
-import { EMPTY_CARD_ID, MAX_LIST_DEPTH } from '../consts';
-import { getSubtreeCount } from '../utils/utils';
-// import { getSubtreeCount } from '../utils/utils';
-
 
 type ListOfItems = {
-  list: ListItem[];
+  list: ListItemWithRelations[];
   listId?: string;
   checkedItems: boolean;
   cardIndex: number;
@@ -22,9 +19,19 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOf
   const listRef = useRef<HTMLUListElement>(null)
   const [listRefCurr, setListRefCurr] = useState<HTMLElement | null>(null)
   const [active, setActive] = useState<boolean>(false)
-  const [activeItem, setActiveItem] = useState<{ id: string, globalIdx: number } | undefined>(undefined)
-  const [subtreeCount, setSubtreeCount] = useState<number | undefined>(undefined)
-  const [subtree, setSubtree] = useState<ListItem[]>([])
+  const isListWithChecked = list[0].checked
+  const [activeItemId, setActiveItemId] = useState<string>(null)
+
+  const [tree, setTree] = useState(list)
+
+  const isDragging = useRef(false);
+
+  useEffect(() => {
+    if (list && !isDragging.current) {
+      setTree(list);
+    }
+  }, [list]);
+
 
   useDroppable({
     id: `card-${listId ?? EMPTY_CARD_ID}-${checkedItems ? 'checked' : 'unchecked'}`,
@@ -41,83 +48,157 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOf
 
   const resetDragState = () => {
     setActive(false);
-    setActiveItem(undefined);
-    setSubtreeCount(undefined);
-    setSubtree([]);
+    setActiveItemId(null)
+    setTree(list);
   };
+
+  const initialDepth = useRef(0);
+  const sourceChildren = useRef<ListItemWithRelations[]>([]);
 
   return (
     <DragDropProvider
-      sensors={(defaults) => [
-        ...defaults.filter((sensor) => sensor !== PointerSensor),
-        PointerSensor.configure({
-          activationConstraints: [
-            new PointerActivationConstraints.Distance({ value: 2 })
-          ],
-        }),
-      ]}
+      onDragStart={(event) => {
+        if (!active) {
+          setActive(true);
+        }
+
+        const { source } = event.operation
+
+        if (!source) return;
+        isDragging.current = true;
+        setTree(list)
+        setActiveItemId(source.id as string)
+        const { depth } = tree.find(({ id }) => id === source.id)!;
+
+        // Store the source item's initial depth for later use
+        initialDepth.current = depth;
+
+        setTree((flattenedItems) => {
+          sourceChildren.current = [];
+
+          // Get all descendants of the source item
+          const descendants = getDescendants(flattenedItems, source.id as string);
+
+          return flattenedItems.filter((item) => {
+            if (descendants.has(item.id)) {
+              sourceChildren.current = [...sourceChildren.current, item];
+              return false;
+            }
+
+            return true;
+          });
+        });
+
+        initialDepth.current = depth;
+      }}
+
+      onDragOver={(event, manager) => {
+        const { source, target } = event.operation;
+
+        event.preventDefault();
+
+        if (source && target && source.id !== target.id) {
+          setTree((flattenedItems) => {
+            const offsetLeft = manager.dragOperation.transform.x;
+            const dragDepth = getDragDepth(offsetLeft, INDENT_VALUE);
+            const projectedDepth = initialDepth.current + dragDepth;
+
+            const { depth, parentId } = getProjection(
+              flattenedItems,
+              target.id as string,
+              projectedDepth
+            );
+
+            const sortedItems = move(flattenedItems, event);
+            const newItems = sortedItems.map((item) =>
+              item.id === source.id ? { ...item, depth, parentId } : item
+            );
+
+            return newItems;
+          });
+        }
+      }}
+      onDragMove={(event, manager) => {
+        if (event.defaultPrevented) {
+          return;
+        }
+
+        const { source, target } = event.operation;
+
+        if (source && target) {
+          const keyboard = event.operation.activatorEvent instanceof KeyboardEvent;
+          const currentDepth = source.data!.depth ?? 0;
+          let keyboardDepth;
+
+          if (keyboard) {
+            const isHorizontal = event.by?.x !== 0 && event.by?.y === 0;
+
+            if (isHorizontal) {
+              event.preventDefault();
+
+              keyboardDepth = currentDepth + Math.sign(event.by!.x);
+            }
+          }
+
+          const offsetLeft = manager.dragOperation.transform.x;
+          const dragDepth = getDragDepth(offsetLeft, INDENT_VALUE);
+
+          const projectedDepth =
+            keyboardDepth ?? initialDepth.current + dragDepth;
+          const { depth, parentId } = getProjection(
+            tree,
+            source.id as string,
+            projectedDepth
+          );
+
+          if (keyboard) {
+            if (currentDepth !== depth) {
+              const offset = INDENT_VALUE * (depth - currentDepth);
+
+              manager.actions.move({
+                by: { x: offset, y: 0 },
+                propagate: false,
+              });
+            }
+          }
+
+          if (
+            source.data!.depth !== depth ||
+            source.data!.parentId !== parentId
+          ) {
+            setTree((flattenedItems) => {
+              return flattenedItems.map((item) =>
+                item.id === source.id ? { ...item, depth, parentId } : item
+              );
+            });
+          }
+        }
+      }}
+
       onDragEnd={(event) => {
         if (event.canceled) {
           resetDragState()
           return
         };
-        const { operation } = event;
-        if (isSortableOperation(operation)) {
-          const { source, target, position } = operation;
-          if (source && target && listId) {
-            const newContent = [...editedList.content];
-            const fromIndex = newContent.findIndex(item => item.id === source.id);
-
-            if (fromIndex !== -1) {
-              const count = getSubtreeCount(newContent, fromIndex);
-              const subtreeToMove = newContent.splice(fromIndex, count + 1);
-
-              if (position.current.x !== undefined && position.initial.x !== undefined) {
-                const difference = position.current.x - position.initial.x;
-                if (Math.abs(difference) >= 35) {
-                  const depthChange = difference > 0 ? 1 : -1;
-                  const oldDepth = subtreeToMove[0].depth;
-                  const newDepth = Math.max(0, Math.min(MAX_LIST_DEPTH, oldDepth + depthChange));
-                  const actualChange = newDepth - oldDepth;
-                  
-                  subtreeToMove.forEach(item => {
-                    item.depth = Math.max(0, Math.min(MAX_LIST_DEPTH, item.depth + actualChange));
-                  });
-                }
-              }
-
-              let toIndex = newContent.findIndex(item => item.id === target.id);
-              if (toIndex !== -1) {
-                if (source.index > source.initialIndex) {
-                  const targetSubtreeCount = getSubtreeCount(newContent, toIndex);
-                  toIndex += targetSubtreeCount + 1;
-                }
-                newContent.splice(toIndex, 0, ...subtreeToMove);
-              } else {
-                newContent.splice(fromIndex, 0, ...subtreeToMove);
-              }
-
-              actions.update({ content: newContent });
-            }
-          }
+        if (event.canceled) {
+          return setTree(list);
         }
-        resetDragState()
-      }}
-      onDragStart={(e) => {
-        if (!active) {
-          setActive(true);
-        }
+        isDragging.current = false;
 
-        const draggingId = e.operation.source.id;
-        const globalIdx = editedList.content.findIndex(f => f.id === draggingId);
-        if (globalIdx !== -1) {
-          const count = getSubtreeCount(editedList.content, globalIdx);
-          setActiveItem({
-            id: draggingId,
-            globalIdx: globalIdx
-          });
-          setSubtreeCount(count);
-          setSubtree(editedList.content.slice(globalIdx, globalIdx + count + 1));
+
+        const updatedTree = buildTree(
+          tree,
+          sourceChildren.current,
+        );
+
+        if (updatedTree.length === list.length) {
+          actions.update({ content: [...editedList.content.filter(item => item.checked === !isListWithChecked), ...updatedTree] });
+        } else {
+          setTree(list)
+        }
+        
+        if (active) {
+          setActive(false)
         }
       }}
     >
@@ -126,44 +207,39 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOf
         className={`transition-all duration-300 outline-active rounded-sm relative outline-dashed outline-2 ${active ? 'bg-active/30  outline-active/70 ' : 'outline-transparent'}`}
         data-testid={dataId}
       >
-        {list.map((field, index) => {
-          const isChildOfDragging = activeItem &&
-            index > activeItem.globalIdx &&
-            index <= activeItem.globalIdx + (subtreeCount ?? 0);
-          
-          return (
-            <ListElem
-              key={field.id}
-              item={field}
-              sortableIndex={index}
-              listId={listId ?? ''}
-              listRef={listRefCurr}
-              depth={field.depth}
-              isHidden={!!isChildOfDragging}
-              actions={actions}
-              list={editedList.content}
-            />
-          )
-        })}
-        <DragOverlay>
-          <div className="opacity-80 pointer-events-none">
-            {subtree.map(item => (
+        {tree.map((field, index) =>
+          <ListElem
+            key={field.id}
+            item={field}
+            sortableIndex={index}
+            listId={listId ?? ''}
+            listRef={listRefCurr}
+            depth={field.depth}
+            actions={actions}
+            list={editedList.content}
+            isActive={field.id === activeItemId}
+          />
+
+        )}
+        <DragOverlay style={{ width: 'min-content' }}>
+          {(source) => (
+            <>
               <ListElem
-                key={`overlay-${item.id}`}
-                item={item}
-                sortableIndex={null}
+                key={source.id}
+                item={source.data.item}
+                sortableIndex={source['index']}
                 listId={listId ?? ''}
                 listRef={listRefCurr}
-                depth={item.depth}
+                depth={source.data.depth}
                 actions={actions}
                 list={editedList.content}
                 isOverlay={true}
               />
-            ))}
-          </div>
+            </>
+          )}
         </DragOverlay>
       </ul>
-    </DragDropProvider>
+    </DragDropProvider >
   );
 };
 
