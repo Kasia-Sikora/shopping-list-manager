@@ -1,35 +1,39 @@
 import { create } from 'zustand';
-import type { List, PersistedShoppingListStore } from '../interfaces';
+import type { List, ListItem, PersistedShoppingListStore } from '../interfaces';
 import { persist } from 'zustand/middleware';
 import { LOCAL_STORAGE_STORE_KEY, LOCAL_STORAGE_THEME_KEY } from '../consts';
-import { generateId } from '../components/utils';
+import { generateId } from '../utils/utils';
 
 export const DEFAULT_VALUES: PersistedShoppingListStore = {
   state: {
-    items: [
+    lists: [
       {
         id: '0',
         title: 'First Card',
         content: [
           {
-            listItemId: '1',
+            id: '1',
             value: 'first el in First List',
             checked: false,
+            depth: 0,
           },
           {
-            listItemId: '2',
+            id: '2',
             value: 'second el in First List',
             checked: false,
+            depth: 0,
           },
           {
-            listItemId: '3',
+            id: '3',
             value: 'third el in First List',
             checked: false,
+            depth: 0,
           },
           {
-            listItemId: '4',
+            id: '4',
             value: 'fourth el in First List',
             checked: false,
+            depth: 0,
           },
         ],
       },
@@ -38,24 +42,28 @@ export const DEFAULT_VALUES: PersistedShoppingListStore = {
         title: 'Second Card',
         content: [
           {
-            listItemId: '1',
+            id: '1',
             value: 'first el in Second List',
             checked: true,
+            depth: 0,
           },
           {
-            listItemId: '2',
+            id: '2',
             value: 'second el in Second List',
             checked: false,
+            depth: 0,
           },
           {
-            listItemId: '3',
+            id: '3',
             value: 'third el in Second List',
             checked: false,
+            depth: 0,
           },
           {
-            listItemId: '4',
+            id: '4',
             value: 'fourth el in Second List',
             checked: true,
+            depth: 0,
           },
         ],
       },
@@ -64,66 +72,95 @@ export const DEFAULT_VALUES: PersistedShoppingListStore = {
 };
 
 export type StoreState = {
-  items: List[];
-  setItems: (items: List[]) => void;
+  lists: List[];
+  setLists: (lists: List[]) => void;
   moveList: (originalIndex: number, targetIndex: number) => void;
-  moveListItem: (listId: string, originalIndex: number, targetIndex: number) => void;
-  addItem: (item: List) => void;
-  updateItem: (item: List) => void;
-  removeItem: (itemId: string, listItemId: string) => void;
-  checkItem: (itemId: string, index: number, checked: boolean) => void;
-  removeCard: (cardId: string) => void;
-  copyCard: (cardId: string) => void;
-  removeCheckedItems: (cardId: string) => void;
+  addList: (item: List) => void;
+  updateList: (item: List) => void;
+  updateListItem: (listItem: ListItem, listId: string) => void;
+  removeList: (listId: string) => void;
+  copyList: (listId: string) => void;
+  setListContent: (listId: string, content: ListItem[]) => void;
+  removeListItem: (itemId: string, listItemId: string) => void;
+  removeCheckedListItems: (listId: string) => void;
+  checkListItem: (listId: string, index: number, checked: boolean) => void;
+  updateListContent: (listContentItem: ListItem, listId: string, globalId: number) => void;
 };
 
 export const useStore = create<StoreState>()(
   persist(
     (set) => ({
-      items: [],
-      setItems: (items) => set(() => ({ items: [...items] })),
+      lists: [],
+      setLists: (lists) => set(() => ({ lists: [...lists] })),
       moveList: (originalIndex, targetIndex) =>
         set((state) => {
-          const updatedItems = [...state.items];
+          const updatedItems = [...state.lists];
 
           const [removed] = updatedItems.splice(originalIndex, 1);
           updatedItems.splice(targetIndex, 0, removed);
 
-          return { items: updatedItems };
+          return { lists: updatedItems };
         }),
-      moveListItem: (listId, originalIndex, targetIndex) =>
+      addList: (item) => set((state) => ({ lists: [...state.lists, item] })),
+      updateList: (item) => set((state) => ({ lists: state.lists.map((elem) => (elem.id === item.id ? item : elem)) })),
+      updateListItem: (listItem, listId) =>
         set((state) => ({
-          items: state.items.map((item) => {
-            if (item.id === listId) {
-              const uncheckedLength = item.content.filter((item) => !item.checked).length;
-              const [removed] = item.content.splice(originalIndex, 1);
-              if (removed) {
-                const moveToIndex = item.content[originalIndex].checked ? targetIndex + uncheckedLength : targetIndex;
-                item.content.splice(moveToIndex, 0, removed);
-              }
+          lists: state.lists.map((list) => {
+            if (list.id === listId) {
+              return { ...list, content: list.content.map((item) => (item.id === listItem.id ? listItem : item)) };
+            } else {
+              return list;
             }
-            return item;
           }),
         })),
-      addItem: (item) => set((state) => ({ items: [...state.items, item] })),
-      updateItem: (item) => set((state) => ({ items: state.items.map((elem) => (elem.id === item.id ? item : elem)) })),
-      removeItem: (itemId, listItemId) =>
+      removeList: (listId) => set((state) => ({ lists: state.lists.filter((item) => item.id !== listId) })),
+      copyList: (listId) =>
+        set((state) => {
+          const itemToCopy = state.lists.filter((item) => item.id === listId)?.[0];
+          const index = state.lists.indexOf(itemToCopy);
+          if (itemToCopy) {
+            state.lists.splice(index + 1, 0, { ...itemToCopy, title: `${itemToCopy.title}-copy`, id: generateId() });
+          }
+          return { lists: state.lists };
+        }),
+      setListContent: (listId, content) => {
         set((state) => ({
-          items: state.items.filter((item) => {
+          lists: state.lists.map((item) => {
+            if (item.id === listId) {
+              return { ...item, content: content };
+            } else {
+              return item;
+            }
+          }),
+        }));
+      },
+      removeListItem: (itemId, listItemId) =>
+        set((state) => ({
+          lists: state.lists.map((item) => {
             if (item.id === itemId) {
-              return ({
+              return {
                 ...item,
-                content: item.content.filter((listItem) => listItem.listItemId !== listItemId),
-              });
+                content: item.content.filter((listItem) => listItem.id !== listItemId),
+              };
             } else {
               return item;
             }
           }),
         })),
-      checkItem: (itemId, index, checked) =>
+      removeCheckedListItems: (listId) =>
         set((state) => ({
-          items: state.items.map((item) => {
-            if (item.id === itemId) {
+          lists: state.lists.map((item) => {
+            if (item.id === listId) {
+              return { ...item, content: item.content.filter((el) => !el.checked) };
+            } else {
+              return item;
+            }
+          }),
+        })),
+      checkListItem: (listId, index, checked) =>
+        set((state) => ({
+          lists: state.lists.map((item) => {
+            if (item.id === listId) {
               if (checked) {
                 const el = item.content.splice(index, 1)?.[0];
                 item.content.push({ ...el, checked });
@@ -137,21 +174,13 @@ export const useStore = create<StoreState>()(
             return item;
           }),
         })),
-      removeCard: (cardId) => set((state) => ({ items: state.items.filter((item) => item.id !== cardId) })),
-      copyCard: (cardId) =>
-        set((state) => {
-          const itemToCopy = state.items.filter((item) => item.id === cardId)?.[0];
-          const index = state.items.indexOf(itemToCopy);
-          if (itemToCopy) {
-            state.items.splice(index + 1, 0, { ...itemToCopy, id: generateId() });
-          }
-          return { items: state.items };
-        }),
-      removeCheckedItems: (cardId) =>
+      updateListContent: (listContentItem, listId, globalId) =>
         set((state) => ({
-          items: state.items.map((item) => {
-            if (item.id === cardId) {
-              return ({ ...item, content: item.content.filter((el) => !el.checked) });
+          lists: state.lists.map((item) => {
+            if (item.id === listId) {
+              const newContent = [...item.content];
+              newContent[globalId] = listContentItem;
+              return { ...item, content: newContent };
             } else {
               return item;
             }
@@ -176,3 +205,13 @@ export const useThemeStore = create<StoreThemeState>()(
     { name: LOCAL_STORAGE_THEME_KEY }
   )
 );
+
+type ActiveCardIdStore = {
+  editingCardId: string | null;
+  setEditingCardId: (id: string | null) => void;
+};
+
+export const useActiveCardIdStore = create<ActiveCardIdStore>((set) => ({
+  editingCardId: null,
+  setEditingCardId: (id) => set(() => ({ editingCardId: id })),
+}));

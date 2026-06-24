@@ -4,7 +4,7 @@ import { LOCAL_STORAGE_STORE_KEY } from '../../consts';
 import { DEFAULT_VALUES } from '../../stores/store';
 import { elements } from './testHelpers';
 import App from '../../App';
-import { sortCards } from '../utils';
+import { sortListContent } from '../../utils/utils';
 
 const { getListItemTextarea } = elements
 
@@ -22,7 +22,7 @@ describe('LocalStorage with Data', () => {
   });
 
   it('should load default data when user consents', async () => {
-    const dataToLoad = JSON.stringify(sortCards(DEFAULT_VALUES))
+    const dataToLoad = JSON.stringify(sortListContent(DEFAULT_VALUES))
 
     render(<App />)
     await waitFor(() => expect(localStorage.getItem(LOCAL_STORAGE_STORE_KEY)).not.toBeNull())
@@ -39,7 +39,7 @@ describe('LocalStorage with Data', () => {
 
   it('should sort list from localStorage', () => {
     localStorage.setItem(LOCAL_STORAGE_STORE_KEY, JSON.stringify(DEFAULT_VALUES))
-    const defaultValuesSecondCardValues = DEFAULT_VALUES.state.items[1].content.map(item => item.value)
+    const defaultValuesSecondCardValues = DEFAULT_VALUES.state.lists[1].content.map(item => item.value)
     expect(defaultValuesSecondCardValues).toEqual(['first el in Second List', 'second el in Second List', 'third el in Second List', 'fourth el in Second List'])
 
     render(<App />)
