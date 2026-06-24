@@ -1,68 +1,245 @@
-import { DragDropProvider, useDroppable } from '@dnd-kit/react';
+import { move } from '@dnd-kit/helpers';
+import { DragDropProvider, DragOverlay, useDroppable } from '@dnd-kit/react';
+import { useEffect, useRef, useState } from 'react';
+import { EMPTY_CARD_ID, INDENT_VALUE } from '../consts';
+import type { List, ListItemWithRelations, SetLocalDataActions } from '../interfaces';
+import { buildTree, getDescendants, getDragDepth, getProjection } from '../utils/treeUtils';
 import ListElem from './ListElem';
-import { useState } from 'react';
-import type { FieldListItem, List } from '../interfaces';
-import type { UseFieldArrayRemove, UseFormRegister } from 'react-hook-form';
-import { isSortableOperation } from '@dnd-kit/react/sortable';
-import { useStore } from '../stores/store';
 
-type ListOfItem = {
-  list: FieldListItem[];
+type ListOfItems = {
+  list: ListItemWithRelations[];
   listId?: string;
   checkedItems: boolean;
-  register: UseFormRegister<List>;
-  remove: UseFieldArrayRemove;
-  handleCheck?: (index: number, listId: string, checked: boolean) => void;
+  cardIndex: number;
+  actions: SetLocalDataActions;
+  editedList: List
 };
 
-const ListOfItems = ({ list, listId, checkedItems, register, remove, handleCheck }: ListOfItem) => {
-  const { moveListItem } = useStore()
-  const { ref } = useDroppable({
-    id: `card-${listId ?? 'empty'}`,
+const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOfItems) => {
+  const listRef = useRef<HTMLUListElement>(null)
+  const [listRefCurr, setListRefCurr] = useState<HTMLElement | null>(null)
+  const [active, setActive] = useState<boolean>(false)
+  const isListWithChecked = list[0].checked
+  const [activeItemId, setActiveItemId] = useState<string>(null)
+
+  const [tree, setTree] = useState(list)
+
+  const isDragging = useRef(false);
+
+  useEffect(() => {
+    if (list && !isDragging.current) {
+      setTree(list);
+    }
+  }, [list]);
+
+
+  useDroppable({
+    id: `card-${listId ?? EMPTY_CARD_ID}-${checkedItems ? 'checked' : 'unchecked'}`,
+    element: listRef,
   });
-  const [active, setActive] = useState<boolean>(false);
 
   const dataId = `card-${listId}-${checkedItems ? 'checkedItems' : 'uncheckedItems'}`;
+
+  useEffect(() => {
+    if (listRef.current) {
+      setListRefCurr(listRef.current)
+    }
+  }, [listRef])
+
+  const resetDragState = () => {
+    setActive(false);
+    setActiveItemId(null)
+    setTree(list);
+  };
+
+  const initialDepth = useRef(0);
+  const sourceChildren = useRef<ListItemWithRelations[]>([]);
+
   return (
     <DragDropProvider
-      onDragEnd={(event) => {
-        if (event.canceled) return;
-        if (active) {
-          setActive(false);
+      onDragStart={(event) => {
+        if (!active) {
+          setActive(true);
         }
-        const { operation } = event
-        if (isSortableOperation(operation)) {
-          const {source, target} = operation
-          if (source && target && listId) {
-            moveListItem(listId, source.data.fieldArrayId, target.index)
+
+        const { source } = event.operation
+
+        if (!source) return;
+        isDragging.current = true;
+        setTree(list)
+        setActiveItemId(source.id as string)
+        const { depth } = tree.find(({ id }) => id === source.id)!;
+
+        // Store the source item's initial depth for later use
+        initialDepth.current = depth;
+
+        setTree((flattenedItems) => {
+          sourceChildren.current = [];
+
+          // Get all descendants of the source item
+          const descendants = getDescendants(flattenedItems, source.id as string);
+
+          return flattenedItems.filter((item) => {
+            if (descendants.has(item.id)) {
+              sourceChildren.current = [...sourceChildren.current, item];
+              return false;
+            }
+
+            return true;
+          });
+        });
+
+        initialDepth.current = depth;
+      }}
+
+      onDragOver={(event, manager) => {
+        const { source, target } = event.operation;
+
+        event.preventDefault();
+
+        if (source && target && source.id !== target.id) {
+          setTree((flattenedItems) => {
+            const offsetLeft = manager.dragOperation.transform.x;
+            const dragDepth = getDragDepth(offsetLeft, INDENT_VALUE);
+            const projectedDepth = initialDepth.current + dragDepth;
+
+            const { depth, parentId } = getProjection(
+              flattenedItems,
+              target.id as string,
+              projectedDepth
+            );
+
+            const sortedItems = move(flattenedItems, event);
+            const newItems = sortedItems.map((item) =>
+              item.id === source.id ? { ...item, depth, parentId } : item
+            );
+
+            return newItems;
+          });
+        }
+      }}
+      onDragMove={(event, manager) => {
+        if (event.defaultPrevented) {
+          return;
+        }
+
+        const { source, target } = event.operation;
+
+        if (source && target) {
+          const keyboard = event.operation.activatorEvent instanceof KeyboardEvent;
+          const currentDepth = source.data!.depth ?? 0;
+          let keyboardDepth;
+
+          if (keyboard) {
+            const isHorizontal = event.by?.x !== 0 && event.by?.y === 0;
+
+            if (isHorizontal) {
+              event.preventDefault();
+
+              keyboardDepth = currentDepth + Math.sign(event.by!.x);
+            }
+          }
+
+          const offsetLeft = manager.dragOperation.transform.x;
+          const dragDepth = getDragDepth(offsetLeft, INDENT_VALUE);
+
+          const projectedDepth =
+            keyboardDepth ?? initialDepth.current + dragDepth;
+          const { depth, parentId } = getProjection(
+            tree,
+            source.id as string,
+            projectedDepth
+          );
+
+          if (keyboard) {
+            if (currentDepth !== depth) {
+              const offset = INDENT_VALUE * (depth - currentDepth);
+
+              manager.actions.move({
+                by: { x: offset, y: 0 },
+                propagate: false,
+              });
+            }
+          }
+
+          if (
+            source.data!.depth !== depth ||
+            source.data!.parentId !== parentId
+          ) {
+            setTree((flattenedItems) => {
+              return flattenedItems.map((item) =>
+                item.id === source.id ? { ...item, depth, parentId } : item
+              );
+            });
           }
         }
       }}
-      onDragOver={() => {
-        if (!active) {
-          setActive(true);
+
+      onDragEnd={(event) => {
+        if (event.canceled) {
+          resetDragState()
+          return
+        };
+        if (event.canceled) {
+          return setTree(list);
+        }
+        isDragging.current = false;
+
+
+        const updatedTree = buildTree(
+          tree,
+          sourceChildren.current,
+        );
+
+        if (updatedTree.length === list.length) {
+          actions.update({ content: [...editedList.content.filter(item => item.checked === !isListWithChecked), ...updatedTree] });
+        } else {
+          setTree(list)
+        }
+        
+        if (active) {
+          setActive(false)
         }
       }}
     >
       <ul
-        ref={ref}
-        className={`${active ? 'bg-active/50 outline-2 outline-dashed' : ''} transition-all duration-300 outline-active rounded-sm w-full`}
+        ref={listRef}
+        className={`transition-all duration-300 outline-active rounded-sm relative outline-dashed outline-2 ${active ? 'bg-active/30  outline-active/70 ' : 'outline-transparent'}`}
         data-testid={dataId}
       >
-        {list.map((field, index) => (
+        {tree.map((field, index) =>
           <ListElem
-            key={field.listItemId}
+            key={field.id}
             item={field}
             sortableIndex={index}
-            fieldArrayId={field.fieldArrayId}
             listId={listId ?? ''}
-            register={register}
-            handleCheck={handleCheck}
-            remove={remove}
+            listRef={listRefCurr}
+            depth={field.depth}
+            actions={actions}
+            list={editedList.content}
+            isActive={field.id === activeItemId}
           />
-        ))}
+
+        )}
+        <DragOverlay style={{ width: 'min-content' }}>
+          {(source) => (
+            <>
+              <ListElem
+                key={source.id}
+                item={source.data.item}
+                sortableIndex={source['index']}
+                listId={listId ?? ''}
+                listRef={listRefCurr}
+                depth={source.data.depth}
+                actions={actions}
+                list={editedList.content}
+                isOverlay={true}
+              />
+            </>
+          )}
+        </DragOverlay>
       </ul>
-    </DragDropProvider>
+    </DragDropProvider >
   );
 };
 

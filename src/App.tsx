@@ -3,27 +3,27 @@ import Card from './components/Card';
 import { DragDropProvider, useDroppable } from '@dnd-kit/react';
 import { DEFAULT_VALUES, useStore } from './stores/store';
 import ThemeToggle from './components/atoms/ThemeToggle';
-import { sortCards } from './components/utils';
-import { LOCAL_STORAGE_STORE_KEY } from './consts';
+import { sortListContent } from './utils/utils';
+import { EMPTY_CARD_ID, LOCAL_STORAGE_STORE_KEY } from './consts';
 
 let consentAskCount = 0
 const App = () => {
-  const { items, setItems } = useStore()
+  const { lists, setLists } = useStore()
 
   useEffect(() => {
     const getItem = localStorage.getItem(LOCAL_STORAGE_STORE_KEY)
-    const localStorageItems = getItem? JSON.parse(getItem): null
+    const localStorageItems = getItem ? JSON.parse(getItem) : null
     if (!localStorageItems && !consentAskCount) {
       const consent = window.confirm('Załadować testowe dane?')
       consentAskCount++;
       if (consent) {
-        setItems(sortCards(DEFAULT_VALUES))
+        setLists(sortListContent(DEFAULT_VALUES))
       }
     }
     else if (localStorageItems) {
-      setItems(sortCards(localStorageItems))
+      setLists(sortListContent(localStorageItems))
     }
-  }, [setItems])
+  }, [setLists])
 
   const [active, setActive] = useState<boolean>(false)
   const { ref } = useDroppable({ id: 'board' })
@@ -32,7 +32,7 @@ const App = () => {
     <div className='text-primary placeholder:text-primary'>
       <ThemeToggle />
 
-      <Card />
+      <Card emptyCardId={EMPTY_CARD_ID}/>
       <DragDropProvider
         onDragEnd={(event) => {
           if (event.canceled) return;
@@ -48,8 +48,8 @@ const App = () => {
         }}
       >
         <div ref={ref} className={`${active ? 'bg-active/50 outline-2 outline-active outline-dashed' : ''}  rounded-sm w-full columns-1 sm:columns-2 lg:columns-4 my-10 gap-4`}>
-          {items?.map((item, index) => {
-            return <Card key={`${item.id}-${index}`} index={index} editedItem={item} styles={'mb-4 break-inside-avoid'} />;
+          {lists?.map((list, index) => {
+            return <Card key={`${list.id}-${index}`} index={index} editedList={list} styles={'mb-4 break-inside-avoid'} />;
           })}
         </div>
       </DragDropProvider>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import App from '../../App';
 import { elements } from './testHelpers';
@@ -64,7 +64,7 @@ describe('<App>', () => {
     expect(getListItemTextarea()[1]).toBeVisible();
     await userEvent.type(getListItemTextarea()[1], 'Kup mleko{Enter}');
     expect(getListItemTextarea()).toHaveLength(3);
-    expect(getListItemTextarea()[2]).toHaveFocus();
+    await waitFor(() => expect(getListItemTextarea()[2]).toHaveFocus());
 
     await userEvent.keyboard('{arrowup}');
     expect(getListItemTextarea()[1]).toHaveFocus();

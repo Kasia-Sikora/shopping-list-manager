@@ -5,19 +5,25 @@ export type List = {
 };
 
 export type ListItem = {
-  listItemId: string;
-  value?: string;
-  checked?: boolean;
+  id: string;
+  value: string;
+  checked: boolean;
+  depth: number;
 };
 
-type FieldIndex = {
-  fieldArrayId: number;
+export type ListItemWithRelations = ListItem & {
+  parentId: string;
 };
-
-export type FieldListItem = FieldIndex & ListItem;
 
 export type PersistedShoppingListStore = {
   state: {
-    items: List[]
-  }
-}
+    lists: List[];
+  };
+};
+
+export type SetLocalDataActions = {
+  update: (updates: Partial<List>) => void;
+  sync: (dataToSync: List) => void;
+  save: (dataToSave: List) => void;
+  resetLocalState: () => void;
+};
