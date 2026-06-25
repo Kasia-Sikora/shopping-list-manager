@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import type { RefObject } from 'react';
 import type { List, SetLocalDataActions } from '../interfaces';
 import { useActiveCardIdStore, useStore } from '../stores/store';
 import { generateId, handleKeyDown, setFocusOnElement, splitItemsToDoneAndUndoneLists } from '../utils/utils';
@@ -10,14 +11,13 @@ import { EMPTY_CARD_ID } from '../consts';
 
 interface CardContentProps {
   editedList: List;
-  cardRef: React.RefObject<HTMLDivElement | null>;
+  cardRef: RefObject<HTMLDivElement | null>;
   cardDataId: string;
-  cardIndex: number
-  cardId: string | null,
+  cardId: string;
   actions: SetLocalDataActions
 }
 
-const CardContent = ({ editedList, cardRef, cardDataId, cardIndex, cardId, actions }: CardContentProps) => {
+const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardContentProps) => {
   const { editingCardId, setEditingCardId } = useActiveCardIdStore()
   const { removeList } = useStore()
 
@@ -37,7 +37,8 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardIndex, cardId, actio
       const container = document.querySelector(`[data-testid='${cardDataId}']`);
 
 
-      const onKeyDown = (e: KeyboardEvent) => {
+      const onKeyDown = (event: Event) => {
+        const e = event as KeyboardEvent;
         //todo edc is not clearing the empty items
         if (e.key === "Escape") {
           setEditingCardId(null)
@@ -53,9 +54,10 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardIndex, cardId, actio
         ) as NodeListOf<HTMLTextAreaElement>;
         handleKeyDown(e, Array.from(currentListItems));
       };
-
-      container.addEventListener('keydown', onKeyDown);
-      return () => container.removeEventListener('keydown', onKeyDown);
+      if (container) {
+        container.addEventListener('keydown', onKeyDown);
+        return () => container.removeEventListener('keydown', onKeyDown);
+      }
     }
   }, [cardDataId, cardId, editingCardId, editedList.content, setEditingCardId]);
 
@@ -93,18 +95,24 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardIndex, cardId, actio
     e.preventDefault();
     let indexOfActiveEl: number;
     let itemDepth = 0
+    let parentId = null;
     if (e?.target instanceof HTMLTextAreaElement) {
       const target = e.target instanceof HTMLTextAreaElement ? e.target.name : undefined;
       if (e.nativeEvent instanceof KeyboardEvent && target) {
         const targetId = target.split('.')[0];
         indexOfActiveEl = editedList.content.findIndex(item => item.id === targetId)
         itemDepth = parseInt(e.target.dataset.depth ?? '0')
+      } else {
+        indexOfActiveEl = editedList.content.length - 1;
       }
     }
     else {
       indexOfActiveEl = editedList.content.length - 1;
     }
-    const newItem = { id: generateId(), value: '', checked: false, depth: itemDepth };
+    if (itemDepth > 0) {
+      parentId = editedList.content[indexOfActiveEl - 1]?.id ?? null
+    }
+    const newItem = { id: generateId(), value: '', checked: false, depth: itemDepth, parentId: parentId };
     const newData = [...editedList.content]
     newData.splice(indexOfActiveEl + 1, 0, newItem)
     actions.update({ ...editedList, content: newData });
@@ -145,7 +153,6 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardIndex, cardId, actio
               listId={editedList?.id}
               list={uncheckedItems}
               checkedItems={false}
-              cardIndex={cardIndex}
               actions={actions}
               editedList={editedList}
             />
@@ -160,7 +167,6 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardIndex, cardId, actio
                   listId={editedList?.id}
                   list={checkedItems}
                   checkedItems={true}
-                  cardIndex={cardIndex}
                   actions={actions}
                   editedList={editedList}
                 />

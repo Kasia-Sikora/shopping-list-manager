@@ -9,10 +9,7 @@ export type ListItem = {
   value: string;
   checked: boolean;
   depth: number;
-};
-
-export type ListItemWithRelations = ListItem & {
-  parentId: string;
+  parentId: string | null;
 };
 
 export type PersistedShoppingListStore = {

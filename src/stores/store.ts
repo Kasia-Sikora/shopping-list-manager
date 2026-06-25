@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { List, ListItem, PersistedShoppingListStore } from '../interfaces';
+import type { List, PersistedShoppingListStore } from '../interfaces';
 import { persist } from 'zustand/middleware';
 import { LOCAL_STORAGE_STORE_KEY, LOCAL_STORAGE_THEME_KEY } from '../consts';
 import { generateId } from '../utils/utils';
@@ -16,24 +16,28 @@ export const DEFAULT_VALUES: PersistedShoppingListStore = {
             value: 'first el in First List',
             checked: false,
             depth: 0,
+            parentId: null
           },
           {
             id: '2',
             value: 'second el in First List',
             checked: false,
             depth: 0,
+            parentId: null
           },
           {
             id: '3',
             value: 'third el in First List',
             checked: false,
             depth: 0,
+            parentId: null
           },
           {
             id: '4',
             value: 'fourth el in First List',
             checked: false,
             depth: 0,
+            parentId: null
           },
         ],
       },
@@ -46,24 +50,28 @@ export const DEFAULT_VALUES: PersistedShoppingListStore = {
             value: 'first el in Second List',
             checked: true,
             depth: 0,
+            parentId: null
           },
           {
             id: '2',
             value: 'second el in Second List',
             checked: false,
             depth: 0,
+            parentId: null
           },
           {
             id: '3',
             value: 'third el in Second List',
             checked: false,
             depth: 0,
+            parentId: null
           },
           {
             id: '4',
             value: 'fourth el in Second List',
             checked: true,
             depth: 0,
+            parentId: null
           },
         ],
       },
@@ -77,14 +85,9 @@ export type StoreState = {
   moveList: (originalIndex: number, targetIndex: number) => void;
   addList: (item: List) => void;
   updateList: (item: List) => void;
-  updateListItem: (listItem: ListItem, listId: string) => void;
   removeList: (listId: string) => void;
   copyList: (listId: string) => void;
-  setListContent: (listId: string, content: ListItem[]) => void;
-  removeListItem: (itemId: string, listItemId: string) => void;
   removeCheckedListItems: (listId: string) => void;
-  checkListItem: (listId: string, index: number, checked: boolean) => void;
-  updateListContent: (listContentItem: ListItem, listId: string, globalId: number) => void;
 };
 
 export const useStore = create<StoreState>()(
@@ -103,16 +106,6 @@ export const useStore = create<StoreState>()(
         }),
       addList: (item) => set((state) => ({ lists: [...state.lists, item] })),
       updateList: (item) => set((state) => ({ lists: state.lists.map((elem) => (elem.id === item.id ? item : elem)) })),
-      updateListItem: (listItem, listId) =>
-        set((state) => ({
-          lists: state.lists.map((list) => {
-            if (list.id === listId) {
-              return { ...list, content: list.content.map((item) => (item.id === listItem.id ? listItem : item)) };
-            } else {
-              return list;
-            }
-          }),
-        })),
       removeList: (listId) => set((state) => ({ lists: state.lists.filter((item) => item.id !== listId) })),
       copyList: (listId) =>
         set((state) => {
@@ -123,64 +116,11 @@ export const useStore = create<StoreState>()(
           }
           return { lists: state.lists };
         }),
-      setListContent: (listId, content) => {
-        set((state) => ({
-          lists: state.lists.map((item) => {
-            if (item.id === listId) {
-              return { ...item, content: content };
-            } else {
-              return item;
-            }
-          }),
-        }));
-      },
-      removeListItem: (itemId, listItemId) =>
-        set((state) => ({
-          lists: state.lists.map((item) => {
-            if (item.id === itemId) {
-              return {
-                ...item,
-                content: item.content.filter((listItem) => listItem.id !== listItemId),
-              };
-            } else {
-              return item;
-            }
-          }),
-        })),
       removeCheckedListItems: (listId) =>
         set((state) => ({
           lists: state.lists.map((item) => {
             if (item.id === listId) {
               return { ...item, content: item.content.filter((el) => !el.checked) };
-            } else {
-              return item;
-            }
-          }),
-        })),
-      checkListItem: (listId, index, checked) =>
-        set((state) => ({
-          lists: state.lists.map((item) => {
-            if (item.id === listId) {
-              if (checked) {
-                const el = item.content.splice(index, 1)?.[0];
-                item.content.push({ ...el, checked });
-              } else {
-                const uncheckedListLength = item.content.filter((item) => !item.checked).length;
-                const el = item.content.splice(index, 1)?.[0];
-                item.content.splice(uncheckedListLength, 0, { ...el, checked });
-              }
-              return item;
-            }
-            return item;
-          }),
-        })),
-      updateListContent: (listContentItem, listId, globalId) =>
-        set((state) => ({
-          lists: state.lists.map((item) => {
-            if (item.id === listId) {
-              const newContent = [...item.content];
-              newContent[globalId] = listContentItem;
-              return { ...item, content: newContent };
             } else {
               return item;
             }

@@ -1,21 +1,7 @@
-import { MAX_LIST_DEPTH } from "../consts";
-import type { ListItem, ListItemWithRelations } from "../interfaces";
+import { MAX_LIST_DEPTH } from '../consts';
+import type { ListItem } from '../interfaces';
 
-export const getSubtreeCount = (items: ListItem[], startIndex: number) => {
-  const parentDepth = items[startIndex].depth;
-  let count = 0;
-  for (let i = startIndex + 1; i < items.length; i++) {
-    if (items[i].depth > parentDepth) {
-      count++;
-    } else {
-      break;
-    }
-  }
-  return count;
-};
-
-
-export function getDescendants(items: ListItemWithRelations[], parentId: string): Set<string> {
+export function getDescendants(items: ListItem[], parentId: string): Set<string> {
   const directChildren = items.filter((item) => item.parentId === parentId);
 
   return directChildren.reduce((descendants, child) => {
@@ -27,7 +13,7 @@ export function getDragDepth(offset: number, indentationWidth: number) {
   return Math.round(offset / indentationWidth);
 }
 
-export function getProjection(items: ListItemWithRelations[], targetId: string, projectedDepth: number) {
+export function getProjection(items: ListItem[], targetId: string, projectedDepth: number) {
   const targetItemIndex = items.findIndex(({ id }) => id === targetId);
   const previousItem = items[targetItemIndex - 1];
   const targetItem = items[targetItemIndex];
@@ -76,16 +62,17 @@ export const getMinDepth = (nextItem: ListItem) => {
   return nextItem ? nextItem.depth : 0;
 };
 
-export const buildTree = (list: ListItemWithRelations[], children: ListItemWithRelations[]) => {
+export const buildTree = (list: ListItem[], children: ListItem[]) => {
   const tree = [...list];
-
+  let addedChildren = 0; 
   for (let i = 0; i < children.length; i++) {
     const { parentId } = children[i];
     const parentIndex = tree.findIndex((el) => el.id === parentId);
 
-    if (!parentIndex && parentIndex !== 0) continue;
+    if (parentIndex === -1) continue;
 
-    tree.splice(parentIndex+1, 0, children[i]);
+    tree.splice(parentIndex + 1 + addedChildren, 0, children[i]);
+    addedChildren+=1
   }
 
   return tree;

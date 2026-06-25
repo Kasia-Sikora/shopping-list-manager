@@ -58,7 +58,7 @@ const MenuDropdown = ({ open, cardId, setOpen, list, actions }: MenuDropdown) =>
     }
   }
 
-  const handleMenuClick = (e, operation: MenuOperationTypes) => {
+  const handleMenuClick = (e: React.MouseEvent, operation: MenuOperationTypes) => {
     e.stopPropagation();
     switch (operation) {
       case "remove":

@@ -8,7 +8,7 @@ import { EMPTY_CARD_ID } from '../../consts';
 const exampleItem: List = {
   id: '1',
   title: 'list title',
-  content: [{ id: '333', checked: false, value: 'kup bułki', depth: 0 }],
+  content: [{ id: '333', checked: false, value: 'kup bułki', depth: 0, parentId: null }],
 };
 
 describe('Card', () => {

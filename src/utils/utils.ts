@@ -1,12 +1,12 @@
-import type { ListItem, ListItemWithRelations, PersistedShoppingListStore } from '../interfaces';
+import type { ListItem, PersistedShoppingListStore } from '../interfaces';
 
 export const generateId = () => {
   return crypto.randomUUID();
 };
 
 export const splitItemsToDoneAndUndoneLists = (items: ListItem[]) => {
-  const uncheckedItems: ListItemWithRelations[] = [];
-  const checkedItems: ListItemWithRelations[] = [];
+  const uncheckedItems: ListItem[] = [];
+  const checkedItems: ListItem[] = [];
   let checkedParentId: string | null = null;
   let uncheckedParentId: string | null = null;
 

@@ -2,15 +2,14 @@ import { move } from '@dnd-kit/helpers';
 import { DragDropProvider, DragOverlay, useDroppable } from '@dnd-kit/react';
 import { useEffect, useRef, useState } from 'react';
 import { EMPTY_CARD_ID, INDENT_VALUE } from '../consts';
-import type { List, ListItemWithRelations, SetLocalDataActions } from '../interfaces';
+import type { List, ListItem, SetLocalDataActions } from '../interfaces';
 import { buildTree, getDescendants, getDragDepth, getProjection } from '../utils/treeUtils';
 import ListElem from './ListElem';
 
 type ListOfItems = {
-  list: ListItemWithRelations[];
+  list: ListItem[];
   listId?: string;
   checkedItems: boolean;
-  cardIndex: number;
   actions: SetLocalDataActions;
   editedList: List
 };
@@ -20,7 +19,7 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOf
   const [listRefCurr, setListRefCurr] = useState<HTMLElement | null>(null)
   const [active, setActive] = useState<boolean>(false)
   const isListWithChecked = list[0].checked
-  const [activeItemId, setActiveItemId] = useState<string>(null)
+  const [activeItemId, setActiveItemId] = useState<string | undefined>(undefined)
 
   const [tree, setTree] = useState(list)
 
@@ -48,12 +47,12 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOf
 
   const resetDragState = () => {
     setActive(false);
-    setActiveItemId(null)
+    setActiveItemId(undefined)
     setTree(list);
   };
 
   const initialDepth = useRef(0);
-  const sourceChildren = useRef<ListItemWithRelations[]>([]);
+  const sourceChildren = useRef<ListItem[]>([]);
 
   return (
     <DragDropProvider
@@ -191,12 +190,8 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOf
           sourceChildren.current,
         );
 
-        if (updatedTree.length === list.length) {
-          actions.update({ content: [...editedList.content.filter(item => item.checked === !isListWithChecked), ...updatedTree] });
-        } else {
-          setTree(list)
-        }
-        
+        actions.update({ content: [...editedList.content.filter(item => item.checked === !isListWithChecked), ...updatedTree] });
+
         if (active) {
           setActive(false)
         }
@@ -222,20 +217,20 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOf
 
         )}
         <DragOverlay style={{ width: 'min-content' }}>
-          {(source) => (
-            <>
-              <ListElem
-                key={source.id}
-                item={source.data.item}
-                sortableIndex={source['index']}
-                listId={listId ?? ''}
-                listRef={listRefCurr}
-                depth={source.data.depth}
-                actions={actions}
-                list={editedList.content}
-                isOverlay={true}
-              />
-            </>
+          {/* @dnd-kit's Draggable type doesn't expose index at compile time, though it exists at runtime */}
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any*/}
+          {(source: any) => (
+            <ListElem
+              key={source.id}
+              item={source.data.item}
+              sortableIndex={source.index}
+              listId={listId ?? ''}
+              listRef={listRefCurr}
+              depth={source.data.depth}
+              actions={actions}
+              list={editedList.content}
+              isOverlay={true}
+            />
           )}
         </DragOverlay>
       </ul>

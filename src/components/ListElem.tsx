@@ -24,16 +24,12 @@ const config = {
     x: 'start',
     y: 'start',
   },
-  // transition: {
-  //   // duration: 200,
-  //   idle: true,
-  // },
 } as const;
 
 
 type ListElement = {
   item: ListItem;
-  sortableIndex: number | null;
+  sortableIndex?: number;
   listId?: string;
   listRef: HTMLElement | null;
   depth: number;
@@ -65,10 +61,11 @@ const ListElem = ({
   });
   const handleRemoveItem = (e: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLButtonElement>) => {
     e.stopPropagation()
+    e.preventDefault()
     if (!editingCardId && listId) {
       setEditingCardId(listId)
     }
-    actions.update({ content: list.filter(el => el.id !== item.id) });
+    actions.update({ content: list.filter(el => !(el.id === item.id || el.parentId === item.id)) });
   };
 
   const saveValue = (key: string, value: string | boolean) => {

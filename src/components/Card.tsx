@@ -8,7 +8,7 @@ import { generateId } from '../utils/utils';
 import { DEFAULT_CONTENT, EMPTY_CARD_ID } from '../consts';
 
 type Card = {
-  emptyCardId?: string,
+  emptyCardId?: string;
   editedList?: List;
   index?: number
   styles?: string
@@ -20,7 +20,12 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
   const { addList, updateList } = useStore()
   const { editingCardId, setEditingCardId } = useActiveCardIdStore()
 
-  const cardId = editedList?.id ?? emptyCardId ?? undefined
+  const cardId = editedList?.id ?? emptyCardId;
+
+  //Workaround for creating ugly Union type. editedList.id OR emptyCardId will be always provided.
+  if (!cardId) {
+    throw new Error('Card requires either editedList with id or emptyCardId');
+  }
 
   const { isDragging } = useSortable({
     id: cardId,
@@ -32,7 +37,7 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
   const defaultValues: List = useMemo(() => editedList
     ? editedList
     : {
-      id: null,
+      id: generateId(),
       title: '',
       content: DEFAULT_CONTENT,
     }, [editedList]);
@@ -110,7 +115,6 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
         editedList={currentData}
         cardRef={cardRef}
         cardDataId={cardDataId}
-        cardIndex={index}
         cardId={cardId}
         actions={actions}
       />

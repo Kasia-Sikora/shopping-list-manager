@@ -32,25 +32,63 @@ describe('<App>', () => {
               id: '1',
               value: 'first el in First List',
               checked: false,
-              depth: 0
+              depth: 0,
+              parentId: null
             },
             {
               id: '2',
               value: 'second el in First List',
               checked: false,
-              depth: 0
+              depth: 0,
+              parentId: null
             },
             {
               id: '3',
               value: 'third el in First List',
               checked: false,
-              depth: 0
+              depth: 0,
+              parentId: null
             },
             {
               id: '4',
               value: 'fourth el in First List',
               checked: false,
-              depth: 0
+              depth: 0,
+              parentId: null
+            },
+          ],
+        },
+         {
+          id: '1',
+          title: 'Second Card',
+          content: [
+            {
+              id: '1',
+              value: 'first el in First List',
+              checked: false,
+              depth: 0,
+              parentId: null
+            },
+            {
+              id: '2',
+              value: 'second el in First List',
+              checked: false,
+              depth: 0,
+              parentId: '1'
+            },
+            {
+              id: '3',
+              value: 'third el in First List',
+              checked: false,
+              depth: 0,
+              parentId: '1'
+            },
+            {
+              id: '4',
+              value: 'fourth el in First List',
+              checked: false,
+              depth: 0,
+              parentId: null
             },
           ],
         },
@@ -58,8 +96,8 @@ describe('<App>', () => {
     }
   }
 
-  const prepareComponent = async () => {
-    const dataToLoad = JSON.stringify(defaultStoreState)
+  const prepareComponent = async (data = undefined) => {
+    const dataToLoad = JSON.stringify(data ?? defaultStoreState)
     localStorage.setItem(LOCAL_STORAGE_STORE_KEY, dataToLoad)
 
     render(<App />);
@@ -284,5 +322,16 @@ describe('<App>', () => {
 
     expect(queryItemsList(true)).toHaveLength(2);
     expect(queryItemsList(true)?.[0]).toBeVisible();
+  });
+
+  it('should remove element with all descendants when delete button was clicked', async () => {
+    expect(getListItemTextarea('1')).toHaveLength(4);
+
+    await user.hover(getListItemTextarea('1')[0]);
+    expect(getDeleteButton(0, '1')).toBeVisible();
+
+    await user.click(getDeleteButton(0, '1')!);
+
+    expect(getListItemTextarea('1')).toHaveLength(1);
   });
 });
