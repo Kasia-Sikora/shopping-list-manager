@@ -16,28 +16,28 @@ export const DEFAULT_VALUES: PersistedShoppingListStore = {
             value: 'first el in First List',
             checked: false,
             depth: 0,
-            parentId: null
+            parentId: null,
           },
           {
             id: '2',
             value: 'second el in First List',
             checked: false,
             depth: 0,
-            parentId: null
+            parentId: null,
           },
           {
             id: '3',
             value: 'third el in First List',
             checked: false,
             depth: 0,
-            parentId: null
+            parentId: null,
           },
           {
             id: '4',
             value: 'fourth el in First List',
             checked: false,
             depth: 0,
-            parentId: null
+            parentId: null,
           },
         ],
       },
@@ -50,28 +50,28 @@ export const DEFAULT_VALUES: PersistedShoppingListStore = {
             value: 'first el in Second List',
             checked: true,
             depth: 0,
-            parentId: null
+            parentId: null,
           },
           {
             id: '2',
             value: 'second el in Second List',
             checked: false,
             depth: 0,
-            parentId: null
+            parentId: null,
           },
           {
             id: '3',
             value: 'third el in Second List',
             checked: false,
             depth: 0,
-            parentId: null
+            parentId: null,
           },
           {
             id: '4',
             value: 'fourth el in Second List',
             checked: true,
             depth: 0,
-            parentId: null
+            parentId: null,
           },
         ],
       },
@@ -112,9 +112,11 @@ export const useStore = create<StoreState>()(
           const itemToCopy = state.lists.filter((item) => item.id === listId)?.[0];
           const index = state.lists.indexOf(itemToCopy);
           if (itemToCopy) {
-            state.lists.splice(index + 1, 0, { ...itemToCopy, title: `${itemToCopy.title}-copy`, id: generateId() });
+            const updatedList = [...state.lists];
+            updatedList.splice(index + 1, 0, { ...itemToCopy, title: `${itemToCopy.title}-copy`, id: generateId() });
+            return { lists: updatedList };
           }
-          return { lists: state.lists };
+          return {lists: state.lists}
         }),
       removeCheckedListItems: (listId) =>
         set((state) => ({

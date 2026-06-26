@@ -5,6 +5,7 @@ import { EMPTY_CARD_ID, INDENT_VALUE } from '../consts';
 import type { List, ListItem, SetLocalDataActions } from '../interfaces';
 import { buildTree, getDescendants, getDragDepth, getProjection } from '../utils/treeUtils';
 import ListElem from './ListElem';
+import { useTreeValidation } from '../hooks/useTreeValidation';
 
 type ListOfItems = {
   list: ListItem[];
@@ -12,9 +13,10 @@ type ListOfItems = {
   checkedItems: boolean;
   actions: SetLocalDataActions;
   editedList: List
+  cardDataId: string
 };
 
-const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOfItems) => {
+const ListOfItems = ({ editedList, list, listId, checkedItems, actions, cardDataId }: ListOfItems) => {
   const listRef = useRef<HTMLUListElement>(null)
   const [listRefCurr, setListRefCurr] = useState<HTMLElement | null>(null)
   const [active, setActive] = useState<boolean>(false)
@@ -22,8 +24,9 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOf
   const [activeItemId, setActiveItemId] = useState<string | undefined>(undefined)
 
   const [tree, setTree] = useState(list)
-
   const isDragging = useRef(false);
+
+  const dataId = `card-${listId}-${checkedItems ? 'checkedItems' : 'uncheckedItems'}`;
 
   useEffect(() => {
     if (list && !isDragging.current) {
@@ -31,13 +34,16 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOf
     }
   }, [list]);
 
+  useTreeValidation(tree, (validatedTree) => {
+    setTree(validatedTree);
+  });
+
 
   useDroppable({
     id: `card-${listId ?? EMPTY_CARD_ID}-${checkedItems ? 'checked' : 'unchecked'}`,
     element: listRef,
   });
 
-  const dataId = `card-${listId}-${checkedItems ? 'checkedItems' : 'uncheckedItems'}`;
 
   useEffect(() => {
     if (listRef.current) {
@@ -49,6 +55,8 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOf
     setActive(false);
     setActiveItemId(undefined)
     setTree(list);
+    sourceChildren.current = [];
+    isDragging.current = false;
   };
 
   const initialDepth = useRef(0);
@@ -179,9 +187,7 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOf
           resetDragState()
           return
         };
-        if (event.canceled) {
-          return setTree(list);
-        }
+
         isDragging.current = false;
 
 
@@ -204,7 +210,7 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOf
       >
         {tree.map((field, index) =>
           <ListElem
-            key={field.id}
+            key={`${field.id}-${cardDataId}`}
             item={field}
             sortableIndex={index}
             listId={listId ?? ''}
@@ -216,6 +222,8 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOf
           />
 
         )}
+      </ul>
+      {cardDataId !== `card-${EMPTY_CARD_ID}` ?
         <DragOverlay style={{ width: 'min-content' }}>
           {/* @dnd-kit's Draggable type doesn't expose index at compile time, though it exists at runtime */}
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any*/}
@@ -232,8 +240,7 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions }: ListOf
               isOverlay={true}
             />
           )}
-        </DragOverlay>
-      </ul>
+        </DragOverlay> : null}
     </DragDropProvider >
   );
 };

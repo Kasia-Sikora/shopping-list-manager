@@ -6,7 +6,7 @@ const AddListItemButton = ({ handleCreateNewLine }: AddListItemButtonProps) => {
   return (
     <button
       onClick={handleCreateNewLine}
-      className="self-start font-bold text-secondary text-shadow-primary hover:text-accent "
+      className="self-start font-bold text-secondary text-shadow-primary hover:text-text-active "
     >
       + Element listy
     </button>

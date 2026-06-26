@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { RefObject } from 'react';
 import type { List, SetLocalDataActions } from '../interfaces';
 import { useActiveCardIdStore, useStore } from '../stores/store';
-import { generateId, handleKeyDown, setFocusOnElement, splitItemsToDoneAndUndoneLists } from '../utils/utils';
+import { generateId, setFocusOnElement, splitItemsToDoneAndUndoneLists } from '../utils/utils';
 import AddListItemButton from './atoms/AddListItemButton';
 import { ChevronButton } from './atoms/ChevronButton';
 import MenuButton from './atoms/MenuButton';
@@ -18,9 +18,8 @@ interface CardContentProps {
 }
 
 const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardContentProps) => {
-  const { editingCardId, setEditingCardId } = useActiveCardIdStore()
+  const { editingCardId } = useActiveCardIdStore()
   const { removeList } = useStore()
-
 
   const [openMenu, setOpenMenu] = useState<boolean>(false)
   const { uncheckedItems, checkedItems } = splitItemsToDoneAndUndoneLists(editedList.content);
@@ -32,37 +31,10 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
     setContentExpanded((expanded) => !expanded);
   };
 
-  useEffect(() => {
-    if (editingCardId === cardId) {
-      const container = document.querySelector(`[data-testid='${cardDataId}']`);
-
-
-      const onKeyDown = (event: Event) => {
-        const e = event as KeyboardEvent;
-        //todo edc is not clearing the empty items
-        if (e.key === "Escape") {
-          setEditingCardId(null)
-          const activeEl = document.activeElement
-          if (activeEl instanceof HTMLElement) {
-            activeEl.blur()
-          }
-        }
-        if (!e || !(e.target as HTMLTextAreaElement).name) return;
-
-        const currentListItems = document.querySelectorAll(
-          `[data-testid='${cardDataId}'] textarea`
-        ) as NodeListOf<HTMLTextAreaElement>;
-        handleKeyDown(e, Array.from(currentListItems));
-      };
-      if (container) {
-        container.addEventListener('keydown', onKeyDown);
-        return () => container.removeEventListener('keydown', onKeyDown);
-      }
-    }
-  }, [cardDataId, cardId, editingCardId, editedList.content, setEditingCardId]);
-
   const handleSubmit = useCallback(() => {
     if (!editingCardId) return;
+    const activeEl = document.activeElement
+    if (activeEl instanceof HTMLElement) activeEl.blur()
     const data = { ...editedList, content: editedList.content.filter(item => item.value) }
     if (data.title || data.content.length) {
       actions.save(data)
@@ -121,13 +93,36 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
 
   const handleFormEvents = (e: React.KeyboardEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
     if (!e) return;
+   
     if (editingCardId === cardId && cardRef.current) {
-      const isETypeOfKeyboardEvent = e.nativeEvent instanceof KeyboardEvent && 'key' in e && e.key === 'Enter';
-      if (isETypeOfKeyboardEvent && e.shiftKey) {
+      const isKeyboardEvent = e.nativeEvent instanceof KeyboardEvent && 'key' in e;
+
+      // Escape or Shift+Enter → submit and exit
+      if (isKeyboardEvent && (e.key === 'Escape' || (e.key === 'Enter' && e.shiftKey))) {
         e.preventDefault();
         setTimeout(() => handleSubmit(), 0);
-        // resetStates();
-      } else if (isETypeOfKeyboardEvent || e.nativeEvent instanceof PointerEvent) {
+        return;
+      }
+
+      // Arrow Up/Down → navigate through textareas
+      if (isKeyboardEvent && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+        e.preventDefault();
+        const textareas = Array.from(
+          document.querySelectorAll(`[data-testid='${cardDataId}'] textarea`)
+        ) as HTMLTextAreaElement[];
+        const currentIndex = textareas.indexOf(e.target as HTMLTextAreaElement);
+
+        if (currentIndex !== -1) {
+          const nextIndex = e.key === 'ArrowUp' ? currentIndex - 1 : currentIndex + 1;
+          if (nextIndex >= 0 && nextIndex < textareas.length) {
+            textareas[nextIndex].focus();
+          }
+        }
+        return;
+      }
+
+      // Enter → create new line
+      if (isKeyboardEvent && e.key === 'Enter') {
         e.preventDefault();
         handleCreateNewLine(e);
       }
@@ -155,6 +150,7 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
               checkedItems={false}
               actions={actions}
               editedList={editedList}
+              cardDataId={cardDataId}
             />
           )}
           {(editingCardId === cardId || cardId !== EMPTY_CARD_ID) && <AddListItemButton handleCreateNewLine={handleCreateNewLine} />}
@@ -169,6 +165,7 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
                   checkedItems={true}
                   actions={actions}
                   editedList={editedList}
+                  cardDataId={cardDataId}
                 />
               )}
             </>

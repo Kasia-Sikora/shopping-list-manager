@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import CardContent from './CardContent';
 import type { List, SetLocalDataActions } from '../interfaces';
 import EditIndicator from './atoms/EditIndicator';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { useActiveCardIdStore, useStore } from '../stores/store';
 import { generateId } from '../utils/utils';
-import { DEFAULT_CONTENT, EMPTY_CARD_ID } from '../consts';
+import { EMPTY_CARD_ID } from '../consts';
 
 type Card = {
   emptyCardId?: string;
@@ -21,6 +21,7 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
   const { editingCardId, setEditingCardId } = useActiveCardIdStore()
 
   const cardId = editedList?.id ?? emptyCardId;
+  const [emptyCardResetKey, setEmptyCardResetKey] = useState(0);
 
   //Workaround for creating ugly Union type. editedList.id OR emptyCardId will be always provided.
   if (!cardId) {
@@ -39,8 +40,9 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
     : {
       id: generateId(),
       title: '',
-      content: DEFAULT_CONTENT,
-    }, [editedList]);
+      content: [{ id: generateId(), value: '', checked: false, depth: 0, parentId: null }],
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [editedList, emptyCardResetKey]); //emptyCardResetKey is used to trigger creating new values for fresh empty card
 
   const [localDraft, setLocalDraft] = useState<List | null>(null);
 
@@ -49,61 +51,67 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
 
   const cardDataId = `card-${cardId}`
 
-  const handleEdit = () => {
-    // e.stopPropagation();
+  const handleEdit = (e: React.MouseEvent) => {
     if (editingCardId === cardId) return;
     setLocalDraft(defaultValues);
     setEditingCardId(cardId);
+    const target = e.target as HTMLElement;
 
-    const activeElement = document.activeElement;
-
-    if (activeElement instanceof (HTMLTextAreaElement) ||
-      activeElement instanceof (HTMLInputElement) ||
-      activeElement instanceof (HTMLButtonElement)) {
-      return;
-    } else {
-      const el = document.querySelector(
-        `[data-id='card-${cardId}'] textarea`
-      ) as HTMLTextAreaElement;
-      if (el) el.focus();
+    if (
+      target.tagName === 'BUTTON' ||
+      target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.closest('button') ||
+      target.closest('input') ||
+      target.closest('textarea')
+    ) {
+      return; // Interactive element clicked, don't edit
     }
+
+    const el = document.querySelector(
+      `[data-id='card-${cardId}'] textarea`
+    ) as HTMLTextAreaElement;
+    if (el) el.focus();
   }
+
+  const handleResetLocalState = useCallback(() => {
+    setLocalDraft(null);
+    setEditingCardId(null);
+    if (!editedList) {
+      setEmptyCardResetKey(prev => prev + 1);
+    }
+  }, [editedList, setEditingCardId]);
 
   const actions: SetLocalDataActions = useMemo(() => ({
     update: (updates: Partial<List>) => {
       setLocalDraft(prev => ({ ...(prev || currentData), ...updates }));
     },
     sync: (dataToSync: List) => {
-      if (cardId === 'empty') return;
       updateList(dataToSync);
     },
     save: (dataToSave: List) => {
       if (cardId === EMPTY_CARD_ID) {
-        addList({...dataToSave, id: generateId()})
+        addList({ ...dataToSave, id: generateId() })
       } else {
         updateList(dataToSave)
       }
-      actions.resetLocalState();
+      handleResetLocalState();
     },
-    resetLocalState: () => {
-      setLocalDraft(null); // Clear local memory
-      setEditingCardId(null);
-    }
-  }), [addList, cardId, currentData, setEditingCardId, updateList]);
+    resetLocalState: handleResetLocalState
+  }), [currentData, cardId, updateList, addList, handleResetLocalState]);
 
 
   useEffect(() => {
-    if (!localDraft || cardId === EMPTY_CARD_ID) return;
-    if (cardId === 'empty') return;
+    if (!localDraft) return;
     const timer = setTimeout(() => {
       actions.sync(localDraft);
     }, 1000); // Save after 1 second of inactivity
 
     return () => clearTimeout(timer);
-  }, [actions, cardId, localDraft]);
+  }, [actions, localDraft]);
 
   return (
-    <section
+    <div
       ref={cardRef}
       onClick={handleEdit}
       className={`${editedList ? 'w-75' : 'min-w-75'} border-t border-mist-300 shadow-md shadow-shadow flex flex-col align-baseline gap-2 height-10 rounded-lg p-4 relative ${editedList ? 'pb-8' : 'pb-4'} ${!editedList ? 'max-w-3xl m-auto' : ''} ${styles} ${isDragging && 'bg-background'}`}
@@ -118,7 +126,7 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
         cardId={cardId}
         actions={actions}
       />
-    </section>
+    </div>
   );
 };
 

@@ -7,6 +7,7 @@
   --color-accent: var(--accent);
   --color-shadow: var(--shadow);
   --color-active: var(--active);
+  --color-text-active: var(--text-accent);
   --color-menu-bg: var(--menu-bg);
   --color-menu-active: var(--menu-active);
   --color-drag-item-active: var(--drag-item-active)
@@ -17,8 +18,9 @@
   [data-theme='theme-light'] {
     --background: var(--color-orange-100);
     --text-primary: var(--color-mist-800);
-    --text-secondary: var(--color-amber-700);
+    --text-secondary: var(--color-amber-800);
     --accent: var(--color-amber-500);
+    --text-accent: var(--color-amber-900);
     --shadow: var(--color-mist-500);
     --active: var(--color-white);
     --menu-bg: var(--color-amber-50);
@@ -30,6 +32,7 @@
     --background: var(--color-mist-950);
     --text-primary: var(--color-orange-200);
     --text-secondary: var(--color-amber-700);
+    --text-accent: var(--color-amber-300);
     --accent: var(--color-amber-500);
     --shadow: var(--color-mist-400);
     --active: var(--color-mist-500);
@@ -86,14 +89,14 @@ input[type='checkbox']:checked::before {
   transform: scale(1.2);
 }
 
-li button {
+li button:last-of-type {
   opacity: 0;
 }
 
-li button:focus,
-li:hover button,
-textarea:focus ~ button,
-input[type='checkbox']:focus ~ button {
+li button:last-of-type:focus,
+li:hover button:last-of-type,
+textarea:focus ~ button:last-of-type,
+input[type='checkbox']:focus ~ button:last-of-type {
   opacity: 100%;
   outline: none;
 }

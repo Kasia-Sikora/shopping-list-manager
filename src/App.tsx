@@ -30,29 +30,34 @@ const App = () => {
 
   return (
     <div className='text-primary placeholder:text-primary'>
-      <ThemeToggle />
+      <header>
+        <h1 className="sr-only">Shopping List Manager</h1>
 
-      <Card emptyCardId={EMPTY_CARD_ID}/>
-      <DragDropProvider
-        onDragEnd={(event) => {
-          if (event.canceled) return;
+        <ThemeToggle />
+      </header>
+      <main>
+        <Card emptyCardId={EMPTY_CARD_ID} />
+        <DragDropProvider
+          onDragEnd={(event) => {
+            if (event.canceled) return;
 
-          if (active) {
-            setActive(false)
-          }
-        }}
-        onDragStart={() => {
-          if (!active) {
-            setActive(true);
-          }
-        }}
-      >
-        <div ref={ref} className={`${active ? 'bg-active/50 outline-2 outline-active outline-dashed' : ''}  rounded-sm w-full columns-1 sm:columns-2 lg:columns-4 my-10 gap-4`}>
-          {lists?.map((list, index) => {
-            return <Card key={`${list.id}-${index}`} index={index} editedList={list} styles={'mb-4 break-inside-avoid'} />;
-          })}
-        </div>
-      </DragDropProvider>
+            if (active) {
+              setActive(false)
+            }
+          }}
+          onDragStart={() => {
+            if (!active) {
+              setActive(true);
+            }
+          }}
+        >
+          <div ref={ref} className={`${active ? 'bg-active/50 outline-2 outline-active outline-dashed' : ''}  rounded-sm w-full columns-1 sm:columns-2 lg:columns-4 my-10 gap-4`}>
+            {lists?.map((list, index) => {
+              return <Card key={`${list.id}-${index}`} index={index} editedList={list} styles={'mb-4 break-inside-avoid'} />;
+            })}
+          </div>
+        </DragDropProvider>
+      </main>
     </div>
   );
 };

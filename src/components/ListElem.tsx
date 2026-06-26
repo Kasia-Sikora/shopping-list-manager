@@ -5,6 +5,7 @@ import { RestrictToElement } from '@dnd-kit/dom/modifiers';
 import { DELETE_BUTTON_W_GAP_SIZE, INDENT_VALUE } from '../consts';
 import { useActiveCardIdStore } from '../stores/store';
 import { useDragOperation } from '@dnd-kit/react';
+import { useMemo, memo, useState } from 'react';
 
 function DraggingIndicator() {
   const { source } = useDragOperation();
@@ -12,10 +13,7 @@ function DraggingIndicator() {
   if (!source) return null;
 
   return (
-    <div role="status" aria-live="polite" className='absolute top-0 bg-accent w-full h-0.5'>
-      {/* Dragging <strong>{String(source.id)}</strong>
-      {target ? <> over <strong>{String(target.id)}</strong></> : ' over no target'} */}
-    </div>
+    <div role="status" aria-live="polite" aria-label="Dragging" className='absolute top-0 bg-accent w-full h-0.5' />
   );
 }
 
@@ -51,6 +49,8 @@ const ListElem = ({
   isActive = false
 }: ListElement) => {
   const { editingCardId, setEditingCardId } = useActiveCardIdStore()
+  const [tempValue, setTempValue] = useState(item.value);
+
   const { ref, handleRef, isDragging, isDragSource } = useSortable({
     ...config,
     id: item?.id,
@@ -59,6 +59,7 @@ const ListElem = ({
     disabled: !listId || isOverlay,
     modifiers: listRef ? [RestrictToElement.configure({ element: listRef })] : []
   });
+
   const handleRemoveItem = (e: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLButtonElement>) => {
     e.stopPropagation()
     e.preventDefault()
@@ -75,48 +76,63 @@ const ListElem = ({
     })
   }
 
-  return (
-      <li ref={ref} className={`relative transition-opacity duration-200 flex-wrap ${isDragSource && !isOverlay ? 'opacity-60' : 'opacity-100'} overflow-hidden whitespace-nowrap rounded-sm relative flex items-baseline  gap-3 group py-2 ${isDragging ? 'bg-drag-item-active' : ''} `} style={{
-        maxWidth: `calc(100% - ${depth * DELETE_BUTTON_W_GAP_SIZE}px)`,
-        marginLeft: `${depth * INDENT_VALUE}px`
-      }}
-      >
-        {isActive && !isOverlay && <DraggingIndicator/>}
+  const handleBlur = () => {
+    if (tempValue !== item.value) {
+      saveValue('value', tempValue)
+    }
+  }
 
-        {listId &&
-          <div ref={handleRef} className='cursor-move size-5 rounded-sm bg-primary/20 shrink-0 flex justify-center text-primary after:content-["⣶"] after:-top-1.5 after:relative' />
-        }
-        < input
-          name={'id'}
-          // {...register(`content.${globalArrayIndex}.listItemId` as FieldPath<List>)} 
-          value={item.id}
-          type="hidden" />
+  const liStyles = useMemo(() => ({
+    maxWidth: `calc(100% - ${depth * DELETE_BUTTON_W_GAP_SIZE}px)`,
+    marginLeft: `${depth * INDENT_VALUE}px`
+  }), [depth])
+
+  return (
+    <li ref={ref} className={`relative transition-opacity duration-200 flex-nowrap ${isDragSource && !isOverlay ? 'opacity-60' : 'opacity-100'} overflow-hidden whitespace-nowrap rounded-sm relative flex items-baseline gap-3 group py-2 ${isDragging ? 'bg-drag-item-active' : ''}`} style={liStyles}>
+      {isActive && !isOverlay && <DraggingIndicator />}
+
+
+      {listId && (
+        <button
+          ref={handleRef}
+          type="button"
+          aria-label={`Drag to reorder: ${item.value || 'item'}`}
+          aria-roledescription="drag handle"
+          className='cursor-move size-5 rounded-sm bg-primary/20 shrink-0 flex justify-center text-primary hover:bg-primary/30 after:content-["⣶"] after:-top-1.5 after:relative'
+        />
+      )}
+      <input name="id" value={item.id} type="hidden" />
+      <div role="group" aria-labelledby={`item-${item.id}`} className="grow overflow-hidden whitespace-nowrap flex items-baseline gap-3">
         <input
           type="checkbox"
           data-testid={item?.id ? `list-item-${item?.id}-checkbox` : ''}
           checked={item?.checked}
-          // {...register(`content.${globalArrayIndex}.checked` as FieldPath<List>)}
           className="w-5 h-5 shrink-0 rounded-sm cursor-pointer"
           onChange={(e) => saveValue('checked', e.target.checked)}
+          aria-label={`Done: ${item.value || 'unnamed item'}`}
         />
         <textarea
-          value={item?.value}
+          id={`item-${item.id}`}
+          value={tempValue}
           name={`${item.id}.value`}
-          // {...register(`content.${globalArrayIndex}.value` as FieldPath<List>)}
-          className={`${item?.checked ? 'line-through text-gray-400': ''} transition-all border-0 grow text-wrap bg-transparent focus:ring-0 resize-none field-sizing-content ${isOverlay? 'overflow-hidden text-nowrap max-h-6 field-sizing-fixed':''} `}
-          placeholder="Utwórz listę..."
+          className={`${item?.checked ? 'line-through text-gray-600' : ''} transition-all border-0 grow text-wrap bg-transparent focus:ring-0 resize-none field-sizing-content ${isOverlay ? 'overflow-hidden text-nowrap max-h-6 field-sizing-fixed' : ''}`}
           data-testid={listId ? `card-${listId}-textarea` : 'card-empty-textarea'}
           style={{
-            maxWidth: `calc(100% - ${DELETE_BUTTON_W_GAP_SIZE + (INDENT_VALUE * 2)}px)`,
-            minWidth: `calc(100% - ${DELETE_BUTTON_W_GAP_SIZE + (INDENT_VALUE * 2)}px)`,
-            // textOverflow: 'ellipsis',
+            maxWidth: `calc(100% - ${DELETE_BUTTON_W_GAP_SIZE + INDENT_VALUE}px)`,
+            minWidth: `calc(100% - ${DELETE_BUTTON_W_GAP_SIZE + INDENT_VALUE}px)`
           }}
-          onChange={(e) => saveValue('value', e.target.value)}
+          onChange={(e) => setTempValue(e.target.value)}
+          onBlur={handleBlur}
           data-depth={item.depth}
+          aria-describedby={`item-desc-${item.id}`}
+          placeholder='Utwórz listę...'
         />
-        <DeleteButton handleRemoveItem={handleRemoveItem} />
-      </li>
+        <span id={`item-desc-${item.id}`} className="sr-only">{tempValue ?? 'Utwórz listę...'}</span>
+      </div>
+
+      <DeleteButton ariaLabel={`Delete: ${item.value || 'unnamed item'}`} handleRemoveItem={handleRemoveItem} />
+    </li>
   );
 };
 
-export default ListElem;
+export default memo(ListElem);
