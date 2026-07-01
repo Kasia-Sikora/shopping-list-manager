@@ -5,6 +5,7 @@ import { DEFAULT_VALUES, useStore } from './stores/store';
 import ThemeToggle from './components/atoms/ThemeToggle';
 import { sortListContent } from './utils/utils';
 import { EMPTY_CARD_ID, LOCAL_STORAGE_STORE_KEY } from './consts';
+import { OfflineIndicator } from './components/OfflineIndicator';
 
 let consentAskCount = 0
 const App = () => {
@@ -32,8 +33,10 @@ const App = () => {
     <div className='text-primary placeholder:text-primary'>
       <header>
         <h1 className="sr-only">Shopping List Manager</h1>
-
-        <ThemeToggle />
+        <div className='flex justify-between'>
+          <ThemeToggle />
+          <OfflineIndicator />
+        </div>
       </header>
       <main>
         <Card emptyCardId={EMPTY_CARD_ID} />

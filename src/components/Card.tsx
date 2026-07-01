@@ -41,6 +41,7 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
       id: generateId(),
       title: '',
       content: [{ id: generateId(), value: '', checked: false, depth: 0, parentId: null }],
+      createdAt: new Date().toISOString(),
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [editedList, emptyCardResetKey]); //emptyCardResetKey is used to trigger creating new values for fresh empty card
 

@@ -10,6 +10,8 @@ export const DEFAULT_VALUES: PersistedShoppingListStore = {
       {
         id: '0',
         title: 'First Card',
+        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         content: [
           {
             id: '1',
@@ -44,6 +46,8 @@ export const DEFAULT_VALUES: PersistedShoppingListStore = {
       {
         id: '2',
         title: 'Second Card',
+        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         content: [
           {
             id: '1',
@@ -104,8 +108,26 @@ export const useStore = create<StoreState>()(
 
           return { lists: updatedItems };
         }),
-      addList: (item) => set((state) => ({ lists: [...state.lists, item] })),
-      updateList: (item) => set((state) => ({ lists: state.lists.map((elem) => (elem.id === item.id ? item : elem)) })),
+      addList: (item) =>
+        set((state) => {
+          const newItem = {
+            ...item,
+            createdAt: item.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          return { lists: [...state.lists, newItem] };
+        }),
+      updateList: (item) =>
+        set((state) => ({
+          lists: state.lists.map((elem) => {
+            if (elem.id === item.id) {
+              const newItem = {...item, updatedAt: new Date().toISOString() }
+              return newItem;
+            } else {
+              return elem;
+            }
+          }),
+        })),
       removeList: (listId) => set((state) => ({ lists: state.lists.filter((item) => item.id !== listId) })),
       copyList: (listId) =>
         set((state) => {
@@ -113,16 +135,16 @@ export const useStore = create<StoreState>()(
           const index = state.lists.indexOf(itemToCopy);
           if (itemToCopy) {
             const updatedList = [...state.lists];
-            updatedList.splice(index + 1, 0, { ...itemToCopy, title: `${itemToCopy.title}-copy`, id: generateId() });
+            updatedList.splice(index + 1, 0, { ...itemToCopy, title: `${itemToCopy.title}-copy`, id: generateId(), createdAt: new Date().toISOString() });
             return { lists: updatedList };
           }
-          return {lists: state.lists}
+          return { lists: state.lists };
         }),
       removeCheckedListItems: (listId) =>
         set((state) => ({
           lists: state.lists.map((item) => {
             if (item.id === listId) {
-              return { ...item, content: item.content.filter((el) => !el.checked) };
+              return { ...item, content: item.content.filter((el) => !el.checked), updatedAt: new Date().toISOString() };
             } else {
               return item;
             }
