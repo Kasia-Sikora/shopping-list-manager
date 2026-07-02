@@ -3,9 +3,10 @@ import CardContent from './CardContent';
 import type { List, SetLocalDataActions } from '../interfaces';
 import EditIndicator from './atoms/EditIndicator';
 import { useSortable } from '@dnd-kit/react/sortable';
-import { useActiveCardIdStore, useStore } from '../stores/store';
+import { useActiveCardIdStore, useStore, useSyncStore } from '../stores/store';
 import { generateId } from '../utils/utils';
 import { EMPTY_CARD_ID } from '../consts';
+import { dbActions } from '../utils/storeUtils';
 
 type Card = {
   emptyCardId?: string;
@@ -16,6 +17,7 @@ type Card = {
 
 const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const { isSaving, setIsSaving } = useSyncStore();
 
   const { addList, updateList } = useStore()
   const { editingCardId, setEditingCardId } = useActiveCardIdStore()
@@ -41,7 +43,6 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
       id: generateId(),
       title: '',
       content: [{ id: generateId(), value: '', checked: false, depth: 0, parentId: null }],
-      createdAt: new Date().toISOString(),
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [editedList, emptyCardResetKey]); //emptyCardResetKey is used to trigger creating new values for fresh empty card
 
@@ -90,16 +91,37 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
     sync: (dataToSync: List) => {
       updateList(dataToSync);
     },
-    save: (dataToSave: List) => {
+    save: async (dataToSave: List) => {
+      setIsSaving(true)
       if (cardId === EMPTY_CARD_ID) {
-        addList({ ...dataToSave, id: generateId() })
+        const newItem = {
+          ...dataToSave,
+          id: generateId(),
+          createdAt: dataToSave.createdAt || new Date().toISOString(),
+        };
+        addList(newItem)
+        try {
+          await dbActions({ action: "create", data: newItem })
+        } catch (error) {
+          console.error('Failed to save list:', error);
+        }
       } else {
-        updateList(dataToSave)
+        const updatedItem = {
+          ...dataToSave,
+          updatedAt: new Date().toISOString(),
+        };
+        updateList(updatedItem)
+        try {
+          await dbActions({ action: "update", data: updatedItem })
+        } catch (error) {
+          console.error('Failed to update list:', error);
+        }
       }
+      setIsSaving(false)
       handleResetLocalState();
     },
     resetLocalState: handleResetLocalState
-  }), [currentData, cardId, updateList, addList, handleResetLocalState]);
+  }), [handleResetLocalState, currentData, updateList, setIsSaving, cardId, addList]);
 
 
   useEffect(() => {
@@ -120,6 +142,7 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
       data-testid={cardDataId}
     >
       {editedList && <EditIndicator id={editedList.id} isEdit={editingCardId === cardId} />}
+      {isSaving && <div className='absolute right-2 top-2  w-6 aspect-square rounded-full border-6 border-primary border-solid border-r-accent animate-spin'></div>}
       <CardContent
         editedList={currentData}
         cardRef={cardRef}

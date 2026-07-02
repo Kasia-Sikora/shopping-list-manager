@@ -1,4 +1,4 @@
-import type { ListItem, PersistedShoppingListStore } from '../interfaces';
+import type { ListItem } from '../interfaces';
 
 export const generateId = () => {
   return crypto.randomUUID();
@@ -54,16 +54,7 @@ export const handleKeyDown = (e: KeyboardEvent, list: Element[]) => {
   if (focusedEl) focusedEl.focus();
 };
 
-export const sortList = (list: ListItem[]) => {
-  if (!list) return [];
-  const uncheckedList = list.filter((item) => !item.checked);
-  const checkedItems = list.filter((item) => item.checked);
-  return [...uncheckedList, ...checkedItems];
-};
 
-export const sortListContent = (storage: PersistedShoppingListStore) => {
-  return storage.state?.lists ? storage.state.lists.map((item) => ({ ...item, content: sortList(item.content) })) : [];
-};
 
 export const setFocusOnElement = (cardId: string, itemId: string) => {
   requestAnimationFrame(() => {

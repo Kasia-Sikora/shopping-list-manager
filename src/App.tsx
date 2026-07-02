@@ -1,28 +1,66 @@
 import { useEffect, useState } from 'react';
 import Card from './components/Card';
 import { DragDropProvider, useDroppable } from '@dnd-kit/react';
-import { DEFAULT_VALUES, useStore } from './stores/store';
+import { DEFAULT_VALUES, useStore, useSyncStore } from './stores/store';
 import ThemeToggle from './components/atoms/ThemeToggle';
-import { sortListContent } from './utils/utils';
+import { sortListContent } from './utils/storeUtils';
 import { EMPTY_CARD_ID, LOCAL_STORAGE_STORE_KEY } from './consts';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import * as db from './services/indexedDB';
+import { syncEngine } from './services/syncEngine';
 
 let consentAskCount = 0
+let mount = 0
+const testing = true
 const App = () => {
   const { lists, setLists } = useStore()
 
   useEffect(() => {
-    const getItem = localStorage.getItem(LOCAL_STORAGE_STORE_KEY)
-    const localStorageItems = getItem ? JSON.parse(getItem) : null
-    if (!localStorageItems && !consentAskCount) {
-      const consent = window.confirm('Załadować testowe dane?')
-      consentAskCount++;
-      if (consent) {
-        setLists(sortListContent(DEFAULT_VALUES))
+    //For Tests: 
+    if (testing) {
+      const getItem = localStorage.getItem(LOCAL_STORAGE_STORE_KEY)
+      const localStorageItems = getItem ? JSON.parse(getItem) : null
+      if (!localStorageItems && !consentAskCount) {
+        const consent = window.confirm('Załadować testowe dane?')
+        consentAskCount++;
+        if (consent) {
+          setLists(sortListContent(DEFAULT_VALUES))
+        }
       }
-    }
-    else if (localStorageItems) {
-      setLists(sortListContent(localStorageItems))
+      else if (localStorageItems) {
+        setLists(sortListContent(localStorageItems))
+      }
+    } else {
+      const getIndexDBLists = async () => {
+        const dbLists = await db.getLists()
+        if ((!dbLists || !dbLists.length) && !consentAskCount) {
+          const consent = window.confirm('Załadować testowe dane?')
+          consentAskCount++;
+          if (consent) {
+            const lists = sortListContent(DEFAULT_VALUES)
+            setLists(lists)
+            for (const list of lists) {
+              await db.upsertList(list)
+              await db.addToQueue({action: 'create', data: list});
+            }
+            if (useSyncStore.getState().isOnline) {
+              await syncEngine.syncChanges();
+            }
+          }
+        }
+        else if (dbLists) {
+          setLists(sortListContent({ state: { lists: dbLists } }))
+        }
+
+        const schemaVersion = await db.getMetadata('schemaVersion')
+        if (schemaVersion?.value !== db.SCHEMA_VERSION) {
+          await db.setMetadata('schemaVersion', db.SCHEMA_VERSION)
+        }
+      }
+      if (!mount) {
+        getIndexDBLists()
+        mount += 1
+      }
     }
   }, [setLists])
 

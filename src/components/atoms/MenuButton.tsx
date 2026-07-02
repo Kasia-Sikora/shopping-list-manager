@@ -1,5 +1,8 @@
 import type { List, SetLocalDataActions } from "../../interfaces";
 import { useActiveCardIdStore, useStore } from "../../stores/store";
+import { dbActions } from "../../utils/storeUtils";
+import * as db from '../../services/indexedDB'
+import { generateId } from "../../utils/utils";
 
 type MenuButton = {
   openMenu: boolean;
@@ -49,23 +52,65 @@ const MenuDropdown = ({ open, cardId, setOpen, list, actions }: MenuDropdown) =>
     return ({ position: 'absolute', margin: '0px', bottom: '35px', right: '0px' }) as React.CSSProperties
   }
 
-  const removeCheckedItems = () => {
+  const removeCheckedItems = async () => {
     const filteredList = list.content.filter(item => !item.checked)
     if (cardId === editingCardId) {
       actions.update({ content: filteredList })
     } else {
       removeCheckedListItems(cardId)
+      const list = await db.getList(cardId);
+      if (list) {
+        const updatedItem = {
+          ...list,
+          content: list.content.filter((el) => !el.checked),
+          updatedAt: new Date().toISOString(),
+        };
+        try {
+          await dbActions({action: 'update', data: updatedItem})
+        } catch (error) {
+          console.error('Failed to delete checked items in list:', error);
+        }
+      } else {
+        console.warn(`item not updated to IndexedDB, list with id: ${cardId} was not found`)
+        throw Error(`item not updated to IndexedDB, list with id: ${cardId} was not found`)
+      }
     }
   }
 
-  const handleMenuClick = (e: React.MouseEvent, operation: MenuOperationTypes) => {
+  const copyIntoDB = async () => {
+    const list = await db.getList(cardId);
+    if (list) {
+      const copiedItem = {
+        ...list,
+        title: `${list.title}-copy`,
+        id: generateId(),
+        createdAt: new Date().toISOString(),
+      };
+      try {
+        await dbActions({action: 'create', data: copiedItem})
+      } catch (error) {
+        console.error('Failed to save list:', error);
+      }
+    } else {
+      console.warn(`item not copied to IndexedDB, list with id: ${cardId} was not found`)
+      throw Error(`item not copied to IndexedDB, list with id: ${cardId} was not found`)
+    }
+  }
+
+  const handleMenuClick = async (e: React.MouseEvent, operation: MenuOperationTypes) => {
     e.stopPropagation();
     switch (operation) {
       case "remove":
         removeList(cardId)
+        try {
+          await dbActions({action: 'delete', data: { id: cardId }})
+        } catch (error) {
+          console.error('Failed to remove list:', error);
+        }
         break;
       case "copy":
-        copyList(cardId)
+        copyList(cardId);
+        await copyIntoDB()
         break;
       case "removeChecked":
         removeCheckedItems()

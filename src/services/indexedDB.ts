@@ -1,9 +1,16 @@
 import { openDB, type DBSchema } from 'idb';
-import type { MetadataKey, MetadataValue, SyncAction, SyncQueueValue, SyncQueueWithIdValue, SyncStatus } from './interfaces';
+import type {
+  DbAction,
+  MetadataKey,
+  MetadataValue,
+  SyncQueueValue,
+  SyncQueueWithIdValue,
+  SyncStatus,
+} from './interfaces';
 import type { List } from '../interfaces';
 
 export const SCHEMA_VERSION = 1;
-export const RETRY_BREAK = 3000
+export const RETRY_BREAK = 3000;
 
 class QuotaExceededError extends Error {
   constructor(message: string) {
@@ -93,6 +100,22 @@ export const upsertList = async (list: List) => {
       console.warn('IndexedDB quota exceeded. Cleanup or prompt user to free space.');
       throw new QuotaExceededError('Storage quota exceeded');
     }
+    console.warn('upsertList error :', error, ' list: ', list);
+    throw error;
+  }
+};
+
+export const updateList = async (list: List) => {
+  try {
+    const database = await getDb();
+    await database.put('lists', list);
+  } catch (error: unknown) {
+    if (error instanceof Error && error.name === 'QuotaExceededError') {
+      //TODO prompt message
+      console.warn('IndexedDB quota exceeded. Cleanup or prompt user to free space.');
+      throw new QuotaExceededError('Storage quota exceeded');
+    }
+    console.warn('updateList error :', error, ' list: ', list);
     throw error;
   }
 };
@@ -117,19 +140,25 @@ export const getSyncQueue = async () => {
   return database.getAll('sync_queue') as Promise<SyncQueueWithIdValue[]>;
 };
 
-export const getPendingOrFailedItems = async() => {
-   const database = await getDb();
-   const store = await database.getAll('sync_queue') as SyncQueueWithIdValue[];
-   return store.filter(item => item.status === 'pending' || item.status === 'failed')
+export const getPendingOrFailedItems = async () => {
+  const database = await getDb();
+  const store = (await database.getAll('sync_queue')) as SyncQueueWithIdValue[];
+  return store.filter((item) => item.status === 'pending' || item.status === 'failed');
+};
+
+export const getAreAllItemsSynced  = async() => {
+  const database = await getDb();
+  const store = (await database.getAll('sync_queue')) as SyncQueueWithIdValue[]
+  return store.every(item => item.status === 'synced')
 }
 
-export const addToQueue = async (action: SyncAction, data: List) => {
+export const addToQueue = async (params: DbAction) => {
   try {
     const database = await getDb();
     const syncData: SyncQueueValue = {
-      listId: data.id,
-      action: action,
-      data: data,
+      listId: params.data.id,
+      action: params.action,
+      data: params.data,
       timestamp: Date.now(),
       status: 'pending' as SyncStatus,
       retryCount: 0,
@@ -145,7 +174,7 @@ export const addToQueue = async (action: SyncAction, data: List) => {
   }
 };
 
-export const updateQueueItemStatus = async (id:number, status: SyncStatus, retryCount?: number) => {
+export const updateQueueItemStatus = async (id: number, status: SyncStatus, retryCount?: number) => {
   const database = await getDb();
   const queue = await database.get('sync_queue', id);
 
@@ -153,7 +182,7 @@ export const updateQueueItemStatus = async (id:number, status: SyncStatus, retry
     throw new Error(`Queue item ${id} not found`);
   }
 
-  const updatedQueue = { ...queue, status, retryCount: retryCount?? queue.retryCount };
+  const updatedQueue = { ...queue, status, retryCount: retryCount ?? queue.retryCount };
   await database.put('sync_queue', updatedQueue);
 };
 
@@ -175,7 +204,7 @@ export const getMetadata = async (key: MetadataKey) => {
 export const setMetadata = async (key: MetadataKey, value: MetadataValue) => {
   try {
     const database = await getDb();
-    await database.put('metadata', {key, value});
+    await database.put('metadata', { key, value });
   } catch (error: unknown) {
     if (error instanceof Error && error.name === 'QuotaExceededError') {
       //TODO prompt message
