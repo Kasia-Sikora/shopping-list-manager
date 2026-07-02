@@ -13,13 +13,15 @@ describe('useStore - Shopping List Store', () => {
     value: 'Milk',
     checked: false,
     depth: 0,
-    parentId: null
+    parentId: null,
   };
 
   const mockList: List = {
     id: 'list-1',
     title: 'Groceries',
     content: [mockListItem],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 
   const mockList2: List = {
@@ -31,9 +33,11 @@ describe('useStore - Shopping List Store', () => {
         value: 'Soap',
         checked: false,
         depth: 0,
-        parentId: null
+        parentId: null,
       },
     ],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 
   const mockList3: List = {
@@ -45,9 +49,11 @@ describe('useStore - Shopping List Store', () => {
         value: 'Nails',
         checked: false,
         depth: 0,
-        parentId: null
+        parentId: null,
       },
     ],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 
   const mockList4: List = {
@@ -59,23 +65,25 @@ describe('useStore - Shopping List Store', () => {
         value: 'Milk',
         checked: true,
         depth: 0,
-        parentId: null
+        parentId: null,
       },
       {
         id: 'item-5',
         value: 'Eggs',
         checked: false,
         depth: 0,
-        parentId: null
+        parentId: null,
       },
       {
         id: 'item-6',
         value: 'Eggplant',
         checked: true,
         depth: 0,
-        parentId: null
+        parentId: null,
       },
     ],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 
   // Reset store before each test
@@ -219,7 +227,7 @@ describe('useStore - Shopping List Store', () => {
       expect(lists.length).toEqual(2);
     });
   });
-  
+
   describe('copyList', () => {
     it('should copy list with -copy suffix', () => {
       // Arrange

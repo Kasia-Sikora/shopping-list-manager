@@ -9,18 +9,20 @@ const exampleItem: List = {
   id: '1',
   title: 'list title',
   content: [{ id: '333', checked: false, value: 'kup bułki', depth: 0, parentId: null }],
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
 };
 
 describe('Card', () => {
   it('should display default card on page load', () => {
-    render(<Card emptyCardId={EMPTY_CARD_ID}/>);
+    render(<Card emptyCardId={EMPTY_CARD_ID} />);
     expect(getEmptyCardTitleEl()).toBeNull();
     expect(getListItem()).not.toBeNull();
     expect(getEmptyCard()).toHaveClass('min-w-75')
   });
 
   it('should show title input when card is clicked', async () => {
-    render(<Card emptyCardId={EMPTY_CARD_ID}/>);
+    render(<Card emptyCardId={EMPTY_CARD_ID} />);
     expect(getEmptyCardTitleEl()).toBeNull();
     await userEvent.click(getEmptyCard());
     waitFor(() => expect(getEmptyCardTitleEl()).not.toBeNull());

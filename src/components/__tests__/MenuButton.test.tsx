@@ -45,6 +45,8 @@ const defaultStoreState: PersistedShoppingListStore = {
             parentId: null
           },
         ],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       },
       {
         id: '1',
@@ -79,6 +81,8 @@ const defaultStoreState: PersistedShoppingListStore = {
             parentId: null
           },
         ],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       },
     ]
   }

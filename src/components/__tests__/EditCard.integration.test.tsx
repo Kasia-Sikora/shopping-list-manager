@@ -57,6 +57,8 @@ describe('<App>', () => {
               parentId: null
             },
           ],
+              createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
         },
          {
           id: '1',
@@ -91,6 +93,8 @@ describe('<App>', () => {
               parentId: null
             },
           ],
+              createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
         },
       ]
     }
