@@ -1,4 +1,4 @@
-import type { ListItem, PersistedShoppingListStore } from '../interfaces';
+import type { List, ListItem, PersistedShoppingListStore } from '../interfaces';
 import { getSyncQueue } from '../services/indexedDB';
 import type { DbAction, SyncQueueValue } from '../services/interfaces';
 import { useSyncStore } from '../stores/store';
@@ -50,6 +50,12 @@ export const dbActions = async (params: DbAction) => {
     await db.addToQueue(params);
   } catch (error) {
     console.error(`Failed to ${params.action} list:`, error);
-    throw error; 
+    throw error;
   }
+};
+
+export const sortByListOrder = (list: string[], dbLists: List[]): List[] => {
+  if(!list) return []
+  const orderedLists = list.map((id) => dbLists.find((list) => list.id === id)).filter((item) => !!item);
+  return orderedLists;
 };

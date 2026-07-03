@@ -66,7 +66,7 @@ const MenuDropdown = ({ open, cardId, setOpen, list, actions }: MenuDropdown) =>
           updatedAt: new Date().toISOString(),
         };
         try {
-          await dbActions({action: 'update', data: updatedItem})
+          await dbActions({ action: 'update', data: updatedItem })
         } catch (error) {
           console.error('Failed to delete checked items in list:', error);
         }
@@ -87,7 +87,7 @@ const MenuDropdown = ({ open, cardId, setOpen, list, actions }: MenuDropdown) =>
         createdAt: new Date().toISOString(),
       };
       try {
-        await dbActions({action: 'create', data: copiedItem})
+        await dbActions({ action: 'create', data: copiedItem })
       } catch (error) {
         console.error('Failed to save list:', error);
       }
@@ -103,14 +103,18 @@ const MenuDropdown = ({ open, cardId, setOpen, list, actions }: MenuDropdown) =>
       case "remove":
         removeList(cardId)
         try {
-          await dbActions({action: 'delete', data: { id: cardId }})
+          await dbActions({ action: 'delete', data: { id: cardId } })
         } catch (error) {
           console.error('Failed to remove list:', error);
         }
         break;
       case "copy":
         copyList(cardId);
-        await copyIntoDB()
+        try {
+          await copyIntoDB()
+        } catch (error) {
+          console.error('Failed to copy list:', error);
+        }
         break;
       case "removeChecked":
         removeCheckedItems()

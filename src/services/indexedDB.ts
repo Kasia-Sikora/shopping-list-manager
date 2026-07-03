@@ -2,6 +2,7 @@ import { openDB, type DBSchema } from 'idb';
 import type {
   DbAction,
   MetadataKey,
+  MetadataKeyValuePairs,
   MetadataValue,
   SyncQueueValue,
   SyncQueueWithIdValue,
@@ -38,10 +39,7 @@ interface ShoppingListDB extends DBSchema {
   };
   metadata: {
     key: string;
-    value: {
-      key: MetadataKey;
-      value: MetadataValue;
-    };
+    value: MetadataKeyValuePairs;
   };
 }
 
@@ -146,11 +144,11 @@ export const getPendingOrFailedItems = async () => {
   return store.filter((item) => item.status === 'pending' || item.status === 'failed');
 };
 
-export const getAreAllItemsSynced  = async() => {
+export const getAreAllItemsSynced = async () => {
   const database = await getDb();
-  const store = (await database.getAll('sync_queue')) as SyncQueueWithIdValue[]
-  return store.every(item => item.status === 'synced')
-}
+  const store = (await database.getAll('sync_queue')) as SyncQueueWithIdValue[];
+  return store.every((item) => item.status === 'synced');
+};
 
 export const addToQueue = async (params: DbAction) => {
   try {
@@ -196,21 +194,28 @@ export const clearQueue = async () => {
   await database.clear('sync_queue');
 };
 
-export const getMetadata = async (key: MetadataKey) => {
+export function getMetadata(key: 'listOrder'): Promise<{ key: 'listOrder'; value: string[] } | undefined>;
+export function getMetadata(key: 'schemaVersion'): Promise<{ key: 'schemaVersion'; value: number } | undefined>;
+export function getMetadata(key: 'lastSync'): Promise<{ key: 'lastSync'; value: string } | undefined>;
+export function getMetadata(key: 'isOnline'): Promise<{ key: 'isOnline'; value: boolean } | undefined>;
+export async function getMetadata(key: MetadataKey): Promise<MetadataKeyValuePairs | undefined> {
   const database = await getDb();
   return database.get('metadata', key);
-};
+}
 
-export const setMetadata = async (key: MetadataKey, value: MetadataValue) => {
+export function setMetadata(key: 'listOrder', value: string[]): Promise<void>;
+export function setMetadata(key: 'schemaVersion', value: number): Promise<void>;
+export function setMetadata(key: 'lastSync', value: string): Promise<void>;
+export function setMetadata(key: 'isOnline', value: boolean): Promise<void>;
+export async function setMetadata(key: MetadataKey, value: MetadataValue): Promise<void> {
   try {
     const database = await getDb();
-    await database.put('metadata', { key, value });
+    await database.put('metadata', { key, value } as MetadataKeyValuePairs);
   } catch (error: unknown) {
     if (error instanceof Error && error.name === 'QuotaExceededError') {
-      //TODO prompt message
       console.warn('IndexedDB quota exceeded. Cleanup or prompt user to free space.');
       throw new QuotaExceededError('Storage quota exceeded');
     }
     throw error;
   }
-};
+}

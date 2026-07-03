@@ -105,7 +105,6 @@ export const useStore = create<StoreState>()(
             const updatedItems = [...state.lists];
             const [removed] = updatedItems.splice(originalIndex, 1);
             updatedItems.splice(targetIndex, 0, removed);
-
             return { lists: updatedItems };
           }),
         addList: (item) => set((state) => ({ lists: [...state.lists, item] })),

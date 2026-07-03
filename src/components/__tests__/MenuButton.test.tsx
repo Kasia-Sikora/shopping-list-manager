@@ -167,7 +167,7 @@ describe('<App/> dropdown buttons functionality', () => {
     expect(queryElByText('second el in First List')).toHaveLength(1)
 
     await user.click(queryMenuCardButtons('copy card')!)
-    expect(queryMenuButton(dopdownClosed)).toBeVisible()
+   expect(queryMenuButton(dopdownClosed)).toBeVisible()
     expect(queryMenuDropdown()).toHaveClass("hidden")
     expect(queryElByText('second el in First List')).toHaveLength(2)
   })
