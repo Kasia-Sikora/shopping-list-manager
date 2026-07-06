@@ -1,5 +1,13 @@
 import type { List } from '../interfaces';
-import { getPendingOrFailedItems, RETRY_BREAK, SCHEMA_VERSION, setMetadata, updateQueueItemStatus } from './indexedDB';
+import { updateSyncState } from '../utils/storeUtils';
+import {
+  clearQueue,
+  getAreAllItemsSynced,
+  getPendingOrFailedItems,
+  RETRY_BREAK,
+  setMetadata,
+  updateQueueItemStatus,
+} from './indexedDB';
 import type { SyncQueueWithIdValue } from './interfaces';
 
 type ResponseType = {
@@ -13,7 +21,14 @@ export const syncEngine = {
   async syncChanges() {
     const pendingOrFailedChanges: SyncQueueWithIdValue[] = await getPendingOrFailedItems();
     for (const change of pendingOrFailedChanges) {
-      await this._uploadAction(change);
+      await syncEngine._uploadAction(change);
+      await updateSyncState();
+    }
+
+    await updateSyncState();
+    const isAllSynced = await getAreAllItemsSynced();
+    if (isAllSynced) {
+      await clearQueue();
     }
   },
 
@@ -33,16 +48,16 @@ export const syncEngine = {
       console.warn('Missing id in action during _uploadAction. ', action);
       return;
     }
-    await setMetadata('schemaVersion', SCHEMA_VERSION);
-    await setMetadata('isOnline', true);
+
     await updateQueueItemStatus(action.id, 'syncing', action.retryCount);
+    await updateSyncState();
     let promise = null;
     switch (action.action) {
       case 'create':
-        promise = mockApiService.createList(action.data);
+        promise = mockApiService.createList(action.data as List);
         break;
       case 'update':
-        promise = mockApiService.updateList(action.data.id, action.data);
+        promise = mockApiService.updateList(action.data.id, action.data as List);
         break;
       case 'delete':
         promise = mockApiService.deleteList(action.data.id);
@@ -54,19 +69,27 @@ export const syncEngine = {
       if (res.status === 'success') {
         await updateQueueItemStatus(action.id, 'synced', action.retryCount);
         await setMetadata('lastSync', new Date().toISOString());
+        await updateSyncState();
+      } else {
+        await syncEngine._retry({ ...action, retryCount: action.retryCount + 1 });
+        await updateSyncState();
       }
     } catch (error) {
       console.error('Upload failed:', error);
-      await updateQueueItemStatus(action.id, 'failed', action.retryCount);
-      await this._retry({ ...action, retryCount: action.retryCount + 1 });
+      await syncEngine._retry({ ...action, retryCount: action.retryCount + 1 });
+      await updateSyncState();
     }
   },
 
   async _retry(action: SyncQueueWithIdValue) {
     if (action.retryCount <= 5) {
       setTimeout(async () => {
-        await this._uploadAction(action);
+        await syncEngine._uploadAction(action);
       }, RETRY_BREAK * action.retryCount);
+      return;
+    } else {
+      await updateQueueItemStatus(action.id, 'failed', action.retryCount);
+      await updateSyncState();
     }
   },
 };

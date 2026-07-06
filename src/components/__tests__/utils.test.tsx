@@ -1,7 +1,9 @@
 import type { ListItem, PersistedShoppingListStore } from '../../interfaces';
-import { handleKeyDown, sortListContent, sortList } from '../../utils/utils';
+import { sortList, sortListContent } from '../../utils/storeUtils';
+import { handleKeyDown } from '../../utils/utils';
 
 vi.mock('../../utils/utils.ts', { spy: true })
+vi.mock('../../utils/storeUtils', { spy: true })
 describe('edge cases utils tests', () => {
 
   describe('sort list tests', () => {

@@ -8,6 +8,7 @@ import { ChevronButton } from './atoms/ChevronButton';
 import MenuButton from './atoms/MenuButton';
 import ListOfItems from './ListOfItems';
 import { EMPTY_CARD_ID } from '../consts';
+import { dbActions } from '../utils/storeUtils';
 
 interface CardContentProps {
   editedList: List;
@@ -40,6 +41,11 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
       actions.save(data)
     } else {
       removeList(data.id)
+      try{
+      dbActions({action: "delete", data: {id: data.id}})
+      }catch(error){
+        console.error('Failed to delete list:', error);
+      }
       actions.resetLocalState()
     }
   }, [editingCardId, editedList, actions, removeList]);
@@ -93,7 +99,7 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
 
   const handleFormEvents = (e: React.KeyboardEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
     if (!e) return;
-   
+
     if (editingCardId === cardId && cardRef.current) {
       const isKeyboardEvent = e.nativeEvent instanceof KeyboardEvent && 'key' in e;
 

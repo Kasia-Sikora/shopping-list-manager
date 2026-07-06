@@ -1,53 +1,57 @@
 import { useNetworkStatus } from "../hooks/useNetworkStatus"
-import { getSyncQueue } from "../services/indexedDB"
+import { setMetadata } from "../services/indexedDB"
 import error from '../assets/error.svg'
-import { useEffect, useState } from "react"
+import { useCallback, useEffect } from "react"
 import type { SyncStatus } from "../services/interfaces"
+import { useSyncStore } from "../stores/store"
+import { syncEngine } from "../services/syncEngine"
+import { SYNC_DELAY } from "../consts"
 
 type StatusIndicator = {
   status: 'failed' | 'pending' | 'syncing' | 'synced',
   color: string,
-  message: string
+  message: string,
+  count?: number
 }
 
 export const OfflineIndicator = () => {
   const { isOnline } = useNetworkStatus()
-  const [status, setStatus] = useState<StatusIndicator | null>(null)
+  const { syncStatus, pendingChangesCount, setIsOnline } = useSyncStore()
 
-  const getStatus = async (): Promise<StatusIndicator> => {
-    try {
-      const statusArr = await getSyncQueue()
-      if (statusArr.some(item => item.status === 'failed')) {
+
+  const getStatus = useCallback((): StatusIndicator => {
+    switch (syncStatus) {
+      case 'failed':
         return { status: "failed", color: 'bg-red-600', message: "Sync Failed" }
-      } else if (statusArr.some(item => item.status === 'pending')) {
-        const count = statusArr.filter(item => item.status === 'pending').length
-        return { status: "pending", color: 'bg-slate-500', message: `${count} pending changes` }
-      } else if (statusArr.some(item => item.status === 'syncing')) {
+      case 'pending':
+        return { status: "pending", color: 'bg-slate-500', message: `${pendingChangesCount} pending changes`, count: pendingChangesCount ?? 0 }
+      case 'syncing':
         return { status: "syncing", color: 'bg-amber-600', message: "Syncing..." }
-      } else {
+      default:
         return { status: 'synced', color: 'bg-lime-600', message: "Synced" }
-      }
-    } catch (error) {
-      // IndexedDB not available (test environment)
-      console.debug('IndexedDB unavailable:', error);
-      return { status: 'synced', color: 'bg-lime-600', message: "Synced" };
     }
-  }
+  }, [pendingChangesCount, syncStatus])
 
   useEffect(() => {
-    let mounted = true;
-    const fetchStatus = async () => {
-      if (mounted) {
-        const data = await getStatus();
-        setStatus(data);
+    const setData = async () => {
+      if (isOnline) {
+        syncEngine.syncChanges()
       }
+      await setMetadata('isOnline', isOnline)
+      setIsOnline(isOnline)
     }
-    fetchStatus()
+    setData()
+  }, [isOnline, setIsOnline])
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  useEffect(() => {
+  if (!isOnline) return;
+  
+  const retryInterval = setInterval(() => {
+    syncEngine.syncChanges(); 
+  }, SYNC_DELAY);
+  
+  return () => clearInterval(retryInterval);
+}, [isOnline]);
 
   const getShadow = (status: SyncStatus) => {
     if (!status) return;
@@ -72,6 +76,8 @@ export const OfflineIndicator = () => {
     }
   }
 
+  const status = getStatus()
+
   const bulbStyle = {
     boxShadow: status ? getShadow(status.status) : 'none'
   }
@@ -83,7 +89,7 @@ export const OfflineIndicator = () => {
           <p className="text-xs text-gray-600">{status.message}</p>
           <div className={`w-4 h-4 rounded-full ${status.color}`} style={bulbStyle} />
         </div>
-        : null
+        : <div className={'w-4 h-4 rounded-full bg-slate-400'} />
       }
     </div>
     : (

@@ -3,6 +3,8 @@ import type { List, PersistedShoppingListStore } from '../interfaces';
 import { persist } from 'zustand/middleware';
 import { LOCAL_STORAGE_STORE_KEY, LOCAL_STORAGE_THEME_KEY } from '../consts';
 import { generateId } from '../utils/utils';
+import { devtools } from 'zustand/middleware';
+import type { SyncStatus } from '../services/interfaces';
 
 export const DEFAULT_VALUES: PersistedShoppingListStore = {
   state: {
@@ -10,7 +12,6 @@ export const DEFAULT_VALUES: PersistedShoppingListStore = {
       {
         id: '0',
         title: 'First Card',
-        updatedAt: new Date().toISOString(),
         createdAt: new Date().toISOString(),
         content: [
           {
@@ -46,7 +47,6 @@ export const DEFAULT_VALUES: PersistedShoppingListStore = {
       {
         id: '2',
         title: 'Second Card',
-        updatedAt: new Date().toISOString(),
         createdAt: new Date().toISOString(),
         content: [
           {
@@ -95,63 +95,65 @@ export type StoreState = {
 };
 
 export const useStore = create<StoreState>()(
-  persist(
-    (set) => ({
-      lists: [],
-      setLists: (lists) => set(() => ({ lists: [...lists] })),
-      moveList: (originalIndex, targetIndex) =>
-        set((state) => {
-          const updatedItems = [...state.lists];
-
-          const [removed] = updatedItems.splice(originalIndex, 1);
-          updatedItems.splice(targetIndex, 0, removed);
-
-          return { lists: updatedItems };
-        }),
-      addList: (item) =>
-        set((state) => {
-          const newItem = {
-            ...item,
-            createdAt: item.createdAt || new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          };
-          return { lists: [...state.lists, newItem] };
-        }),
-      updateList: (item) =>
-        set((state) => ({
-          lists: state.lists.map((elem) => {
-            if (elem.id === item.id) {
-              const newItem = {...item, updatedAt: new Date().toISOString() }
-              return newItem;
-            } else {
-              return elem;
-            }
+  devtools(
+    persist(
+      (set) => ({
+        lists: [],
+        setLists: (lists) => set(() => ({ lists: [...lists] })),
+        moveList: (originalIndex, targetIndex) =>
+          set((state) => {
+            const updatedItems = [...state.lists];
+            const [removed] = updatedItems.splice(originalIndex, 1);
+            updatedItems.splice(targetIndex, 0, removed);
+            return { lists: updatedItems };
           }),
-        })),
-      removeList: (listId) => set((state) => ({ lists: state.lists.filter((item) => item.id !== listId) })),
-      copyList: (listId) =>
-        set((state) => {
-          const itemToCopy = state.lists.filter((item) => item.id === listId)?.[0];
-          const index = state.lists.indexOf(itemToCopy);
-          if (itemToCopy) {
-            const updatedList = [...state.lists];
-            updatedList.splice(index + 1, 0, { ...itemToCopy, title: `${itemToCopy.title}-copy`, id: generateId(), createdAt: new Date().toISOString() });
-            return { lists: updatedList };
-          }
-          return { lists: state.lists };
-        }),
-      removeCheckedListItems: (listId) =>
-        set((state) => ({
-          lists: state.lists.map((item) => {
-            if (item.id === listId) {
-              return { ...item, content: item.content.filter((el) => !el.checked), updatedAt: new Date().toISOString() };
-            } else {
-              return item;
+        addList: (item) => set((state) => ({ lists: [...state.lists, item] })),
+        updateList: (item) =>
+          set((state) => ({
+            lists: state.lists.map((elem) => {
+              if (elem.id === item.id) {
+                return item;
+              } else {
+                return elem;
+              }
+            }),
+          })),
+        removeList: (listId) => set((state) => ({ lists: state.lists.filter((item) => item.id !== listId) })),
+        copyList: (listId) =>
+          set((state) => {
+            const itemToCopy = state.lists.filter((item) => item.id === listId)?.[0];
+            const index = state.lists.indexOf(itemToCopy);
+            if (itemToCopy) {
+              const updatedList = [...state.lists];
+              const copiedItem = {
+                ...itemToCopy,
+                title: `${itemToCopy.title}-copy`,
+                id: generateId(),
+                createdAt: new Date().toISOString(),
+              };
+              updatedList.splice(index + 1, 0, copiedItem);
+              return { lists: updatedList };
             }
+            return { lists: state.lists };
           }),
-        })),
-    }),
-    { name: LOCAL_STORAGE_STORE_KEY }
+        removeCheckedListItems: (listId) =>
+          set((state) => ({
+            lists: state.lists.map((item) => {
+              if (item.id === listId) {
+                const updatedItem = {
+                  ...item,
+                  content: item.content.filter((el) => !el.checked),
+                  updatedAt: new Date().toISOString(),
+                };
+                return updatedItem;
+              } else {
+                return item;
+              }
+            }),
+          })),
+      }),
+      { name: LOCAL_STORAGE_STORE_KEY }
+    )
   )
 );
 
@@ -178,4 +180,26 @@ type ActiveCardIdStore = {
 export const useActiveCardIdStore = create<ActiveCardIdStore>((set) => ({
   editingCardId: null,
   setEditingCardId: (id) => set(() => ({ editingCardId: id })),
+}));
+
+type SyncStore = {
+  isSaving: boolean;
+  isOnline: boolean;
+  syncStatus: SyncStatus | undefined;
+  pendingChangesCount: number;
+  setIsSaving: (saving: boolean) => void;
+  setIsOnline: (isOnline: boolean) => void;
+  setSyncStatus: (syncStatus: SyncStatus) => void;
+  setPendingChangesCount: (pendingChangesCount: number) => void;
+};
+
+export const useSyncStore = create<SyncStore>((set) => ({
+  isSaving: false,
+  isOnline: false,
+  syncStatus: undefined,
+  pendingChangesCount: 0,
+  setIsSaving: (isSaving) => set(() => ({isSaving})),
+  setIsOnline: (isOnline) => set(() => ({ isOnline })),
+  setSyncStatus: (syncStatus) => set(() => ({ syncStatus })),
+  setPendingChangesCount: (pendingChangesCount) => set(() => ({ pendingChangesCount })),
 }));
