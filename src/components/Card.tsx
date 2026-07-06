@@ -88,8 +88,13 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
     update: (updates: Partial<List>) => {
       setLocalDraft(prev => ({ ...(prev || currentData), ...updates }));
     },
-    sync: (dataToSync: List) => {
+    sync: async (dataToSync: List) => {
       updateList(dataToSync);
+      try {
+        await dbActions({ action: "update", data: dataToSync })
+      } catch (error) {
+        console.error('Failed to update list:', error);
+      }
     },
     save: async (dataToSave: List) => {
       setIsSaving(true)

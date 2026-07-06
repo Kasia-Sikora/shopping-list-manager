@@ -27,3 +27,5 @@ class ResizeObserver {
 window.ResizeObserver = ResizeObserver;
 
 vi.mock('zustand');
+
+vi.mock('../src/services/apiService')
