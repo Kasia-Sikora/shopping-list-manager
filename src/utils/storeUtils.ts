@@ -37,7 +37,7 @@ export const dbActions = async (params: DbAction) => {
   try {
     switch (params.action) {
       case 'create':
-        await db.upsertList(params.data);
+        await db.insertList(params.data);
         break;
       case 'update':
         await db.updateList(params.data);

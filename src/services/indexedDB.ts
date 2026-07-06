@@ -78,7 +78,7 @@ const getDb = async () => {
 
 // Lists Operations
 
-export const getLists = async () => {
+export const getLists = async (): Promise<List[]> => {
   const database = await getDb();
   return database.getAll('lists');
 };
@@ -88,7 +88,7 @@ export const getList = async (id: string) => {
   return database.get('lists', id);
 };
 
-export const upsertList = async (list: List) => {
+export const insertList = async (list: List) => {
   try {
     const database = await getDb();
     await database.add('lists', list);
@@ -98,7 +98,7 @@ export const upsertList = async (list: List) => {
       console.warn('IndexedDB quota exceeded. Cleanup or prompt user to free space.');
       throw new QuotaExceededError('Storage quota exceeded');
     }
-    console.warn('upsertList error :', error, ' list: ', list);
+    console.warn('InsertList error :', error, ' list: ', list);
     throw error;
   }
 };

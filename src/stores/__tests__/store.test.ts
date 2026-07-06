@@ -238,7 +238,7 @@ describe('useStore - Shopping List Store', () => {
       expect(listsBeforeCopy.map((item) => item.title)).toEqual(['Hardware', 'Groeceries']);
       expect(listsBeforeCopy.length).toEqual(2);
       // Act
-      useStore.getState().copyList('list-4');
+      useStore.getState().copyList('list-4', 'list-4-copy');
 
       // Assert
       const lists = useStore.getState().lists;

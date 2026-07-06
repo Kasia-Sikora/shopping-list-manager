@@ -1,21 +1,17 @@
 import type { List } from '../interfaces';
+import { resolveConflict } from '../utils/resolveConflict';
 import { updateSyncState } from '../utils/storeUtils';
+import { apiService } from './apiService';
 import {
   clearQueue,
   getAreAllItemsSynced,
   getPendingOrFailedItems,
   RETRY_BREAK,
   setMetadata,
-  updateQueueItemStatus,
+  updateList,
+  updateQueueItemStatus
 } from './indexedDB';
 import type { SyncQueueWithIdValue } from './interfaces';
-
-type ResponseType = {
-  status: 'success' | 'failed';
-  id: string;
-  data?: List;
-  error?: { name: string; message: string };
-};
 
 export const syncEngine = {
   async syncChanges() {
@@ -32,17 +28,6 @@ export const syncEngine = {
     }
   },
 
-  async resolveConflict(local: List, remote: List): Promise<List> {
-    if (local.updatedAt && remote.updatedAt) {
-      return local.updatedAt > remote.updatedAt ? local : remote;
-    }
-    if (local.createdAt && remote.createdAt) {
-      return local.createdAt > remote.createdAt ? local : remote;
-    }
-
-    throw Error("updatedAt or createdAt prop doesn't exist");
-  },
-
   async _uploadAction(action: SyncQueueWithIdValue) {
     if (!action?.id) {
       console.warn('Missing id in action during _uploadAction. ', action);
@@ -51,29 +36,27 @@ export const syncEngine = {
 
     await updateQueueItemStatus(action.id, 'syncing', action.retryCount);
     await updateSyncState();
+    // eslint-disable-next-line no-useless-assignment
     let promise = null;
     switch (action.action) {
       case 'create':
-        promise = mockApiService.createList(action.data as List);
+        promise = apiService.createList(action.data as List);
         break;
       case 'update':
-        promise = mockApiService.updateList(action.data.id, action.data as List);
+        promise = apiService.updateList(action.data.id, action.data as List);
         break;
       case 'delete':
-        promise = mockApiService.deleteList(action.data.id);
+        promise = apiService.deleteList(action.data.id);
         break;
+      default:
+        throw Error('Missing action in upload');
     }
 
     try {
-      const res = await promise;
-      if (res.status === 'success') {
-        await updateQueueItemStatus(action.id, 'synced', action.retryCount);
-        await setMetadata('lastSync', new Date().toISOString());
-        await updateSyncState();
-      } else {
-        await syncEngine._retry({ ...action, retryCount: action.retryCount + 1 });
-        await updateSyncState();
-      }
+      await promise;
+      await updateQueueItemStatus(action.id, 'synced', action.retryCount);
+      await setMetadata('lastSync', new Date().toISOString());
+      await updateSyncState();
     } catch (error) {
       console.error('Upload failed:', error);
       await syncEngine._retry({ ...action, retryCount: action.retryCount + 1 });
@@ -92,28 +75,20 @@ export const syncEngine = {
       await updateSyncState();
     }
   },
-};
 
-const mockApiService = {
-  async createList(list: List) {
-    return new Promise<ResponseType>((resolve) => {
-      setTimeout(() => {
-        resolve({ status: 'success', id: list.id, data: list });
-      }, 300);
-    });
-  },
-  async updateList(id: string, data: List) {
-    return new Promise<ResponseType>((resolve) => {
-      setTimeout(() => {
-        resolve({ status: 'success', id, data });
-      }, 300);
-    });
-  },
-  async deleteList(id: string) {
-    return new Promise<ResponseType>((resolve) => {
-      setTimeout(() => {
-        resolve({ status: 'success', id: id });
-      }, 300);
-    });
+  async reconcileLists(local: List[], remote: List[]) {
+    const localById = new Map(local.map((l) => [l.id, l]));
+    const remoteById = new Map(remote.map((r) => [r.id, r]));
+    const allIds = new Set([...localById.keys(), ...remoteById.keys()]);
+
+    for (const id of allIds) {
+      const local = localById.get(id);
+      const remote = remoteById.get(id);
+
+      if (local && remote) {
+        const winner = resolveConflict(local, remote);
+        if (winner === remote && winner !== local) await updateList(winner);
+      } else if (remote) await updateList(remote);
+    }
   },
 };

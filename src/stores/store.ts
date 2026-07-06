@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import type { List, PersistedShoppingListStore } from '../interfaces';
 import { persist } from 'zustand/middleware';
 import { LOCAL_STORAGE_STORE_KEY, LOCAL_STORAGE_THEME_KEY } from '../consts';
-import { generateId } from '../utils/utils';
 import { devtools } from 'zustand/middleware';
 import type { SyncStatus } from '../services/interfaces';
 
@@ -90,7 +89,7 @@ export type StoreState = {
   addList: (item: List) => void;
   updateList: (item: List) => void;
   removeList: (listId: string) => void;
-  copyList: (listId: string) => void;
+  copyList: (listId: string, newId: string) => void;
   removeCheckedListItems: (listId: string) => void;
 };
 
@@ -119,7 +118,7 @@ export const useStore = create<StoreState>()(
             }),
           })),
         removeList: (listId) => set((state) => ({ lists: state.lists.filter((item) => item.id !== listId) })),
-        copyList: (listId) =>
+        copyList: (listId, newId) =>
           set((state) => {
             const itemToCopy = state.lists.filter((item) => item.id === listId)?.[0];
             const index = state.lists.indexOf(itemToCopy);
@@ -128,7 +127,7 @@ export const useStore = create<StoreState>()(
               const copiedItem = {
                 ...itemToCopy,
                 title: `${itemToCopy.title}-copy`,
-                id: generateId(),
+                id: newId,
                 createdAt: new Date().toISOString(),
               };
               updatedList.splice(index + 1, 0, copiedItem);

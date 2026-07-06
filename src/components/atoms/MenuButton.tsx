@@ -77,13 +77,13 @@ const MenuDropdown = ({ open, cardId, setOpen, list, actions }: MenuDropdown) =>
     }
   }
 
-  const copyIntoDB = async () => {
+  const copyIntoDB = async (newId: string) => {
     const list = await db.getList(cardId);
     if (list) {
       const copiedItem = {
         ...list,
         title: `${list.title}-copy`,
-        id: generateId(),
+        id: newId,
         createdAt: new Date().toISOString(),
       };
       try {
@@ -109,13 +109,16 @@ const MenuDropdown = ({ open, cardId, setOpen, list, actions }: MenuDropdown) =>
         }
         break;
       case "copy":
-        copyList(cardId);
-        try {
-          await copyIntoDB()
-        } catch (error) {
-          console.error('Failed to copy list:', error);
+        {
+          const newId = generateId()
+          copyList(cardId, newId);
+          try {
+            await copyIntoDB(newId)
+          } catch (error) {
+            console.error('Failed to copy list:', error);
+          }
+          break;
         }
-        break;
       case "removeChecked":
         removeCheckedItems()
         break;

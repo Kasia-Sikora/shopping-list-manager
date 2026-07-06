@@ -9,6 +9,7 @@ import { OfflineIndicator } from './components/OfflineIndicator';
 import * as db from './services/indexedDB';
 import { syncEngine } from './services/syncEngine';
 import { isSortable } from '@dnd-kit/react/sortable';
+import { apiService } from './services/apiService';
 
 let consentAskCount = 0
 let mount = 0
@@ -34,22 +35,31 @@ const App = () => {
     } else {
       const getIndexDBLists = async () => {
         const listOrder = await db.getMetadata('listOrder');
-        const dbLists = await db.getLists()
+        const indexedDbLists = await db.getLists()
+        if (useSyncStore.getState().isOnline) {
+          try {
+            const pgDbLists = await apiService.getAllLists()
+            await syncEngine.reconcileLists(indexedDbLists, pgDbLists)
+          } catch (e) {
+            console.error('Pull-on-init failed; falling back to local data', e)
+          }
+        }
+        const lists = await db.getLists()
         if (listOrder?.value && Array.isArray(listOrder.value)) {
-          const orderedLists = sortByListOrder(listOrder.value as string[], dbLists)
+          const orderedLists = sortByListOrder(listOrder.value as string[], lists)
           setLists(orderedLists);
         } else {
-          setLists(dbLists);
+          setLists(lists);
         }
 
-        if ((!dbLists || !dbLists.length) && !consentAskCount) {
+        if ((!lists || !lists.length) && !consentAskCount) {
           const consent = window.confirm('Załadować testowe dane?')
           consentAskCount++;
           if (consent) {
             const lists = sortListContent(DEFAULT_VALUES)
             setLists(lists)
             for (const list of lists) {
-              await db.upsertList(list)
+              await db.insertList(list)
               await db.addToQueue({ action: 'create', data: list });
             }
             if (useSyncStore.getState().isOnline) {
@@ -57,17 +67,17 @@ const App = () => {
             }
           }
         }
-        else if (dbLists) {
+        else if (lists) {
           if (listOrder?.value && Array.isArray(listOrder.value)) {
             // Sort lists by the stored order
-            const orderedLists = sortByListOrder(listOrder.value as string[], dbLists)
-            if (orderedLists?.length && orderedLists.length === dbLists.length) {
+            const orderedLists = sortByListOrder(listOrder.value as string[], lists)
+            if (orderedLists?.length && orderedLists.length === lists.length) {
               setLists(sortListContent({ state: { lists: orderedLists } }))
             } else {
               throw Error('indexedDB lists differs from metadata')
             }
           } else {
-            setLists(sortListContent({ state: { lists: dbLists } }))
+            setLists(sortListContent({ state: { lists: lists } }))
           }
         }
 

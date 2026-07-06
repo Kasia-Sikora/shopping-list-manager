@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { syncEngine } from '../syncEngine';
 import type { List } from '../../interfaces';
+import { resolveConflict } from '../../utils/resolveConflict';
 
 describe('syncEngine - Conflict Resolution', () => {
-  it('should keep local version when timestamp is newer (12:00 > 11:00)', async () => {
+  it('should keep local version when timestamp is newer (12:00 > 11:00)', () => {
     const localList: List = {
       id: 'list-1',
       title: 'Shopping List',
@@ -24,11 +24,11 @@ describe('syncEngine - Conflict Resolution', () => {
       ]
     };
 
-    const winner = await syncEngine.resolveConflict(localList, serverList);
+    const winner = resolveConflict(localList, serverList);
     expect(winner.content[0].value).toBe('Apple');
   });
 
-  it('should keep server version when timestamp is newer', async () => {
+  it('should keep server version when timestamp is newer', () => {
     const localList: List = {
       id: 'list-2',
       title: 'Shopping List',
@@ -43,11 +43,11 @@ describe('syncEngine - Conflict Resolution', () => {
       content: [{ id: '1', value: 'Banana', checked: false, depth: 0, parentId: null }]
     };
 
-    const winner = await syncEngine.resolveConflict(localList, serverList);
+    const winner = resolveConflict(localList, serverList);
     expect(winner.content[0].value).toBe('Banana');
   });
 
-  it('should fall back to createdAt when updatedAt is missing', async () => {
+  it('should fall back to createdAt when updatedAt is missing', () => {
     const localList: List = {
       id: 'list-3',
       title: 'Shopping List',
@@ -62,7 +62,7 @@ describe('syncEngine - Conflict Resolution', () => {
       content: [{ id: '1', value: 'Banana', checked: false, depth: 0, parentId: null }]
     };
 
-    const winner = await syncEngine.resolveConflict(localList, serverList);
+    const winner = resolveConflict(localList, serverList);
     expect(winner.content[0].value).toBe('Apple');
   });
 });
