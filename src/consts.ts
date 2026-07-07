@@ -5,4 +5,4 @@ export const DELETE_BUTTON_W_GAP_SIZE = 36
 export const INDENT_VALUE = 31
 export const EMPTY_CARD_ID = 'empty'
 export const SYNC_DELAY = 30000 //30 sec
-export const BASE_URL = 'http://localhost:3000/api'
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api'
