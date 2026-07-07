@@ -41,9 +41,9 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
       actions.save(data)
     } else {
       removeList(data.id)
-      try{
-      dbActions({action: "delete", data: {id: data.id}})
-      }catch(error){
+      try {
+        dbActions({ action: "delete", data: { id: data.id } })
+      } catch (error) {
         console.error('Failed to delete list:', error);
       }
       actions.resetLocalState()
@@ -139,16 +139,17 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
     <>
       <form onKeyDown={handleFormEvents}>
         <div className="flex flex-col align-baseline gap-2">
-          {(editingCardId !== cardId || (editingCardId !== cardId && cardId === EMPTY_CARD_ID)) ? (
-            editedList.title && <h2 className="pb-2 text-2xl wrap-break-word font-bold border-0 text-secondary">{editedList.title}</h2>
-          ) : (
+          {editingCardId === cardId ? (
             <textarea
               className={`pb-2 text-2xl font-bold border-0 text-secondary resize-none overflow-hidden field-sizing-content ${(editingCardId === cardId || editedList) ? '' : 'hidden'}`}
               value={editedList?.title || ''}
               onChange={(e) => actions.update({ title: e.target?.value })}
               placeholder="Tytuł..."
               name='title'
-            />)}
+            />
+          ) : (
+            cardId !== EMPTY_CARD_ID && <h2 className="pb-2 text-2xl wrap-break-word font-bold border-0 text-secondary">{editedList.title || "Untitled"}</h2>
+          )}
           {uncheckedItems.length > 0 && (
             <ListOfItems
               listId={editedList?.id}
