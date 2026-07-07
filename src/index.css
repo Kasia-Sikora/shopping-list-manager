@@ -6,6 +6,11 @@
   --color-secondary: var(--text-secondary);
   --color-accent: var(--accent);
   --color-shadow: var(--shadow);
+  --color-active: var(--active);
+  --color-text-active: var(--text-accent);
+  --color-menu-bg: var(--menu-bg);
+  --color-menu-active: var(--menu-active);
+  --color-drag-item-active: var(--drag-item-active)
 }
 
 @layer base {
@@ -13,17 +18,27 @@
   [data-theme='theme-light'] {
     --background: var(--color-orange-100);
     --text-primary: var(--color-mist-800);
-    --text-secondary: var(--color-amber-700);
+    --text-secondary: var(--color-amber-800);
     --accent: var(--color-amber-500);
+    --text-accent: var(--color-amber-900);
     --shadow: var(--color-mist-500);
+    --active: var(--color-white);
+    --menu-bg: var(--color-amber-50);
+    --menu-active: var(--color-amber-100);
+    --drag-item-active: var(--color-orange-200)
   }
 
   [data-theme='theme-dark'] {
     --background: var(--color-mist-950);
     --text-primary: var(--color-orange-200);
     --text-secondary: var(--color-amber-700);
+    --text-accent: var(--color-amber-300);
     --accent: var(--color-amber-500);
     --shadow: var(--color-mist-400);
+    --active: var(--color-mist-500);
+    --menu-bg: var(--color-mist-900);
+    --menu-active: var(--color-mist-800);
+    --drag-item-active: var(--color-mist-900)
   }
 }
 
@@ -46,23 +61,11 @@ li:has(textarea:focus) {
   border-bottom: 1px solid var(--color-shadow);
 }
 
-textarea {
-  field-sizing: content;
-  resize: none;
-}
-
 input[type='checkbox'] {
   -webkit-appearance: none;
   appearance: none;
-  background-color: transparent;
-  margin: 0 0 0 8px;
-
-  font: inherit;
   color: #6a7282;
-  width: 1.15em;
-  height: 1.15em;
-  border: 0.1em solid currentColor;
-  border-radius: 0.15em;
+  border: 1px solid currentColor;
   transform: translateY(-0.075em);
   display: grid;
   place-content: center;
@@ -70,38 +73,36 @@ input[type='checkbox'] {
 
 input[type='checkbox']:hover,
 input[type='checkbox']:focus {
-  border: 0.15em solid currentColor;
+  border: 2px solid currentColor;
 }
 
 input[type='checkbox']::before {
   content: '';
-  width: 0.65em;
-  height: 0.65em;
+  width: 12px;
+  height: 12px;
   transform: scale(0);
-  border-color: #6a7282;
-  transition: 120ms transform ease-in-out;
-  box-shadow: inset 1em 1em var(--color-accent);
+  background-color: var(--color-accent);
+  border-radius: 2px;
 }
 
 input[type='checkbox']:checked::before {
-  transform: scale(1);
+  transform: scale(1.2);
 }
 
-li > button {
+li button:last-of-type {
   opacity: 0;
 }
 
-li button:focus,
-li:hover > button,
-textarea:focus ~ button,
-input[type='checkbox']:focus ~ button {
+li button:last-of-type:focus,
+li:hover button:last-of-type,
+textarea:focus ~ button:last-of-type,
+input[type='checkbox']:focus ~ button:last-of-type {
   opacity: 100%;
   outline: none;
 }
 
 .chevron {
   --s: 3px;
-
   width: 12px;
   aspect-ratio: 5/3;
 }
@@ -116,10 +117,17 @@ input[type='checkbox']:focus ~ button {
 
 .hamburger-menu {
   --c: #705567;
-
   height: 16px;
   aspect-ratio: 1;
   background:
     radial-gradient(closest-side at 92.5% 25%, var(--c) 9%, #0000 11%) 0 0/40% 60%,
     linear-gradient(var(--c) 50%, #0000 0) top/80% 40% repeat-y;
+}
+
+.indent {
+  padding-left: 35px;
+}
+
+#dropdown button {
+  opacity: 100;
 }

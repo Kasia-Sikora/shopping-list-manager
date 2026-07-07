@@ -3,22 +3,26 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import Card from '../Card';
 import type { List } from '../../interfaces';
+import { EMPTY_CARD_ID } from '../../consts';
 
 const exampleItem: List = {
   id: '1',
   title: 'list title',
-  content: [{ listItemId: '333', checked: false, value: 'kup bułki' }],
+  content: [{ id: '333', checked: false, value: 'kup bułki', depth: 0, parentId: null }],
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
 };
 
 describe('Card', () => {
   it('should display default card on page load', () => {
-    render(<Card />);
+    render(<Card emptyCardId={EMPTY_CARD_ID} />);
     expect(getEmptyCardTitleEl()).toBeNull();
     expect(getListItem()).not.toBeNull();
+    expect(getEmptyCard()).toHaveClass('min-w-75')
   });
 
   it('should show title input when card is clicked', async () => {
-    render(<Card />);
+    render(<Card emptyCardId={EMPTY_CARD_ID} />);
     expect(getEmptyCardTitleEl()).toBeNull();
     await userEvent.click(getEmptyCard());
     waitFor(() => expect(getEmptyCardTitleEl()).not.toBeNull());
@@ -26,10 +30,12 @@ describe('Card', () => {
   });
 
   it('should display edit card in preview mode when item is provided', () => {
-    render(<Card editedItem={exampleItem} />);
+    render(<Card editedList={exampleItem} />);
 
     //check if item is rendered with given data
     expect(getCard()).toBeVisible();
+    expect(getCard()).toHaveClass('w-75')
+
     expect(getTitleEl().textContent).toEqual('list title');
     expect(getListTextarea().value).toEqual('kup bułki');
     expect(getAddElemButton()).toBeVisible();
@@ -40,7 +46,7 @@ describe('Card', () => {
   });
 
   it('should switch between preview and edit mode wen card is not empty', async () => {
-    render(<Card editedItem={exampleItem} />);
+    render(<Card editedList={exampleItem} />);
 
     expect(getCard()).toBeVisible();
     //check if card is in preview mode

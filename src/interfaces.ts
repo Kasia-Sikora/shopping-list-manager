@@ -1,17 +1,28 @@
 export type List = {
   id: string;
   title: string;
+  createdAt?: string;
+  updatedAt?: string; 
   content: ListItem[];
 };
 
 export type ListItem = {
-  listItemId: string;
-  value?: string;
-  checked?: boolean;
+  id: string;
+  value: string;
+  checked: boolean;
+  depth: number;
+  parentId: string | null;
 };
 
-type FieldIndex = {
-  index: number;
+export type PersistedShoppingListStore = {
+  state: {
+    lists: List[];
+  };
 };
 
-export type FieldListItem = FieldIndex & ListItem;
+export type SetLocalDataActions = {
+  update: (updates: Partial<List>) => void;
+  sync: (dataToSync: List) => void;
+  save: (dataToSave: List) => void;
+  resetLocalState: () => void;
+};

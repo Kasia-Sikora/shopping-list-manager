@@ -1,4 +1,4 @@
-import type { FC, MouseEventHandler } from 'react';
+import type { MouseEventHandler } from 'react';
 
 type ChevronButton = {
   toggle: MouseEventHandler<HTMLButtonElement>;
@@ -6,7 +6,7 @@ type ChevronButton = {
   quantity: number;
 };
 
-export const ChevronButton: FC<ChevronButton> = ({ toggle, contentExpanded, quantity }) => {
+export const ChevronButton = ({ toggle, contentExpanded, quantity }: ChevronButton) => {
   return (
     <button
       onClick={toggle}
@@ -16,7 +16,7 @@ export const ChevronButton: FC<ChevronButton> = ({ toggle, contentExpanded, quan
       <div
         className={`bg-primary transition-all duration-300 chevron ${contentExpanded ? 'chevron__up' : 'chevron__down'}`}
       />
-      <h6 className="p-2 text-l border-0 text-gray-500">{quantity} ukończonych elementów</h6>
+      <p className="p-2 text-l border-0 text-gray-700">{quantity} ukończonych elementów</p>
     </button>
   );
 };

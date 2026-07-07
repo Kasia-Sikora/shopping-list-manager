@@ -1,14 +1,8 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
-import { useStore } from '../src/stores/store';
-const initialState = useStore.getState();
 
 afterEach(() => {
   cleanup();
-});
-
-afterAll(() => {
-  useStore.setState(initialState);
 });
 
 Object.defineProperty(window, 'matchMedia', {
@@ -23,4 +17,15 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
+
+class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+window.ResizeObserver = ResizeObserver;
+
 vi.mock('zustand');
+
+vi.mock('../src/services/apiService')
