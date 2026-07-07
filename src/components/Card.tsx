@@ -101,7 +101,6 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
       if (cardId === EMPTY_CARD_ID) {
         const newItem = {
           ...dataToSave,
-          id: generateId(),
           createdAt: dataToSave.createdAt || new Date().toISOString(),
         };
         addList(newItem)
