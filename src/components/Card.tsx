@@ -76,6 +76,39 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
     if (el) el.focus();
   }
 
+  const saveOrUpdateData = useCallback(async (data: List) => {
+    setIsSaving(true)
+    const isItemExists = useStore.getState().lists.some(l => l.id === data.id);
+    if (cardId === EMPTY_CARD_ID && !isItemExists) {
+      const newItem = {
+        ...data,
+        createdAt: data.createdAt || new Date().toISOString(),
+      };
+      addList(newItem)
+      try {
+        await dbActions({ action: "create", data: newItem })
+      } catch (error) {
+        console.error('Failed to save list:', error);
+      } finally {
+        setIsSaving(false)
+      }
+    } else {
+      const updatedItem = {
+        ...data,
+        updatedAt: new Date().toISOString(),
+      };
+      updateList(updatedItem)
+      try {
+        await dbActions({ action: "update", data: updatedItem })
+      } catch (error) {
+        console.error('Failed to update list:', error);
+      }
+      finally {
+        setIsSaving(false)
+      }
+    }
+  }, [addList, cardId, setIsSaving, updateList])
+
   const handleResetLocalState = useCallback(() => {
     setLocalDraft(null);
     setEditingCardId(null);
@@ -89,53 +122,25 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
       setLocalDraft(prev => ({ ...(prev || currentData), ...updates }));
     },
     sync: async (dataToSync: List) => {
-      updateList(dataToSync);
-      try {
-        await dbActions({ action: "update", data: dataToSync })
-      } catch (error) {
-        console.error('Failed to update list:', error);
-      }
+      await saveOrUpdateData(dataToSync)
     },
     save: async (dataToSave: List) => {
-      setIsSaving(true)
-      if (cardId === EMPTY_CARD_ID) {
-        const newItem = {
-          ...dataToSave,
-          createdAt: dataToSave.createdAt || new Date().toISOString(),
-        };
-        addList(newItem)
-        try {
-          await dbActions({ action: "create", data: newItem })
-        } catch (error) {
-          console.error('Failed to save list:', error);
-        }
-      } else {
-        const updatedItem = {
-          ...dataToSave,
-          updatedAt: new Date().toISOString(),
-        };
-        updateList(updatedItem)
-        try {
-          await dbActions({ action: "update", data: updatedItem })
-        } catch (error) {
-          console.error('Failed to update list:', error);
-        }
-      }
-      setIsSaving(false)
+      await saveOrUpdateData(dataToSave)
       handleResetLocalState();
     },
     resetLocalState: handleResetLocalState
-  }), [handleResetLocalState, currentData, updateList, setIsSaving, cardId, addList]);
+  }), [handleResetLocalState, currentData, saveOrUpdateData]);
 
 
   useEffect(() => {
     if (!localDraft) return;
     const timer = setTimeout(() => {
+      if (cardId === EMPTY_CARD_ID) return
       actions.sync(localDraft);
     }, 1000); // Save after 1 second of inactivity
 
     return () => clearTimeout(timer);
-  }, [actions, localDraft]);
+  }, [actions, cardId, localDraft]);
 
   return (
     <div
