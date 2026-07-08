@@ -3,8 +3,8 @@ import { cleanup, render, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import App from '../../App';
 import { editedElements } from './testHelpers';
-import { LOCAL_STORAGE_STORE_KEY } from '../../consts';
 import type { PersistedShoppingListStore } from '../../interfaces';
+import * as db from '../../services/indexedDB'
 
 describe('<App>', () => {
   const user = userEvent.setup();
@@ -57,10 +57,10 @@ describe('<App>', () => {
               parentId: null
             },
           ],
-              createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         },
-         {
+        {
           id: '1',
           title: 'Second Card',
           content: [
@@ -93,19 +93,16 @@ describe('<App>', () => {
               parentId: null
             },
           ],
-              createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         },
       ]
     }
   }
 
-  const prepareComponent = async (data = undefined) => {
-    const dataToLoad = JSON.stringify(data ?? defaultStoreState)
-    localStorage.setItem(LOCAL_STORAGE_STORE_KEY, dataToLoad)
+  const prepareComponent = async () => {
 
     render(<App />);
-    expect(localStorage.getItem(LOCAL_STORAGE_STORE_KEY)).not.toBeNull()
     await waitFor(() => expect(getEditCard(defaultStoreState.state.lists[0].id)).toBeVisible());
 
     await user.click(getEditCard());
@@ -117,6 +114,8 @@ describe('<App>', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     cleanup();
+    await db.insertList(defaultStoreState.state.lists[0]);
+    await db.insertList(defaultStoreState.state.lists[1]);
     await prepareComponent();
   });
 
@@ -150,7 +149,7 @@ describe('<App>', () => {
     await user.type(getListItemTextarea()[6], '{Shift>}{Enter}{/Shift}');
 
     //After Enter+Shift cardContent should be saved and cleared
-    expect(getListItemTextarea()).toHaveLength(6);
+    await waitFor(() => expect(getListItemTextarea()).toHaveLength(6));
   });
 
   it('should move trough list using arrow up and down', async () => {
@@ -223,7 +222,7 @@ describe('<App>', () => {
     await user.keyboard('{enter}{enter}{enter}{enter}{enter}{enter}{enter}');
     expect(getListItemTextarea()).toHaveLength(12);
     await user.keyboard('{Shift>}{Enter}{/Shift}');
-    expect(getEditIndicator()).toHaveAttribute('aria-hidden', 'true');
+    await waitFor(() => expect(getEditIndicator()).toHaveAttribute('aria-hidden', 'true'));
     expect(getListItemTextarea()).toHaveLength(4);
   });
 
@@ -305,7 +304,7 @@ describe('<App>', () => {
     await user.clear(getListItemTextarea()[2]);
     await user.type(getListItemTextarea()[2], 'updated element');
     await user.keyboard('{Shift>}{Enter}{/Shift}');
-    expect(getListItemTextarea()).toHaveLength(5);
+    await waitFor(() => expect(getListItemTextarea()).toHaveLength(5));
     expect(getListItemTextarea()[2].value).toEqual('updated element');
   });
 

@@ -2,9 +2,9 @@ import { cleanup, render, waitFor } from "@testing-library/react"
 import Card from "../Card"
 import { editedElements, elements } from "./testHelpers"
 import userEvent from "@testing-library/user-event"
-import { LOCAL_STORAGE_STORE_KEY } from "../../consts"
 import App from "../../App"
 import type { PersistedShoppingListStore } from "../../interfaces"
+import * as db from '../../services/indexedDB'
 
 const { getEditCard, getListItemTextarea, queryMenuButton, queryMenuDropdown, queryMenuCardButtons, queryEditCard } = editedElements
 const { queryElByText, queryItemsList } = elements
@@ -120,11 +120,8 @@ describe('<App/> dropdown buttons functionality', () => {
   const user = userEvent.setup()
 
   const prepareComponent = async () => {
-    const dataToLoad = JSON.stringify(defaultStoreState)
-    localStorage.setItem(LOCAL_STORAGE_STORE_KEY, dataToLoad)
 
     render(<App />);
-    expect(localStorage.getItem(LOCAL_STORAGE_STORE_KEY)).not.toBeNull()
     await waitFor(() => expect(getEditCard(defaultStoreState.state.lists[0].id)).toBeVisible());
 
     await user.click(getEditCard());
@@ -137,6 +134,8 @@ describe('<App/> dropdown buttons functionality', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     cleanup();
+    await db.insertList(defaultStoreState.state.lists[0]);
+    await db.insertList(defaultStoreState.state.lists[1]);
     await prepareComponent();
   });
 
@@ -167,7 +166,7 @@ describe('<App/> dropdown buttons functionality', () => {
     expect(queryElByText('second el in First List')).toHaveLength(1)
 
     await user.click(queryMenuCardButtons('copy card')!)
-   expect(queryMenuButton(dopdownClosed)).toBeVisible()
+    await waitFor(() => expect(queryMenuButton(dopdownClosed)).toBeVisible())
     expect(queryMenuDropdown()).toHaveClass("hidden")
     expect(queryElByText('second el in First List')).toHaveLength(2)
   })

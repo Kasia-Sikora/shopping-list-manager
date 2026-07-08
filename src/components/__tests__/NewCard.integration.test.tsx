@@ -53,7 +53,7 @@ describe('<App>', () => {
     await userEvent.type(getListItemTextarea()[2], '{Shift>}{Enter}{/Shift}');
 
     //After Enter+Shift cardContent should be saved and cleared
-    expect(getListItemTextarea()).toHaveLength(1);
+    await waitFor(() => expect(getListItemTextarea()).toHaveLength(1));
     expect(getListItemTextarea()[0].value).toEqual('');
   });
 
@@ -117,7 +117,7 @@ describe('<App>', () => {
     await userEvent.click(document.body);
 
     //After click outside the card, cardContent should be saved and cleared
-    expect(getListItemTextarea()).toHaveLength(1);
+    await waitFor(() => expect(getListItemTextarea()).toHaveLength(1));
     expect(getListItemTextarea()[0].value).toEqual('');
   });
 

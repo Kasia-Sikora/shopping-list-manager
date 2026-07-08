@@ -4,92 +4,73 @@ import { DragDropProvider, useDroppable } from '@dnd-kit/react';
 import { DEFAULT_VALUES, useStore, useSyncStore } from './stores/store';
 import ThemeToggle from './components/atoms/ThemeToggle';
 import { dbActions, sortByListOrder, sortListContent } from './utils/storeUtils';
-import { EMPTY_CARD_ID, LOCAL_STORAGE_STORE_KEY } from './consts';
+import { appGuards, EMPTY_CARD_ID } from './consts';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import * as db from './services/indexedDB';
 import { syncEngine } from './services/syncEngine';
 import { isSortable } from '@dnd-kit/react/sortable';
 import { apiService } from './services/apiService';
 
-let consentAskCount = 0
-let mount = 0
-const testing = true
 const App = () => {
   const { lists, setLists, moveList } = useStore()
 
   useEffect(() => {
-    //For Tests: 
-    if (testing) {
-      const getItem = localStorage.getItem(LOCAL_STORAGE_STORE_KEY)
-      const localStorageItems = getItem ? JSON.parse(getItem) : null
-      if (!localStorageItems && !consentAskCount) {
+    const getIndexDBLists = async () => {
+      const listOrder = await db.getMetadata('listOrder');
+      const indexedDbLists = await db.getLists()
+      if (useSyncStore.getState().isOnline) {
+        try {
+          const pgDbLists = await apiService.getAllLists()
+          await syncEngine.reconcileLists(indexedDbLists, pgDbLists)
+        } catch (e) {
+          console.error('Pull-on-init failed; falling back to local data', e)
+        }
+      }
+      const lists = await db.getLists()
+      if (listOrder?.value && Array.isArray(listOrder.value)) {
+        const orderedLists = sortByListOrder(listOrder.value as string[], lists)
+        setLists(orderedLists);
+      } else {
+        setLists(lists);
+      }
+
+      if ((!lists || !lists.length) && !appGuards.consentAskCount) {
         const consent = window.confirm('Załadować testowe dane?')
-        consentAskCount++;
+        appGuards.addConsentAskCount()
         if (consent) {
-          setLists(sortListContent(DEFAULT_VALUES))
-        }
-      }
-      else if (localStorageItems) {
-        setLists(sortListContent(localStorageItems))
-      }
-    } else {
-      const getIndexDBLists = async () => {
-        const listOrder = await db.getMetadata('listOrder');
-        const indexedDbLists = await db.getLists()
-        if (useSyncStore.getState().isOnline) {
-          try {
-            const pgDbLists = await apiService.getAllLists()
-            await syncEngine.reconcileLists(indexedDbLists, pgDbLists)
-          } catch (e) {
-            console.error('Pull-on-init failed; falling back to local data', e)
+          const lists = sortListContent(DEFAULT_VALUES)
+          setLists(lists)
+          for (const list of lists) {
+            await db.insertList(list)
+            await db.addToQueue({ action: 'create', data: list });
+          }
+          if (useSyncStore.getState().isOnline) {
+            await syncEngine.syncChanges();
           }
         }
-        const lists = await db.getLists()
+      }
+      else if (lists) {
         if (listOrder?.value && Array.isArray(listOrder.value)) {
+          // Sort lists by the stored order
           const orderedLists = sortByListOrder(listOrder.value as string[], lists)
-          setLists(orderedLists);
-        } else {
-          setLists(lists);
-        }
-
-        if ((!lists || !lists.length) && !consentAskCount) {
-          const consent = window.confirm('Załadować testowe dane?')
-          consentAskCount++;
-          if (consent) {
-            const lists = sortListContent(DEFAULT_VALUES)
-            setLists(lists)
-            for (const list of lists) {
-              await db.insertList(list)
-              await db.addToQueue({ action: 'create', data: list });
-            }
-            if (useSyncStore.getState().isOnline) {
-              await syncEngine.syncChanges();
-            }
-          }
-        }
-        else if (lists) {
-          if (listOrder?.value && Array.isArray(listOrder.value)) {
-            // Sort lists by the stored order
-            const orderedLists = sortByListOrder(listOrder.value as string[], lists)
-            if (orderedLists?.length && orderedLists.length === lists.length) {
-              setLists(sortListContent({ state: { lists: orderedLists } }))
-            } else {
-              throw Error('indexedDB lists differs from metadata')
-            }
+          if (orderedLists?.length && orderedLists.length === lists.length) {
+            setLists(sortListContent({ state: { lists: orderedLists } }))
           } else {
-            setLists(sortListContent({ state: { lists: lists } }))
+            throw Error('indexedDB lists differs from metadata')
           }
+        } else {
+          setLists(sortListContent({ state: { lists: lists } }))
         }
+      }
 
-        const schemaVersion = await db.getMetadata('schemaVersion')
-        if (schemaVersion?.value !== db.SCHEMA_VERSION) {
-          await db.setMetadata('schemaVersion', db.SCHEMA_VERSION)
-        }
+      const schemaVersion = await db.getMetadata('schemaVersion')
+      if (schemaVersion?.value !== db.SCHEMA_VERSION) {
+        await db.setMetadata('schemaVersion', db.SCHEMA_VERSION)
       }
-      if (!mount) {
-        getIndexDBLists()
-        mount += 1
-      }
+    }
+    if (!appGuards.mount) {
+      getIndexDBLists()
+      appGuards.addMount()
     }
   }, [setLists])
 

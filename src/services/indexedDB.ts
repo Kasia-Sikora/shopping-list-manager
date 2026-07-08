@@ -44,6 +44,7 @@ interface ShoppingListDB extends DBSchema {
 }
 
 let db: Awaited<ReturnType<typeof openDB<ShoppingListDB>>> | null = null;
+export const _resetDbForTests = () => { db = null }
 
 export const initDB = async () => {
   if (db) return db; // Already initialized
