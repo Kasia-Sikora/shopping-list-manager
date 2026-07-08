@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { List, PersistedShoppingListStore } from '../interfaces';
 import { persist } from 'zustand/middleware';
-import { LOCAL_STORAGE_STORE_KEY, LOCAL_STORAGE_THEME_KEY } from '../consts';
+import { LOCAL_STORAGE_THEME_KEY } from '../consts';
 import { devtools } from 'zustand/middleware';
 import type { SyncStatus } from '../services/interfaces';
 
@@ -94,66 +94,61 @@ export type StoreState = {
 };
 
 export const useStore = create<StoreState>()(
-  devtools(
-    persist(
-      (set) => ({
-        lists: [],
-        setLists: (lists) => set(() => ({ lists: [...lists] })),
-        moveList: (originalIndex, targetIndex) =>
-          set((state) => {
-            const updatedItems = [...state.lists];
-            const [removed] = updatedItems.splice(originalIndex, 1);
-            updatedItems.splice(targetIndex, 0, removed);
-            return { lists: updatedItems };
-          }),
-        addList: (item) => set((state) => ({ lists: [...state.lists, item] })),
-        updateList: (item) =>
-          set((state) => ({
-            lists: state.lists.map((elem) => {
-              if (elem.id === item.id) {
-                return item;
-              } else {
-                return elem;
-              }
-            }),
-          })),
-        removeList: (listId) => set((state) => ({ lists: state.lists.filter((item) => item.id !== listId) })),
-        copyList: (listId, newId) =>
-          set((state) => {
-            const itemToCopy = state.lists.filter((item) => item.id === listId)?.[0];
-            const index = state.lists.indexOf(itemToCopy);
-            if (itemToCopy) {
-              const updatedList = [...state.lists];
-              const copiedItem = {
-                ...itemToCopy,
-                title: `${itemToCopy.title}-copy`,
-                id: newId,
-                createdAt: new Date().toISOString(),
-              };
-              updatedList.splice(index + 1, 0, copiedItem);
-              return { lists: updatedList };
-            }
-            return { lists: state.lists };
-          }),
-        removeCheckedListItems: (listId) =>
-          set((state) => ({
-            lists: state.lists.map((item) => {
-              if (item.id === listId) {
-                const updatedItem = {
-                  ...item,
-                  content: item.content.filter((el) => !el.checked),
-                  updatedAt: new Date().toISOString(),
-                };
-                return updatedItem;
-              } else {
-                return item;
-              }
-            }),
-          })),
+  devtools((set) => ({
+    lists: [],
+    setLists: (lists) => set(() => ({ lists: [...lists] })),
+    moveList: (originalIndex, targetIndex) =>
+      set((state) => {
+        const updatedItems = [...state.lists];
+        const [removed] = updatedItems.splice(originalIndex, 1);
+        updatedItems.splice(targetIndex, 0, removed);
+        return { lists: updatedItems };
       }),
-      { name: LOCAL_STORAGE_STORE_KEY }
-    )
-  )
+    addList: (item) => set((state) => ({ lists: [...state.lists, item] })),
+    updateList: (item) =>
+      set((state) => ({
+        lists: state.lists.map((elem) => {
+          if (elem.id === item.id) {
+            return item;
+          } else {
+            return elem;
+          }
+        }),
+      })),
+    removeList: (listId) => set((state) => ({ lists: state.lists.filter((item) => item.id !== listId) })),
+    copyList: (listId, newId) =>
+      set((state) => {
+        const itemToCopy = state.lists.filter((item) => item.id === listId)?.[0];
+        const index = state.lists.indexOf(itemToCopy);
+        if (itemToCopy) {
+          const updatedList = [...state.lists];
+          const copiedItem = {
+            ...itemToCopy,
+            title: `${itemToCopy.title}-copy`,
+            id: newId,
+            createdAt: new Date().toISOString(),
+          };
+          updatedList.splice(index + 1, 0, copiedItem);
+          return { lists: updatedList };
+        }
+        return { lists: state.lists };
+      }),
+    removeCheckedListItems: (listId) =>
+      set((state) => ({
+        lists: state.lists.map((item) => {
+          if (item.id === listId) {
+            const updatedItem = {
+              ...item,
+              content: item.content.filter((el) => !el.checked),
+              updatedAt: new Date().toISOString(),
+            };
+            return updatedItem;
+          } else {
+            return item;
+          }
+        }),
+      })),
+  }))
 );
 
 type StoreThemeState = {
@@ -197,7 +192,7 @@ export const useSyncStore = create<SyncStore>((set) => ({
   isOnline: false,
   syncStatus: undefined,
   pendingChangesCount: 0,
-  setIsSaving: (isSaving) => set(() => ({isSaving})),
+  setIsSaving: (isSaving) => set(() => ({ isSaving })),
   setIsOnline: (isOnline) => set(() => ({ isOnline })),
   setSyncStatus: (syncStatus) => set(() => ({ syncStatus })),
   setPendingChangesCount: (pendingChangesCount) => set(() => ({ pendingChangesCount })),

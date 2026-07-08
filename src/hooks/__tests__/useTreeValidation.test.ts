@@ -26,7 +26,6 @@ describe('useTreeValidation - Logic Tests', () => {
   });
 
   it('should validate tree order correctly', () => {
-    // Simulate hook logic: check if tree is valid
     const isValidTreeOrder = (items: ListItem[]): boolean => {
       const seenIds = new Set<string>();
       for (const item of items) {
@@ -43,7 +42,6 @@ describe('useTreeValidation - Logic Tests', () => {
   });
 
   it('should reorder tree when invalid', () => {
-    // Simulate hook logic: reorder tree for valid structure
     const ensureTreeOrder = (items: ListItem[]): ListItem[] => {
       const isValid = (items: ListItem[]): boolean => {
         const seenIds = new Set<string>();
@@ -82,7 +80,6 @@ describe('useTreeValidation - Logic Tests', () => {
   });
 
   it('should callback with reordered tree when invalid', () => {
-    // Simulate useTreeValidation behavior
     const onBeforeDragStart = (tree: ListItem[], onValidate: (t: ListItem[]) => void) => {
       const isValidTreeOrder = (items: ListItem[]): boolean => {
         const seenIds = new Set<string>();
@@ -168,7 +165,6 @@ describe('useTreeValidation - Logic Tests', () => {
   });
 
   it('should handle edge case: source is null', () => {
-    // Hook checks: if (!source) return;
     const source = null;
     const callback = vi.fn();
 

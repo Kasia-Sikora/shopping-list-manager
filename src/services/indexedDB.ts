@@ -44,13 +44,15 @@ interface ShoppingListDB extends DBSchema {
 }
 
 let db: Awaited<ReturnType<typeof openDB<ShoppingListDB>>> | null = null;
+export const _resetDbForTests = () => {
+  db = null;
+};
 
 export const initDB = async () => {
-  if (db) return db; // Already initialized
+  if (db) return db;
   try {
     db = await openDB<ShoppingListDB>('shopping_list_manager', SCHEMA_VERSION, {
       upgrade(db) {
-        // Create "lists" object store
         if (!db.objectStoreNames.contains('lists')) {
           db.createObjectStore('lists', { keyPath: 'id' });
         }
@@ -70,13 +72,10 @@ export const initDB = async () => {
   }
 };
 
-// Helper to ensure DB is initialized
 const getDb = async () => {
   if (!db) await initDB();
   return db as Awaited<ReturnType<typeof openDB<ShoppingListDB>>>;
 };
-
-// Lists Operations
 
 export const getLists = async (): Promise<List[]> => {
   const database = await getDb();
@@ -128,11 +127,6 @@ export const deleteList = async (id: string) => {
   }
 };
 
-// ============================================
-// PHASE 2: Sync Queue & Metadata Operations
-// (Will be added when needed in Phase 2)
-// ============================================
-
 export const getSyncQueue = async () => {
   const database = await getDb();
   return database.getAll('sync_queue') as Promise<SyncQueueWithIdValue[]>;
@@ -147,7 +141,7 @@ export const getPendingOrFailedItems = async () => {
 export const getAreAllItemsSynced = async () => {
   const database = await getDb();
   const store = (await database.getAll('sync_queue')) as SyncQueueWithIdValue[];
-  return store.every((item) => item.status === 'synced');
+  return !!store.length && store.every((item) => item.status === 'synced');
 };
 
 export const addToQueue = async (params: DbAction) => {
