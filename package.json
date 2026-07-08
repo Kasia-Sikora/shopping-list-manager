@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "preview": "vite preview",
-    "test": "vitest --config ./vitest.config.ts --ui",
+    "test": "vitest --config ./vitest.config.ts",
     "coverage": "vitest --coverage",
     "prepare": "husky"
   },

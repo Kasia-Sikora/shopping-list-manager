@@ -51,7 +51,6 @@ const App = () => {
       }
       else if (lists) {
         if (listOrder?.value && Array.isArray(listOrder.value)) {
-          // Sort lists by the stored order
           const orderedLists = sortByListOrder(listOrder.value as string[], lists)
           if (orderedLists?.length && orderedLists.length === lists.length) {
             setLists(sortListContent({ state: { lists: orderedLists } }))
