@@ -56,7 +56,6 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
         if (cardRef?.current && !cardRef.current.contains(e.target as Node)) {
           handleSubmit();
         }
-        // resetStates();
       };
       const dropdownCardEl = document.querySelector(`[data-id='card-${editedList.id}'] #dropdown`)
       if (dropdownCardEl && !dropdownCardEl.contains(e.target as Node)) {

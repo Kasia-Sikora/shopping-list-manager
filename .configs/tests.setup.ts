@@ -1,5 +1,16 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
+import 'fake-indexeddb/auto';
+import { IDBFactory } from 'fake-indexeddb';
+import * as db from '../src/services/indexedDB';
+import { appGuards } from '../src/consts';
+
+beforeEach(async () => {
+  // eslint-disable-next-line no-global-assign
+  indexedDB = new IDBFactory();
+  db._resetDbForTests(); // drop the app's cached connection
+  appGuards._resetForTests();
+});
 
 afterEach(() => {
   cleanup();
@@ -17,7 +28,6 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-
 class ResizeObserver {
   observe() {}
   unobserve() {}
@@ -28,4 +38,5 @@ window.ResizeObserver = ResizeObserver;
 
 vi.mock('zustand');
 
-vi.mock('../src/services/apiService')
+vi.mock(import('../src/services/apiService'));
+vi.mock(import('../src/services/syncEngine'));
