@@ -43,10 +43,10 @@ export const createStore = (<T>(stateCreator: ZustandExportedTypes.StateCreator<
 }) as typeof ZustandExportedTypes.createStore;
 
 // reset all stores after each test run
-afterEach(async () => {
-  await act(async () => {
+afterEach(() => {
+  act(() => {
     storeResetFns.forEach((resetFn) => {
-      resetFn();
-    });
-  });
-});
+      resetFn()
+    })
+  })
+})
