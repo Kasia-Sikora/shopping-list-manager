@@ -25,3 +25,5 @@ lerna-debug.log*
 *.sw?
 
 .claude
+
+coverage/
