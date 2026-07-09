@@ -9,6 +9,8 @@ export default defineConfig({
     exclude: [...configDefaults.exclude, '**/node_modules/**', '**/dist/**'],
     coverage: {
       provider: 'v8',
+      reporter: ['text', 'lcov'], // text = CI log summary; lcov = coverage/lcov.info for Codecov
+      exclude: ['__mocks__'],
     },
     setupFiles: ['.configs/tests.setup.ts'],
   },

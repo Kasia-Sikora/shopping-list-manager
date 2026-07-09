@@ -1,3 +1,7 @@
+![CI](https://github.com/Kasia-Sikora/shopping-list-manager/actions/workflows/ci.yml/badge.svg)
+[![codecov](https://codecov.io/gh/Kasia-Sikora/shopping-list-manager/graph/badge.svg)](https://codecov.io/gh/Kasia-Sikora/shopping-list-manager)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
