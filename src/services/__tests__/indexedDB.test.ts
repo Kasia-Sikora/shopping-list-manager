@@ -236,44 +236,6 @@ describe('indexedDB — sync queue', () => {
     expect(newQueue.map((l) => l.id)).toEqual([2]);
   });
 
-  it('clearQueue empties the queue', async () => {
-    await db.addToQueue(makeCreateAction('test-id'));
-    await db.addToQueue(makeCreateAction('test-id-1'));
-    await db.addToQueue(makeCreateAction('test-id-2'));
-    await db.addToQueue(makeCreateAction('test-id-3'));
-
-    await expect(db.getSyncQueue()).resolves.toHaveLength(4);
-
-    await db.clearQueue();
-
-    await expect(db.getSyncQueue()).resolves.toHaveLength(0);
-  });
-
-  it('getAreAllItemsSynced returns true when every item is "synced"', async () => {
-    await db.addToQueue(makeCreateAction('test-id'));
-    await db.addToQueue(makeCreateAction('test-id-1'));
-
-    await db.updateQueueItemStatus(1, 'synced');
-    await db.updateQueueItemStatus(2, 'synced');
-
-    await expect(db.getAreAllItemsSynced()).resolves.toEqual(true);
-  });
-
-  it('getAreAllItemsSynced returns false when any item is pending or failed', async () => {
-    await db.addToQueue(makeCreateAction('test-id'));
-    await db.addToQueue(makeCreateAction('test-id-1'));
-
-    await expect(db.getAreAllItemsSynced()).resolves.toEqual(false);
-
-    await db.updateQueueItemStatus(1, 'failed');
-
-    await expect(db.getAreAllItemsSynced()).resolves.toEqual(false);
-  });
-
-  it('getAreAllItemsSynced returns false on an empty queue', async () => {
-    await expect(db.getAreAllItemsSynced()).resolves.toBe(false);
-  });
-
   it('addToQueue auto-increments the id', async () => {
     await db.addToQueue(makeCreateAction('test-id'));
     await db.addToQueue(makeCreateAction('test-id-1'));

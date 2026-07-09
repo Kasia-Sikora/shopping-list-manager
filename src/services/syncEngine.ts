@@ -3,13 +3,12 @@ import { resolveConflict } from '../utils/resolveConflict';
 import { updateSyncState } from '../utils/storeUtils';
 import { apiService } from './apiService';
 import {
-  clearQueue,
-  getAreAllItemsSynced,
   getPendingOrFailedItems,
+  removeFromQueue,
   RETRY_BREAK,
   setMetadata,
   updateList,
-  updateQueueItemStatus
+  updateQueueItemStatus,
 } from './indexedDB';
 import type { SyncQueueWithIdValue } from './interfaces';
 
@@ -22,10 +21,6 @@ export const syncEngine = {
     }
 
     await updateSyncState();
-    const isAllSynced = await getAreAllItemsSynced();
-    if (isAllSynced) {
-      await clearQueue();
-    }
   },
 
   async _uploadAction(action: SyncQueueWithIdValue) {
@@ -54,8 +49,8 @@ export const syncEngine = {
 
     try {
       await promise;
-      await updateQueueItemStatus(action.id, 'synced', action.retryCount);
       await setMetadata('lastSync', new Date().toISOString());
+      await removeFromQueue(action.id);
       await updateSyncState();
     } catch (error) {
       console.error('Upload failed:', error);
