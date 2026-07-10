@@ -308,6 +308,24 @@ describe('<App>', () => {
     expect(getListItemTextarea()[2].value).toEqual('updated element');
   });
 
+  // Regression: the debounced autosave used to re-arm itself (its own store
+  // update recreated `actions`, re-triggering the timer) and fire every second
+  // forever, flooding the sync queue. It must fire ONCE per pause, then stop.
+  it('debounced autosave fires once after a pause and does not loop', async () => {
+    const updateSpy = vi.spyOn(db, 'updateList');
+
+    await user.type(getListItemTextarea()[2], ' edited');
+
+    // Persists once ~1s after the last keystroke.
+    await waitFor(() => expect(updateSpy).toHaveBeenCalledTimes(1), { timeout: 2500 });
+
+    // With no further input it must NOT keep saving on its own.
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    expect(updateSpy).toHaveBeenCalledTimes(1);
+
+    updateSpy.mockRestore();
+  });
+
   it('should hide and expand list with checked items', async () => {
     await user.click(getCheckbox('1'));
     await user.click(getCheckbox('2'));
