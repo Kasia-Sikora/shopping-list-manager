@@ -131,16 +131,25 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
     resetLocalState: handleResetLocalState
   }), [handleResetLocalState, currentData, saveOrUpdateData]);
 
+  // Keep the latest `sync` in a ref so the debounce effect below does NOT depend
+  // on `actions`. Otherwise the autosave's own store update recreates `actions`
+  // (via handleResetLocalState -> editedList), which re-arms the timer and turns
+  // the debounce into a 1s save loop — flooding the sync queue and, on a broken
+  // DB connection, throwing an error every second.
+  const syncRef = useRef(actions.sync);
+  useEffect(() => {
+    syncRef.current = actions.sync;
+  }, [actions]);
 
   useEffect(() => {
     if (!localDraft) return;
     const timer = setTimeout(() => {
       if (cardId === EMPTY_CARD_ID) return
-      actions.sync(localDraft);
+      syncRef.current(localDraft);
     }, 1000); // Save after 1 second of inactivity
 
     return () => clearTimeout(timer);
-  }, [actions, cardId, localDraft]);
+  }, [localDraft, cardId]);
 
   return (
     <div
