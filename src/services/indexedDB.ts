@@ -52,16 +52,28 @@ export const initDB = async () => {
   if (db) return db;
   try {
     db = await openDB<ShoppingListDB>('shopping_list_manager', SCHEMA_VERSION, {
-      upgrade(db) {
-        if (!db.objectStoreNames.contains('lists')) {
-          db.createObjectStore('lists', { keyPath: 'id' });
+      upgrade(database) {
+        if (!database.objectStoreNames.contains('lists')) {
+          database.createObjectStore('lists', { keyPath: 'id' });
         }
-        if (!db.objectStoreNames.contains('sync_queue')) {
-          db.createObjectStore('sync_queue', { keyPath: 'id', autoIncrement: true });
+        if (!database.objectStoreNames.contains('sync_queue')) {
+          database.createObjectStore('sync_queue', { keyPath: 'id', autoIncrement: true });
         }
-        if (!db.objectStoreNames.contains('metadata')) {
-          db.createObjectStore('metadata', { keyPath: 'key' });
+        if (!database.objectStoreNames.contains('metadata')) {
+          database.createObjectStore('metadata', { keyPath: 'key' });
         }
+      },
+      blocking() {
+        // Another connection (or DevTools) is trying to upgrade/delete the DB.
+        // Release our handle so we don't block it and reconnect on the next call.
+        db?.close();
+        db = null;
+      },
+      terminated() {
+        // The connection was closed out from under us (DB deleted in DevTools,
+        // storage eviction, etc). Drop the stale handle so the next call reopens
+        // instead of aborting every transaction until a page reload.
+        db = null;
       },
     });
 
