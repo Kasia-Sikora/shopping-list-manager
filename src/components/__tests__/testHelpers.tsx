@@ -5,7 +5,7 @@ export const elements = {
   getTitleEl: (id?: string) => within(elements.getCard(id)).queryByPlaceholderText('Tytuł...'),
   getListItemTextarea: (id?: string) =>
     within(elements.getCard(id)).getAllByPlaceholderText('Utwórz listę...') as unknown as HTMLTextAreaElement[],
-  getAddElButton: (id?: string) => within(elements.getCard(id)).getByRole('button', { name: '+ Element listy' }),
+  getAddElButton: (id?: string) => within(elements.getCard(id)).getByRole('button', { name: 'Element listy' }),
   getDeleteButton: (index: number = 0, id?: string) => {
     const listElement = within(elements.getCard(id)).getAllByPlaceholderText('Utwórz listę...')?.[index]?.parentElement?.parentElement
     if (listElement) {

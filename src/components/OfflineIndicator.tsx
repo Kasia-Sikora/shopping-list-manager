@@ -1,34 +1,44 @@
 import { useNetworkStatus } from "../hooks/useNetworkStatus"
 import { setMetadata } from "../services/indexedDB"
-import error from '../assets/error.svg'
-import { useCallback, useEffect } from "react"
-import type { SyncStatus } from "../services/interfaces"
+import { useCallback, useEffect, type ReactElement } from "react"
 import { useSyncStore } from "../stores/store"
 import { syncEngine } from "../services/syncEngine"
 import { SYNC_DELAY } from "../consts"
+import OfflineIcon from '../assets/offline.svg?react'
+import SyncingIcon from '../assets/syncing.svg?react';
+import SyncedIcon from '../assets/synced.svg?react';
+import PendingIcon from '../assets/pending.svg?react'
+import FailedIcon from '../assets/failed.svg?react'
+
+type SyncState = 'failed' | 'pending' | 'syncing' | 'synced'
 
 type StatusIndicator = {
-  status: 'failed' | 'pending' | 'syncing' | 'synced',
-  color: string,
+  status: SyncState,
   message: string,
-  count?: number
+  statusIcon: ReactElement
+}
+
+const PILL_STYLE: Record<SyncState, { background: string; color: string }> = {
+  synced: { background: 'var(--sync-synced-bg)', color: 'var(--sync-synced-fg)' },
+  syncing: { background: 'var(--sync-syncing-bg)', color: 'var(--sync-syncing-fg)' },
+  pending: { background: 'var(--sync-pending-bg)', color: 'var(--sync-pending-fg)' },
+  failed: { background: 'var(--sync-failed-bg)', color: 'var(--sync-failed-fg)' },
 }
 
 export const OfflineIndicator = () => {
   const { isOnline } = useNetworkStatus()
   const { syncStatus, pendingChangesCount, setIsOnline } = useSyncStore()
 
-
   const getStatus = useCallback((): StatusIndicator => {
     switch (syncStatus) {
       case 'failed':
-        return { status: "failed", color: 'bg-red-600', message: "Sync Failed" }
+        return { status: "failed", message: "Sync Failed", statusIcon: <FailedIcon /> }
       case 'pending':
-        return { status: "pending", color: 'bg-slate-500', message: `${pendingChangesCount} pending changes`, count: pendingChangesCount ?? 0 }
+        return { status: "pending", message: `${pendingChangesCount} pending changes`, statusIcon: <PendingIcon /> }
       case 'syncing':
-        return { status: "syncing", color: 'bg-amber-600', message: "Syncing..." }
+        return { status: "syncing", message: "Syncing...", statusIcon: <SyncingIcon className="animate-spin"/> }
       default:
-        return { status: 'synced', color: 'bg-lime-600', message: "Synced" }
+        return { status: 'synced', message: "Synced", statusIcon: <SyncedIcon /> }
     }
   }, [pendingChangesCount, syncStatus])
 
@@ -44,55 +54,38 @@ export const OfflineIndicator = () => {
   }, [isOnline, setIsOnline])
 
   useEffect(() => {
-  if (!isOnline) return;
-  
-  const retryInterval = setInterval(() => {
-    syncEngine.syncChanges(); 
-  }, SYNC_DELAY);
-  
-  return () => clearInterval(retryInterval);
-}, [isOnline]);
+    if (!isOnline) return;
 
-  const getShadow = (status: SyncStatus) => {
-    if (!status) return;
+    const retryInterval = setInterval(() => {
+      syncEngine.syncChanges();
+    }, SYNC_DELAY);
 
-    switch (status) {
-      case 'failed':
-        return `0 0 2px rgb(255,255,255),
-            0 0 2px 2px rgb(227,165,168),
-            0 0 10px 5px rgb(231,0,11)`;
-      case 'pending':
-        return `0 0 2px rgb(255,255,255),
-            0 0 2px 2px rgb(170,176,188),
-            0 0 10px 5px rgb(106,114,130)`;
-      case 'syncing':
-        return `0 0 2px rgb(255,255,255),
-            0 0 2px 2px rgb(247,173,141),
-            0 0 10px 5px rgb(245,73,0)`;
-      case 'synced':
-        return `0 0 2px rgb(255,255,255),
-            0 0 2px 2px rgb(165,228,82),
-            0 0 10px 5px rgb(94,165,0)`
-    }
+    return () => clearInterval(retryInterval);
+  }, [isOnline]);
+
+  if (!isOnline) {
+    return (
+      <div
+        role="status"
+        className="fixed top-0 left-0 z-10 flex w-full items-center justify-center gap-2 px-3 py-1 text-sm"
+        style={{ background: 'var(--sync-pending-bg)', color: 'var(--sync-pending-fg)' }}
+      >
+        <OfflineIcon />  Working Offline - Changes will sync when back online
+      </div>
+    )
   }
 
   const status = getStatus()
 
-  const bulbStyle = {
-    boxShadow: status ? getShadow(status.status) : 'none'
-  }
-
-  return isOnline ?
-    <div>
-      {status ?
-        <div className="flex gap-2 items-center">
-          <p className="text-xs text-gray-600">{status.message}</p>
-          <div className={`w-4 h-4 rounded-full ${status.color}`} style={bulbStyle} />
-        </div>
-        : <div className={'w-4 h-4 rounded-full bg-slate-400'} />
-      }
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold border border-border"
+      style={PILL_STYLE[status.status]}
+    >
+      {status.statusIcon}
+      {status.message}
     </div>
-    : (
-      <div className="fixed top-0 left-0 flex gap-2 bg-red-900/70 w-full px-3 py-1 text-sm italic justify-center z-10"><img src={error} role="presentation" height={16} width={16} /> Working Offline - Changes will sync when back online</div>
-    )
+  )
 }

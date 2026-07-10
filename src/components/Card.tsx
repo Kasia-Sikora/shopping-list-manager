@@ -155,12 +155,12 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
     <div
       ref={cardRef}
       onClick={handleEdit}
-      className={`${editedList ? 'w-75' : 'min-w-75'} border-t border-mist-300 shadow-md shadow-shadow flex flex-col align-baseline gap-2 height-10 rounded-lg p-4 relative ${editedList ? 'pb-8' : 'pb-4'} ${!editedList ? 'max-w-3xl m-auto' : ''} ${styles} ${isDragging && 'bg-background'}`}
+      className={`${editedList ? 'w-75' : 'min-w-75'} border border-border shadow-card flex flex-col align-baseline gap-2 height-10 rounded-2xl p-4 relative bg-card ${editedList ? 'pb-8' : 'pb-4'} ${!editedList ? 'max-w-3xl m-auto' : ''} ${styles} ${isDragging && 'bg-background'}`}
       data-id={cardDataId}
       data-testid={cardDataId}
     >
       {editedList && <EditIndicator id={editedList.id} isEdit={editingCardId === cardId} />}
-      {(isSaving && editingCardId === cardId) && <div className='absolute right-2 top-2  w-6 aspect-square rounded-full border-6 border-primary border-solid border-r-accent animate-spin'></div>}
+      {(isSaving && editingCardId === cardId) && <div className='absolute right-2 top-2  w-6 aspect-square rounded-full border-5 border-primary border-solid border-r-accent animate-spin'></div>}
       <CardContent
         editedList={currentData}
         cardRef={cardRef}

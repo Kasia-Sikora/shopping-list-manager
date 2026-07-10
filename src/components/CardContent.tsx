@@ -140,14 +140,14 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
         <div className="flex flex-col align-baseline gap-2">
           {editingCardId === cardId ? (
             <textarea
-              className={`pb-2 text-2xl font-bold border-0 text-secondary resize-none overflow-hidden field-sizing-content ${(editingCardId === cardId || editedList) ? '' : 'hidden'}`}
+              className={`pb-2 text-2xl font-semibold border-0 text-secondary resize-none overflow-hidden field-sizing-content ${(editingCardId === cardId || editedList) ? '' : 'hidden'}`}
               value={editedList?.title || ''}
               onChange={(e) => actions.update({ title: e.target?.value })}
               placeholder="Tytuł..."
               name='title'
             />
           ) : (
-            cardId !== EMPTY_CARD_ID && <h2 className="pb-2 text-2xl wrap-break-word font-bold border-0 text-secondary">{editedList.title || "Untitled"}</h2>
+            cardId !== EMPTY_CARD_ID && <h2 className="pb-2 text-2xl wrap-break-word font-semibold border-0 text-secondary">{editedList.title || "Untitled"}</h2>
           )}
           {uncheckedItems.length > 0 && (
             <ListOfItems
@@ -162,7 +162,7 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
           {(editingCardId === cardId || cardId !== EMPTY_CARD_ID) && <AddListItemButton handleCreateNewLine={handleCreateNewLine} />}
           {doneTaskQuantity > 0 && (
             <>
-              <div className="border-t border-primary w-full" />
+              <div className="border-t border-primary/20 w-full" />
               <ChevronButton toggle={toggleExpand} contentExpanded={contentExpanded} quantity={doneTaskQuantity} />
               {contentExpanded && (
                 <ListOfItems
