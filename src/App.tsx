@@ -3,7 +3,7 @@ import Card from './components/Card';
 import { DragDropProvider, useDroppable } from '@dnd-kit/react';
 import { DEFAULT_VALUES, useStore, useSyncStore } from './stores/store';
 import ThemeToggle from './components/atoms/ThemeToggle';
-import { dbActions, sortByListOrder, sortListContent } from './utils/storeUtils';
+import { dbActions, rebuildListOrder, sortByListOrder, sortListContent } from './utils/storeUtils';
 import { appGuards, EMPTY_CARD_ID } from './consts';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import * as db from './services/indexedDB';
@@ -28,15 +28,15 @@ const App = () => {
           console.error('Pull-on-init failed; falling back to local data', e)
         }
       }
-      const lists = await db.getLists()
+      const currentIndexDBLists = await db.getLists()
       if (listOrder?.value && Array.isArray(listOrder.value)) {
-        const orderedLists = sortByListOrder(listOrder.value as string[], lists)
+        const orderedLists = sortByListOrder(listOrder.value as string[], currentIndexDBLists)
         setLists(orderedLists);
       } else {
-        setLists(lists);
+        setLists(currentIndexDBLists);
       }
 
-      if ((!lists || !lists.length) && !appGuards.consentAskCount) {
+      if (!currentIndexDBLists?.length && !appGuards.consentAskCount) {
         const consent = window.confirm('Załadować testowe dane?')
         appGuards.addConsentAskCount()
         if (consent) {
@@ -51,16 +51,22 @@ const App = () => {
           }
         }
       }
-      else if (lists) {
+      else if (currentIndexDBLists) {
         if (listOrder?.value && Array.isArray(listOrder.value)) {
-          const orderedLists = sortByListOrder(listOrder.value as string[], lists)
-          if (orderedLists?.length && orderedLists.length === lists.length) {
+          const orderedLists = sortByListOrder(listOrder.value as string[], currentIndexDBLists)
+          if (orderedLists?.length && orderedLists.length === currentIndexDBLists.length) {
             setLists(sortListContent({ state: { lists: orderedLists } }))
           } else {
-            throw Error('indexedDB lists differs from metadata')
+            console.error('indexedDB lists differs from metadata. List rebuild')
+            const newListOrder = rebuildListOrder(listOrder.value, currentIndexDBLists)
+            await db.setMetadata('listOrder', newListOrder)
+            if (newListOrder.length) {
+              const orderedLists = sortByListOrder(newListOrder, currentIndexDBLists)
+              setLists(sortListContent({ state: { lists: orderedLists } }))
+            }
           }
         } else {
-          setLists(sortListContent({ state: { lists: lists } }))
+          setLists(sortListContent({ state: { lists: currentIndexDBLists } }))
         }
       }
 
