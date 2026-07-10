@@ -55,7 +55,22 @@ export const dbActions = async (params: DbAction) => {
 };
 
 export const sortByListOrder = (list: string[], dbLists: List[]): List[] => {
-  if(!list) return []
+  if (!list) return [];
   const orderedLists = list.map((id) => dbLists.find((list) => list.id === id)).filter((item) => !!item);
   return orderedLists;
+};
+
+export const rebuildListOrder = (listOrder: string[], dbLists: List[]): string[] => {
+  if (!listOrder) return [];
+  const rebuildListOrder: string[] = [];
+  const remoteById = new Map(dbLists.map((r) => [r.id, r]));
+  const allIds = new Set([...listOrder, ...remoteById.keys()]);
+  for (const id of allIds) {
+    const remote = remoteById.get(id);
+
+    if (remote) {
+      rebuildListOrder.push(remote.id);
+    }
+  }
+  return rebuildListOrder
 };

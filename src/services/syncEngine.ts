@@ -44,7 +44,7 @@ export const syncEngine = {
         promise = apiService.deleteList(action.data.id);
         break;
       default:
-        throw Error('Missing action in upload');
+        throw new Error('Missing action in upload');
     }
 
     try {
@@ -64,7 +64,6 @@ export const syncEngine = {
       setTimeout(async () => {
         await syncEngine._uploadAction(action);
       }, RETRY_BREAK * action.retryCount);
-      return;
     } else {
       await updateQueueItemStatus(action.id, 'failed', action.retryCount);
       await updateSyncState();
@@ -75,15 +74,23 @@ export const syncEngine = {
     const localById = new Map(local.map((l) => [l.id, l]));
     const remoteById = new Map(remote.map((r) => [r.id, r]));
     const allIds = new Set([...localById.keys(), ...remoteById.keys()]);
+    const pendingOrFailedItems = await getPendingOrFailedItems();
 
     for (const id of allIds) {
       const local = localById.get(id);
       const remote = remoteById.get(id);
+      const hasPendingDelete  = pendingOrFailedItems.some(
+        (item) => item.action === 'delete' && id === item.listId
+      );
 
-      if (local && remote) {
-        const winner = resolveConflict(local, remote);
-        if (winner === remote && winner !== local) await updateList(winner);
-      } else if (remote) await updateList(remote);
+      if (!hasPendingDelete) {
+        if (local && remote) {
+          const winner = resolveConflict(local, remote);
+          if (winner === remote && winner !== local) {
+            await updateList(winner);
+          }
+        } else if (remote) await updateList(remote);
+      }
     }
   },
 };
