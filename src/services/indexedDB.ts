@@ -138,12 +138,6 @@ export const getPendingOrFailedItems = async () => {
   return store.filter((item) => item.status === 'pending' || item.status === 'failed');
 };
 
-export const getAreAllItemsSynced = async () => {
-  const database = await getDb();
-  const store = (await database.getAll('sync_queue')) as SyncQueueWithIdValue[];
-  return !!store.length && store.every((item) => item.status === 'synced');
-};
-
 export const addToQueue = async (params: DbAction) => {
   try {
     const database = await getDb();
@@ -181,11 +175,6 @@ export const updateQueueItemStatus = async (id: number, status: SyncStatus, retr
 export const removeFromQueue = async (id: number) => {
   const database = await getDb();
   await database.delete('sync_queue', id);
-};
-
-export const clearQueue = async () => {
-  const database = await getDb();
-  await database.clear('sync_queue');
 };
 
 export function getMetadata(key: 'listOrder'): Promise<{ key: 'listOrder'; value: string[] } | undefined>;

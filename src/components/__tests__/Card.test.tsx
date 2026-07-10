@@ -72,4 +72,4 @@ const getEditIndicator = (listId: string = exampleItem.id) => screen.queryByTest
 const getListTextarea = (itemId: string = exampleItem.id) =>
   screen.queryByTestId(`card-${itemId}-textarea`) as unknown as HTMLTextAreaElement;
 const getAddElemButton = (itemId: string = exampleItem.id) =>
-  within(getCard(itemId)!).queryByRole('button', { name: '+ Element listy' });
+  within(getCard(itemId)!).queryByRole('button', { name: 'Element listy' });

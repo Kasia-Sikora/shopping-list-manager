@@ -76,8 +76,8 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
     if (el) el.focus();
   }
 
-  const saveOrUpdateData = useCallback(async (data: List) => {
-    setIsSaving(true)
+  const saveOrUpdateData = useCallback(async (data: List, showLoader: boolean = false) => {
+    if (showLoader) setIsSaving(true)
     const isItemExists = useStore.getState().lists.some(l => l.id === data.id);
     if (cardId === EMPTY_CARD_ID && !isItemExists) {
       const newItem = {
@@ -90,7 +90,7 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
       } catch (error) {
         console.error('Failed to save list:', error);
       } finally {
-        setIsSaving(false)
+        if (showLoader) setIsSaving(false)
       }
     } else {
       const updatedItem = {
@@ -104,7 +104,7 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
         console.error('Failed to update list:', error);
       }
       finally {
-        setIsSaving(false)
+        if (showLoader) setIsSaving(false)
       }
     }
   }, [addList, cardId, setIsSaving, updateList])
@@ -125,7 +125,7 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
       await saveOrUpdateData(dataToSync)
     },
     save: async (dataToSave: List) => {
-      await saveOrUpdateData(dataToSave)
+      await saveOrUpdateData(dataToSave, true)
       handleResetLocalState();
     },
     resetLocalState: handleResetLocalState
@@ -146,12 +146,12 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
     <div
       ref={cardRef}
       onClick={handleEdit}
-      className={`${editedList ? 'w-75' : 'min-w-75'} border-t border-mist-300 shadow-md shadow-shadow flex flex-col align-baseline gap-2 height-10 rounded-lg p-4 relative ${editedList ? 'pb-8' : 'pb-4'} ${!editedList ? 'max-w-3xl m-auto' : ''} ${styles} ${isDragging && 'bg-background'}`}
+      className={`${editedList ? 'w-75' : 'min-w-75'} border border-border shadow-card flex flex-col align-baseline gap-2 height-10 rounded-2xl p-4 relative bg-card ${editedList ? 'pb-8' : 'pb-4'} ${!editedList ? 'max-w-3xl m-auto' : ''} ${styles} ${isDragging && 'bg-background'}`}
       data-id={cardDataId}
       data-testid={cardDataId}
     >
       {editedList && <EditIndicator id={editedList.id} isEdit={editingCardId === cardId} />}
-      {isSaving && <div className='absolute right-2 top-2  w-6 aspect-square rounded-full border-6 border-primary border-solid border-r-accent animate-spin'></div>}
+      {(isSaving && editingCardId === cardId) && <div className='absolute right-2 top-2  w-6 aspect-square rounded-full border-5 border-primary border-solid border-r-accent animate-spin'></div>}
       <CardContent
         editedList={currentData}
         cardRef={cardRef}

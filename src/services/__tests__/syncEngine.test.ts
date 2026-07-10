@@ -146,15 +146,14 @@ describe('syncEngine — syncChanges', () => {
 });
 
 describe('syncEngine — _uploadAction', () => {
-  it('sets the item status to "synced" on a successful upload', async () => {
+  it('removes the item from the queue on a successful upload', async () => {
     await db.addToQueue({ action: 'create', data: makeList('a') });
     const [item] = await db.getSyncQueue();
     vi.mocked(apiService.createList).mockResolvedValue(makeList('a'));
 
     await syncEngine._uploadAction(item);
 
-    const [updated] = await db.getSyncQueue();
-    expect(updated.status).toBe('synced');
+    await expect(db.getSyncQueue()).resolves.toHaveLength(0);
   });
 
   it('writes lastSync metadata on success', async () => {
@@ -164,8 +163,6 @@ describe('syncEngine — _uploadAction', () => {
 
     await syncEngine._uploadAction(item);
 
-    const [updated] = await db.getSyncQueue();
-    expect(updated.status).toBe('synced');
     await expect(db.getMetadata('lastSync')).resolves.not.toBeFalsy();
   });
 
@@ -245,7 +242,7 @@ describe('syncEngine — _retry (backoff)', () => {
 
   it('retryCount increments before scheduling a retry', async () => {
     await db.addToQueue({ action: 'create', data: makeList('a') });
-    const [item] = await db.getSyncQueue(); 
+    const [item] = await db.getSyncQueue();
     vi.mocked(apiService.createList).mockRejectedValue(new Error('network down'));
     const retrySpy = vi.spyOn(syncEngine, '_retry').mockResolvedValue(undefined);
 
@@ -274,17 +271,17 @@ describe('syncEngine — reconcileLists', () => {
 
   it('on conflict, writes the winner when remote is newer', async () => {
     const olderList = makeList('1', { updatedAt: '2004-01-01T00:00:00Z', title: 'local' });
-    const newerList = makeList('1', {updatedAt: '2005-01-01T00:00:00Z', title: 'remote'});
+    const newerList = makeList('1', { updatedAt: '2005-01-01T00:00:00Z', title: 'remote' });
     await syncEngine.reconcileLists([olderList], [newerList]);
 
     const pulled = await db.getList('1');
     expect(pulled).toEqual(newerList);
-    expect(pulled?.title).toEqual('remote')
+    expect(pulled?.title).toEqual('remote');
   });
 
   it('on conflict, keeps local (no write) when local is newer', async () => {
-    const olderList = makeList('1', { updatedAt: '2004-01-01T00:00:00Z' , title: 'remote'});
-    const newerList = makeList('1', {updatedAt: '2005-01-01T00:00:00Z', title: 'local'});
+    const olderList = makeList('1', { updatedAt: '2004-01-01T00:00:00Z', title: 'remote' });
+    const newerList = makeList('1', { updatedAt: '2005-01-01T00:00:00Z', title: 'local' });
     await syncEngine.reconcileLists([newerList], [olderList]);
 
     const pulled = await db.getList('1');

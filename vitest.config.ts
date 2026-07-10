@@ -1,6 +1,8 @@
 import { configDefaults, defineConfig } from 'vitest/config';
+import svgr from 'vite-plugin-svgr';
 
 export default defineConfig({
+  plugins: [svgr()],
   test: {
     globals: true,
     environment: 'jsdom',
@@ -9,7 +11,8 @@ export default defineConfig({
     exclude: [...configDefaults.exclude, '**/node_modules/**', '**/dist/**'],
     coverage: {
       provider: 'v8',
-      exclude: ['__mocks__']
+      reporter: ['text', 'lcov'], // text = CI log summary; lcov = coverage/lcov.info for Codecov
+      exclude: ['__mocks__'],
     },
     setupFiles: ['vitest-localstorage-mock', '.configs/tests.setup.ts'],
   },
