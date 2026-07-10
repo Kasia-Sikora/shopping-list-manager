@@ -4,41 +4,88 @@
   --color-background: var(--background);
   --color-primary: var(--text-primary);
   --color-secondary: var(--text-secondary);
+  --color-muted: var(--muted);
+  --color-muted-graphic: var(--muted-graphic);
+  --color-card: var(--card);
+  --color-board: var(--board);
+  --color-border: var(--border);
+  --color-on-accent: var(--on-accent);
   --color-accent: var(--accent);
   --color-shadow: var(--shadow);
   --color-active: var(--active);
   --color-text-active: var(--text-accent);
   --color-menu-bg: var(--menu-bg);
   --color-menu-active: var(--menu-active);
-  --color-drag-item-active: var(--drag-item-active)
+  --color-drag-item-active: var(--drag-item-active);
+  --color-checkbox-bg: var(--checkbox-bg);
+  --shadow-card: var(--shadow-card);
 }
 
 @layer base {
   :root,
   [data-theme='theme-light'] {
     --background: var(--color-orange-100);
-    --text-primary: var(--color-mist-800);
-    --text-secondary: var(--color-amber-800);
-    --accent: var(--color-amber-500);
-    --text-accent: var(--color-amber-900);
-    --shadow: var(--color-mist-500);
-    --active: var(--color-white);
+    --text-primary: var(--color-amber-950); 
+    --text-secondary: var(--color-yellow-800); 
+    --card: var(--color-orange-50);
+    --board: rgb(245, 221, 190);
+    --muted: var(--color-amber-900); 
+    --muted-graphic: var(--color-stone-600);
+    --accent: var(--color-yellow-800);
+    --text-accent: var(--color-yellow-900); 
+    --shadow: var(--color-stone-400); 
+    --active: var(--color-orange-300);
     --menu-bg: var(--color-amber-50);
     --menu-active: var(--color-amber-100);
-    --drag-item-active: var(--color-orange-200)
+    --drag-item-active: var(--color-orange-200); 
+    --border: var(--color-stone-300); 
+    --on-accent: var(--color-stone-900);
+    --checkbox-border: var(--color-stone-500); 
+    --checkbox-bg: var(--color-orange-100);
+    --focus-ring: var(--color-amber-900); 
+
+
+    /* sync status pills — Tailwind status ramps, tint bg + same-hue dark text (all ≥6:1) */
+    --sync-synced-bg: var(--color-green-100);
+    --sync-synced-fg: var(--color-green-800);
+    --sync-syncing-bg: var(--color-orange-50);
+    --sync-syncing-fg: var(--color-amber-800);
+    --sync-pending-bg: var(--color-stone-200);
+    --sync-pending-fg: var(--color-stone-700);
+    --sync-failed-bg: var(--color-red-100);
+    --sync-failed-fg: var(--color-red-800);
   }
 
   [data-theme='theme-dark'] {
-    --background: var(--color-mist-950);
-    --text-primary: var(--color-orange-200);
-    --text-secondary: var(--color-amber-700);
-    --text-accent: var(--color-amber-300);
-    --accent: var(--color-amber-500);
-    --shadow: var(--color-mist-400);
-    --active: var(--color-mist-500);
-    --menu-bg: var(--color-mist-900);
-    --menu-active: var(--color-mist-800);
-    --drag-item-active: var(--color-mist-900)
+    --background: var(--color-stone-950);
+    --text-primary: var(--color-orange-50); 
+    --text-secondary: var(--color-amber-500);
+    --card: var(--color-stone-800);
+    --board: var(--color-stone-900);
+    --muted: var(--color-stone-400); 
+    --muted-graphic: var(--color-stone-700);
+    --accent: var(--color-amber-400); 
+    --text-accent: var(--color-amber-400); 
+    --shadow: var(--color-stone-700);
+    --active: var(--color-amber-900); 
+    --menu-bg: var(--color-stone-800);
+    --menu-active: var(--color-stone-700);
+    --drag-item-active: var(--color-stone-800); 
+    --border: var(--color-stone-700); 
+    --on-accent: var(--color-stone-900);
+    --checkbox-border: var(--color-stone-500); 
+    --checkbox-bg: var(--color-stone-950);
+    --focus-ring: var(--color-amber-300); 
+    --shadow-card: 3px 3px var(--shadow);
+
+    --sync-synced-bg: var(--color-green-950);
+    --sync-synced-fg: var(--color-green-300);
+    --sync-syncing-bg: var(--color-stone-800);
+    --sync-syncing-fg: var(--color-amber-300);
+    --sync-pending-bg: var(--color-stone-800);
+    --sync-pending-fg: var(--color-stone-300);
+    --sync-failed-bg: var(--color-red-950);
+    --sync-failed-fg: var(--color-red-300);
   }
 }
 
@@ -57,15 +104,16 @@ li {
 }
 
 li:has(textarea:focus) {
-  border-top: 1px solid var(--color-shadow);
-  border-bottom: 1px solid var(--color-shadow);
+  border-top: 1px solid var(--focus-ring);
+  border-bottom: 1px solid var(--focus-ring);
 }
 
 input[type='checkbox'] {
   -webkit-appearance: none;
   appearance: none;
-  color: #6a7282;
-  border: 1px solid currentColor;
+  color: var(--checkbox-border);
+  background-color: var(--checkbox-bg);
+  border: 2px solid currentColor;
   transform: translateY(-0.075em);
   display: grid;
   place-content: center;
@@ -73,7 +121,7 @@ input[type='checkbox'] {
 
 input[type='checkbox']:hover,
 input[type='checkbox']:focus {
-  border: 2px solid currentColor;
+  border: 2px solid var(--accent);
 }
 
 input[type='checkbox']::before {
@@ -81,7 +129,6 @@ input[type='checkbox']::before {
   width: 12px;
   height: 12px;
   transform: scale(0);
-  background-color: var(--color-accent);
   border-radius: 2px;
 }
 
@@ -116,12 +163,12 @@ input[type='checkbox']:focus ~ button:last-of-type {
 }
 
 .hamburger-menu {
-  --c: #705567;
+  --c: var(--text-primary);
   height: 16px;
   aspect-ratio: 1;
   background:
-    radial-gradient(closest-side at 92.5% 25%, var(--c) 9%, #0000 11%) 0 0/40% 60%,
-    linear-gradient(var(--c) 50%, #0000 0) top/80% 40% repeat-y;
+    radial-gradient(closest-side at 92.5% 25%, var(--c) 9%, var(--background) 11%) 0 0/40% 60%,
+    linear-gradient(var(--c) 50%, var(--background) 0) top/80% 40% repeat-y;
 }
 
 .indent {

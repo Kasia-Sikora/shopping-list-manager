@@ -6,6 +6,7 @@ import { DELETE_BUTTON_W_GAP_SIZE, INDENT_VALUE } from '../consts';
 import { useActiveCardIdStore } from '../stores/store';
 import { useDragOperation } from '@dnd-kit/react';
 import { useMemo, memo, useState } from 'react';
+import DragHandleIcon from '../assets/dragHandle.svg?react' 
 
 function DraggingIndicator() {
   const { source } = useDragOperation();
@@ -98,8 +99,10 @@ const ListElem = ({
           type="button"
           aria-label={`Drag to reorder: ${item.value || 'item'}`}
           aria-roledescription="drag handle"
-          className='cursor-move size-5 rounded-sm bg-primary/20 shrink-0 flex justify-center text-primary hover:bg-primary/30 after:content-["⣶"] after:-top-1.5 after:relative'
-        />
+          className='relative top-1.5 cursor-move size-5 rounded-sm bg-primary/20 shrink-0 flex justify-center hover:bg-primary/30'
+        >
+          <DragHandleIcon className='relative -top-0.5'/>
+        </button>
       )}
       <input name="id" value={item.id} type="hidden" />
       <div role="group" aria-labelledby={`item-${item.id}`} className="grow overflow-hidden whitespace-nowrap flex items-baseline gap-3">
@@ -107,7 +110,7 @@ const ListElem = ({
           type="checkbox"
           data-testid={item?.id ? `list-item-${item?.id}-checkbox` : ''}
           checked={item?.checked}
-          className="w-5 h-5 shrink-0 rounded-sm cursor-pointer"
+          className="w-5 h-5 shrink-0 rounded-sm cursor-pointer before:bg-accent"
           onChange={(e) => saveValue('checked', e.target.checked)}
           aria-label={`Done: ${item.value || 'unnamed item'}`}
         />
@@ -115,7 +118,7 @@ const ListElem = ({
           id={`item-${item.id}`}
           value={tempValue}
           name={`${item.id}.value`}
-          className={`${item?.checked ? 'line-through text-gray-600' : ''} transition-all border-0 grow text-wrap bg-transparent focus:ring-0 resize-none field-sizing-content ${isOverlay ? 'overflow-hidden text-nowrap max-h-6 field-sizing-fixed' : ''}`}
+          className={`${item?.checked ? 'line-through text-muted' : ''} transition-all border-0 grow text-wrap bg-transparent placeholder:text-primary/50 focus:ring-0 resize-none field-sizing-content ${isOverlay ? 'overflow-hidden text-nowrap max-h-6 field-sizing-fixed' : ''}`}
           data-testid={listId ? `card-${listId}-textarea` : 'card-empty-textarea'}
           style={{
             maxWidth: `calc(100% - ${DELETE_BUTTON_W_GAP_SIZE + INDENT_VALUE}px)`,

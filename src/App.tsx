@@ -10,9 +10,11 @@ import * as db from './services/indexedDB';
 import { syncEngine } from './services/syncEngine';
 import { isSortable } from '@dnd-kit/react/sortable';
 import { apiService } from './services/apiService';
+import CartIcon from './assets/cart.svg?react'
 
 const App = () => {
   const { lists, setLists, moveList } = useStore()
+  const { isOnline } = useSyncStore()
 
   useEffect(() => {
     const getIndexDBLists = async () => {
@@ -77,12 +79,12 @@ const App = () => {
   const { ref } = useDroppable({ id: 'board' })
 
   return (
-    <div className='text-primary placeholder:text-primary'>
-      <header>
-        <h1 className="sr-only">Shopping List Manager</h1>
-        <div className='flex justify-between'>
-          <ThemeToggle />
+    <div className={`text-primary placeholder:text-primary/50 ${!isOnline ? 'pt-5' : ''}`}>
+      <header className='flex justify-between items-center'>
+        <h1 className='flex gap-2 text-3xl font-bold text-accent items-center'><CartIcon className='size-14'/>Listy zakupów</h1>
+        <div className='flex justify-end gap-3 transition-all duration-300'>
           <OfflineIndicator />
+          <ThemeToggle />
         </div>
       </header>
       <main>
@@ -120,7 +122,7 @@ const App = () => {
             }
           }}
         >
-          <div ref={ref} className={`${active ? 'bg-active/50 outline-2 outline-active outline-dashed' : ''}  rounded-sm w-full columns-1 sm:columns-2 lg:columns-4 my-10 gap-4`}>
+          <div ref={ref} className={`${active ? 'bg-active/50 outline-2 outline-active outline-dashed' : ''} bg-board p-7 rounded-2xl w-full columns-1 sm:columns-2 lg:columns-5 my-10 gap-4`}>
             {lists?.map((list, index) => {
               return <Card key={`${list.id}-${index}`} index={index} editedList={list} styles={'mb-4 break-inside-avoid'} />;
             })}

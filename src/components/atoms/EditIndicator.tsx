@@ -1,3 +1,5 @@
+import Tick from '../../assets/tick.svg?react'
+
 type EditIndicator = {
   id: string;
   isEdit: boolean;
@@ -11,8 +13,8 @@ const EditIndicator = ({ id, isEdit }: EditIndicator) => {
       aria-hidden={`${isEdit ? 'false' : 'true'}`}
     >
       <div className={`absolute -top-1 -left-2.5 size-8 rounded-full bg-accent `} />
-      <div className={`absolute -top-2 -left-3.5 size-8 rounded-full border-3 border-mist-700 `} />
-      <div className={`tick absolute -top-0.5 -left-0.5 w-2 h-4 inset-shadow-[-3px_-3px_#161b1d] rotate-45 `} />
+      <div className={`absolute -top-1 -left-2.5 size-8 rounded-full border-3 border-card outline-2 outline-secondary `} />
+      <Tick className='absolute text-card -left-1.5'/>
     </div>
   );
 };
