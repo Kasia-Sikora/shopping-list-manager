@@ -32,7 +32,7 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
     setContentExpanded((expanded) => !expanded);
   };
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (!editingCardId) return;
     const activeEl = document.activeElement
     if (activeEl instanceof HTMLElement) activeEl.blur()
@@ -42,7 +42,7 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
     } else {
       removeList(data.id)
       try {
-        dbActions({ action: "delete", data: { id: data.id } })
+        await dbActions({ action: "delete", data: { id: data.id } })
       } catch (error) {
         console.error('Failed to delete list:', error);
       }
@@ -78,7 +78,7 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
       if (e.nativeEvent instanceof KeyboardEvent && target) {
         const targetId = target.split('.')[0];
         indexOfActiveEl = editedList.content.findIndex(item => item.id === targetId)
-        itemDepth = parseInt(e.target.dataset.depth ?? '0')
+        itemDepth = Number.parseInt(e.target.dataset.depth ?? '0')
       } else {
         indexOfActiveEl = editedList.content.length - 1;
       }

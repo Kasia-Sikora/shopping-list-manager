@@ -1,3 +1,12 @@
+export class HttpError extends Error {
+  public status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = 'HttpError';
+    this.status = status
+  }
+}
+
 export const fetchApi = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
   const defaultHeaders = {
     'Content-Type': 'application/json',
@@ -15,7 +24,7 @@ export const fetchApi = async <T>(url: string, options: RequestInit = {}): Promi
     } catch {
       /* no body */
     }
-    throw new Error(`HTTP ${response.status}: ${detail}`);
+    throw new HttpError(response.status, `HTTP ${response.status}: ${detail}`);
   }
 
   return response.json() as Promise<T>;

@@ -126,7 +126,7 @@ describe('<App>', () => {
     await userEvent.keyboard('{enter}{enter}{enter}{enter}{enter}{enter}{enter}');
     expect(getListItemTextarea()).toHaveLength(8);
     await userEvent.keyboard('{Shift>}{Enter}{/Shift}');
-    expect(getListItemTextarea()).toHaveLength(1);
+    await waitFor(() => expect(getListItemTextarea()).toHaveLength(1));
     expect(getListItemTextarea()[0].value).toEqual('');
   });
 });

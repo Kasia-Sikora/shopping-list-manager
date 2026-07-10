@@ -1,6 +1,6 @@
 import { BASE_URL } from '../consts';
 import type { List } from '../interfaces';
-import { fetchApi } from './apiClient';
+import { fetchApi, HttpError } from './apiClient';
 
 export const apiService = {
   async getAllLists(): Promise<List[]> {
@@ -16,6 +16,13 @@ export const apiService = {
   },
 
   async deleteList(id: string): Promise<{ id: string }> {
-    return await fetchApi(`${BASE_URL}/lists/${id}`, { method: 'DELETE' });
+    try {
+      return await fetchApi(`${BASE_URL}/lists/${id}`, { method: 'DELETE' });
+    } catch (error) {
+      if (error instanceof HttpError && (error.status === 404 || error.status === 410)) {
+        return { id };
+      }
+      throw error;
+    }
   },
 };
