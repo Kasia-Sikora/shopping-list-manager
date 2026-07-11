@@ -18,6 +18,10 @@ type StatusIndicator = {
   statusIcon: ReactElement
 }
 
+type OfflineIndicator = {
+  loading: boolean
+}
+
 const PILL_STYLE: Record<SyncState, { background: string; color: string }> = {
   synced: { background: 'var(--sync-synced-bg)', color: 'var(--sync-synced-fg)' },
   syncing: { background: 'var(--sync-syncing-bg)', color: 'var(--sync-syncing-fg)' },
@@ -25,7 +29,7 @@ const PILL_STYLE: Record<SyncState, { background: string; color: string }> = {
   failed: { background: 'var(--sync-failed-bg)', color: 'var(--sync-failed-fg)' },
 }
 
-export const OfflineIndicator = () => {
+export const OfflineIndicator = ({loading}: OfflineIndicator) => {
   const { isOnline } = useNetworkStatus()
   const { syncStatus, pendingChangesCount, setIsOnline } = useSyncStore()
 
@@ -36,7 +40,7 @@ export const OfflineIndicator = () => {
       case 'pending':
         return { status: "pending", message: `${pendingChangesCount} pending changes`, statusIcon: <PendingIcon /> }
       case 'syncing':
-        return { status: "syncing", message: "Syncing...", statusIcon: <SyncingIcon className="animate-spin"/> }
+        return { status: "syncing", message: "Syncing...", statusIcon: <SyncingIcon className="animate-spin" /> }
       default:
         return { status: 'synced', message: "Synced", statusIcon: <SyncedIcon /> }
     }
@@ -77,8 +81,9 @@ export const OfflineIndicator = () => {
 
   const status = getStatus()
 
-  return (
-    <div
+  return loading ?
+    <div className="w-23 h-8 bg-loading-items rounded-full animate-pulse" />
+    : <div
       role="status"
       aria-live="polite"
       className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold border border-border"
@@ -87,5 +92,5 @@ export const OfflineIndicator = () => {
       {status.statusIcon}
       {status.message}
     </div>
-  )
+
 }
