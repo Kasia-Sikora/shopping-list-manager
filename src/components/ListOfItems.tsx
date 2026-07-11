@@ -224,7 +224,7 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions, cardData
         )}
       </ul>
       {cardDataId !== `card-${EMPTY_CARD_ID}` ?
-        <DragOverlay style={{ width: 'min-content' }}>
+        <DragOverlay style={{ width: 'min-content', position: 'absolute' }}>
           {/* @dnd-kit's Draggable type doesn't expose index at compile time, though it exists at runtime */}
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any*/}
           {(source: any) => (
@@ -240,7 +240,8 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions, cardData
               isOverlay={true}
             />
           )}
-        </DragOverlay> : null}
+        </DragOverlay>
+        : null}
     </DragDropProvider >
   );
 };

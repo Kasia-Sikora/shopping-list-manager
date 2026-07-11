@@ -99,18 +99,18 @@ const ListElem = ({
           type="button"
           aria-label={`Drag to reorder: ${item.value || 'item'}`}
           aria-roledescription="drag handle"
-          className='relative top-1.5 cursor-move size-5 rounded-sm bg-primary/20 shrink-0 flex justify-center hover:bg-primary/30'
+          className='relative top-1.25 cursor-move size-6 rounded-sm bg-primary/20 shrink-0 flex justify-center hover:bg-primary/30'
         >
-          <DragHandleIcon className='relative -top-0.5'/>
+          <DragHandleIcon />
         </button>
       )}
       <input name="id" value={item.id} type="hidden" />
-      <div role="group" aria-labelledby={`item-${item.id}`} className="grow overflow-hidden whitespace-nowrap flex items-baseline gap-3">
+      <div role="group" aria-labelledby={`item-${item.id}`} className="grow overflow-hidden whitespace-nowrap flex items-baseline gap-3 pt-0.5">
         <input
           type="checkbox"
           data-testid={item?.id ? `list-item-${item?.id}-checkbox` : ''}
           checked={item?.checked}
-          className="w-5 h-5 shrink-0 rounded-sm cursor-pointer before:bg-accent"
+          className="size-6 shrink-0 rounded-sm cursor-pointer before:bg-accent"
           onChange={(e) => saveValue('checked', e.target.checked)}
           aria-label={`Done: ${item.value || 'unnamed item'}`}
         />
