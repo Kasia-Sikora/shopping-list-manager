@@ -24,3 +24,5 @@ export const LOADING_CARDS = [
   { id: 'lc-2', items: 2 },
   { id: 'lc-3', items: 3 },
 ]
+
+export const MAX_RETRIES = 5;

@@ -144,6 +144,12 @@ export const getSyncQueue = async () => {
   return database.getAll('sync_queue') as Promise<SyncQueueWithIdValue[]>;
 };
 
+export const getPendingItems = async () => {
+  const database = await getDb();
+  const store = (await database.getAll('sync_queue')) as SyncQueueWithIdValue[];
+  return store.filter((item) => item.status === 'pending');
+}
+
 export const getPendingOrFailedItems = async () => {
   const database = await getDb();
   const store = (await database.getAll('sync_queue')) as SyncQueueWithIdValue[];

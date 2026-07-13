@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Card from './components/Card';
 import { DragDropProvider, useDroppable } from '@dnd-kit/react';
 import { useStore, useSyncStore } from './stores/store';
+import type { List } from './interfaces';
 import ThemeToggle from './components/atoms/ThemeToggle';
 import { dbActions, rebuildListOrder, sortByListOrder, sortListContent } from './utils/storeUtils';
 import { appGuards, EMPTY_CARD_ID } from './consts';
@@ -21,49 +22,48 @@ const App = () => {
 
   useEffect(() => {
     const getIndexDBLists = async () => {
-      const listOrder = await db.getMetadata('listOrder');
-      const indexedDbLists = await db.getLists()
-      if (useSyncStore.getState().isOnline) {
-        try {
-          const pgDbLists = await apiService.getAllLists()
-          await syncEngine.reconcileLists(indexedDbLists, pgDbLists)
-        } catch (e) {
-          console.error('Pull-on-init failed; falling back to local data', e)
-        } finally {
-          setIsReady(true)
-        }
-      }
-      const currentIndexDBLists = await db.getLists()
-      setIsReady(true)
-      if (listOrder?.value && Array.isArray(listOrder.value)) {
-        const orderedLists = sortByListOrder(listOrder.value as string[], currentIndexDBLists)
-        setLists(orderedLists);
-      } else {
-        setLists(currentIndexDBLists);
-      }
+      try {
+        const listOrder = await db.getMetadata('listOrder')
+        let currentIndexDBLists = await db.getLists()
 
-      if (currentIndexDBLists) {
+        if (useSyncStore.getState().isOnline) {
+          try {
+            const pgDbLists = await apiService.getAllLists()
+            await syncEngine.reconcileLists(currentIndexDBLists, pgDbLists)
+            currentIndexDBLists = await db.getLists()
+          } catch (e) {
+            console.error('Pull-on-init failed; falling back to local data', e)
+          }
+        }
+
+        const schemaVersion = await db.getMetadata('schemaVersion')
+        if (schemaVersion?.value !== db.SCHEMA_VERSION) {
+          await db.setMetadata('schemaVersion', db.SCHEMA_VERSION)
+        }
+
+        let resolvedLists: List[]
         if (listOrder?.value && Array.isArray(listOrder.value)) {
           const orderedLists = sortByListOrder(listOrder.value as string[], currentIndexDBLists)
-          if (orderedLists?.length && orderedLists.length === currentIndexDBLists.length) {
-            setLists(sortListContent({ state: { lists: orderedLists } }))
+
+          if (orderedLists.length === currentIndexDBLists.length) {
+            resolvedLists = sortListContent({ state: { lists: orderedLists } })
           } else {
-            console.error('indexedDB lists differs from metadata. List rebuild')
+            console.error('indexedDB lists differ from metadata; rebuilding list order')
             const newListOrder = rebuildListOrder(listOrder.value, currentIndexDBLists)
             await db.setMetadata('listOrder', newListOrder)
-            if (newListOrder.length) {
-              const orderedLists = sortByListOrder(newListOrder, currentIndexDBLists)
-              setLists(sortListContent({ state: { lists: orderedLists } }))
-            }
+            resolvedLists = sortListContent({
+              state: { lists: sortByListOrder(newListOrder, currentIndexDBLists) },
+            })
           }
         } else {
-          setLists(sortListContent({ state: { lists: currentIndexDBLists } }))
+          resolvedLists = sortListContent({ state: { lists: currentIndexDBLists } })
         }
-      }
 
-      const schemaVersion = await db.getMetadata('schemaVersion')
-      if (schemaVersion?.value !== db.SCHEMA_VERSION) {
-        await db.setMetadata('schemaVersion', db.SCHEMA_VERSION)
+        setLists(resolvedLists)
+      } catch (e) {
+        console.error('App initialization failed', e)
+      } finally {
+        setIsReady(true)
       }
     }
     if (!appGuards.mount) {

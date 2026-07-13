@@ -25,7 +25,7 @@ describe('Card', () => {
     render(<Card emptyCardId={EMPTY_CARD_ID} />);
     expect(getEmptyCardTitleEl()).toBeNull();
     await userEvent.click(getEmptyCard());
-    waitFor(() => expect(getEmptyCardTitleEl()).not.toBeNull());
+    await waitFor(() => expect(getEmptyCardTitleEl()).not.toBeNull());
     expect(getListItem()).not.toBeNull();
   });
 
@@ -63,7 +63,7 @@ describe('Card', () => {
 });
 
 const getEmptyCard = () => screen.getByTestId('card-empty');
-const getEmptyCardTitleEl = () => screen.queryByPlaceholderText('Tytuł');
+const getEmptyCardTitleEl = () => screen.queryByPlaceholderText('Tytuł...');
 
 const getCard = (itemId: string = exampleItem.id) => screen.queryByTestId(`card-${itemId}`);
 const getTitleEl = () => screen.getByRole('heading');

@@ -5,9 +5,10 @@ import { useSyncStore } from '../stores/store';
 import * as db from '../services/indexedDB';
 
 export const calculateQueueStatus = (queue: SyncQueueValue[]) => {
-  if (queue.some((item) => item.status === 'failed')) return 'failed';
   if (queue.some((item) => item.status === 'pending')) return 'pending';
   if (queue.some((item) => item.status === 'syncing')) return 'syncing';
+  if (queue.some((item) => item.status === 'failed')) return 'failed';
+
   return 'synced';
 };
 
@@ -30,7 +31,8 @@ export const updateSyncState = async () => {
   const pendingCount = fullQueue.filter((q) => q.status === 'pending').length;
 
   store.setSyncStatus(overallStatus);
-  store.setPendingChangesCount(pendingCount + failedCount);
+  store.setPendingChangesCount(pendingCount);
+  store.setFailedChangesCount(failedCount);
 };
 
 export const dbActions = async (params: DbAction) => {
@@ -72,5 +74,5 @@ export const rebuildListOrder = (listOrder: string[], dbLists: List[]): string[]
       rebuildListOrder.push(remote.id);
     }
   }
-  return rebuildListOrder
+  return rebuildListOrder;
 };
