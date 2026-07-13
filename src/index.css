@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 
 @theme inline {
+  --font-display: "Plus Jakarta Sans Variable", sans-serif;
   --color-background: var(--background);
   --color-primary: var(--text-primary);
   --color-secondary: var(--text-secondary);
@@ -19,6 +20,7 @@
   --color-drag-item-active: var(--drag-item-active);
   --color-checkbox-bg: var(--checkbox-bg);
   --shadow-card: var(--shadow-card);
+  --color-loading-items: var(--loading-items);
 }
 
 @layer base {
@@ -42,7 +44,9 @@
     --on-accent: var(--color-stone-900);
     --checkbox-border: var(--color-stone-500); 
     --checkbox-bg: var(--color-orange-100);
+    --shadow-card: 3px 3px var(--shadow);
     --focus-ring: var(--color-amber-900); 
+    --loading-items: #ead2a6;
 
 
     /* sync status pills — Tailwind status ramps, tint bg + same-hue dark text (all ≥6:1) */
@@ -77,6 +81,7 @@
     --checkbox-bg: var(--color-stone-950);
     --focus-ring: var(--color-amber-300); 
     --shadow-card: 3px 3px var(--shadow);
+    --loading-items: var(--color-stone-700);
 
     --sync-synced-bg: var(--color-green-950);
     --sync-synced-fg: var(--color-green-300);
@@ -89,8 +94,8 @@
   }
 }
 
-body {
-  padding: 20px;
+body{
+  height: 100%;
 }
 
 input:focus,
