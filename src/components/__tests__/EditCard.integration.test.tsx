@@ -279,9 +279,13 @@ describe('<App>', () => {
     await user.click(getCheckbox('4'));
     await user.click(document.body);
 
-    expect(queryItemsList(true)).toHaveLength(4);
+    await waitFor(() => expect(getEditIndicator()).toHaveAttribute('aria-hidden', 'true'));
+
+    await waitFor(() => {
+      expect(queryItemsList(true)).toHaveLength(4);
+      expect(queryItemsList(false)).not.toBeInTheDocument();
+    });
     expect(queryItemsList(true)?.[0]).toBeVisible();
-    expect(queryItemsList(false)).not.toBeInTheDocument();
     expect(getDoneElemExpandButton()).toHaveTextContent('4 ukończonych elementów');
 
     await user.click(getCheckbox('1'));
@@ -289,8 +293,10 @@ describe('<App>', () => {
     await user.click(getCheckbox('3'));
     await user.click(getCheckbox('4'));
 
-    expect(queryItemsList(true)).not.toBeInTheDocument();
-    expect(queryItemsList(false)).toHaveLength(4);
+    await waitFor(() => {
+      expect(queryItemsList(true)).not.toBeInTheDocument();
+      expect(queryItemsList(false)).toHaveLength(4);
+    });
   });
 
   it('should update element', async () => {
