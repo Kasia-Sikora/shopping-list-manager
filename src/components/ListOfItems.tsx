@@ -106,7 +106,8 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions, cardData
 
         if (source && target && source.id !== target.id) {
           setTree((flattenedItems) => {
-            const offsetLeft = manager.dragOperation.transform.x;
+            const { position } = manager.dragOperation;
+            const offsetLeft = position.current.x - position.initial.x;
             const dragDepth = getDragDepth(offsetLeft, INDENT_VALUE);
             const projectedDepth = initialDepth.current + dragDepth;
 
@@ -147,7 +148,8 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions, cardData
             }
           }
 
-          const offsetLeft = manager.dragOperation.transform.x;
+          const { position } = manager.dragOperation;
+          const offsetLeft = position.current.x - position.initial.x;
           const dragDepth = getDragDepth(offsetLeft, INDENT_VALUE);
 
           const projectedDepth =
