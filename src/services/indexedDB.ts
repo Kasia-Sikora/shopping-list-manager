@@ -159,6 +159,31 @@ export const getPendingOrFailedItems = async () => {
 export const addToQueue = async (params: DbAction) => {
   try {
     const database = await getDb();
+
+    if (params.action === 'delete') {
+      // A delete supersedes any not-yet-synced create/update for the same list, so those
+      // actions don't keep hitting a list that no longer exists (404 → retry forever).
+      // Only pending/failed items — a 'syncing' item is mid-upload and left to finish.
+      const queue = (await database.getAll('sync_queue')) as SyncQueueWithIdValue[];
+      const superseded = queue.filter(
+        (item) =>
+          item.listId === params.data.id &&
+          (item.action === 'create' || item.action === 'update') &&
+          (item.status === 'pending' || item.status === 'failed')
+      );
+      const hadUnsyncedCreate = superseded.some((item) => item.action === 'create');
+
+      for (const item of superseded) {
+        await database.delete('sync_queue', item.id);
+      }
+
+      // If the list was never synced (its create was still queued), the delete is a
+      // no-op on the server too — skip enqueuing it.
+      if (hadUnsyncedCreate) {
+        return;
+      }
+    }
+
     const syncData: SyncQueueValue = {
       listId: params.data.id,
       action: params.action,

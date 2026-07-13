@@ -12,7 +12,14 @@ export const apiService = {
   },
 
   async updateList(id: string, data: List): Promise<List> {
-    return await fetchApi(`${BASE_URL}/lists/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+    try {
+      return await fetchApi(`${BASE_URL}/lists/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+    } catch (error) {
+      if (error instanceof HttpError && (error.status === 404 || error.status === 410)) {
+        return data;
+      }
+      throw error;
+    }
   },
 
   async deleteList(id: string): Promise<{ id: string }> {

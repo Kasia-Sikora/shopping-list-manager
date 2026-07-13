@@ -103,12 +103,12 @@ describe('syncEngine — syncChanges', () => {
 
   it('routes create/update/delete to the matching apiService method', async () => {
     await db.addToQueue({ action: 'create', data: makeList('a') });
-    await db.addToQueue({ action: 'update', data: makeList('a') });
-    await db.addToQueue({ action: 'delete', data: makeList('a') });
+    await db.addToQueue({ action: 'update', data: makeList('b') });
+    await db.addToQueue({ action: 'delete', data: makeList('c') });
 
     vi.mocked(apiService.createList).mockResolvedValue(makeList('a'));
-    vi.mocked(apiService.updateList).mockResolvedValue(makeList('a'));
-    vi.mocked(apiService.deleteList).mockResolvedValue(makeList('a'));
+    vi.mocked(apiService.updateList).mockResolvedValue(makeList('b'));
+    vi.mocked(apiService.deleteList).mockResolvedValue(makeList('c'));
 
     await syncEngine.syncChanges();
 
