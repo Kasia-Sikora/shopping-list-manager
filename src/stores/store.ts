@@ -7,33 +7,33 @@ import type { SyncStatus } from '../services/interfaces';
 export const DEFAULT_VALUES: List[] = [
   {
     id: '0',
-    title: 'First Card',
+    title: 'Spożywka',
     createdAt: new Date().toISOString(),
     content: [
       {
         id: '1',
-        value: 'first el in First List',
+        value: 'Nabiał',
         checked: false,
         depth: 0,
         parentId: null,
       },
       {
         id: '2',
-        value: 'second el in First List',
+        value: 'Mleko',
         checked: false,
-        depth: 0,
-        parentId: null,
+        depth: 1,
+        parentId: '1',
       },
       {
         id: '3',
-        value: 'third el in First List',
+        value: 'Ser',
         checked: false,
-        depth: 0,
-        parentId: null,
+        depth: 1,
+        parentId: '1',
       },
       {
         id: '4',
-        value: 'fourth el in First List',
+        value: 'Kawa',
         checked: false,
         depth: 0,
         parentId: null,
@@ -42,33 +42,33 @@ export const DEFAULT_VALUES: List[] = [
   },
   {
     id: '2',
-    title: 'Second Card',
+    title: 'Chemia',
     createdAt: new Date().toISOString(),
     content: [
       {
         id: '1',
-        value: 'first el in Second List',
+        value: 'Płyn do podłóg',
         checked: true,
         depth: 0,
         parentId: null,
       },
       {
         id: '2',
-        value: 'second el in Second List',
+        value: 'Ręcznik papierowy',
         checked: false,
         depth: 0,
         parentId: null,
       },
       {
         id: '3',
-        value: 'third el in Second List',
+        value: 'Płyn do szyb',
         checked: false,
         depth: 0,
         parentId: null,
       },
       {
         id: '4',
-        value: 'fourth el in Second List',
+        value: 'Zmywaczki',
         checked: true,
         depth: 0,
         parentId: null,
@@ -176,10 +176,12 @@ type SyncStore = {
   isOnline: boolean;
   syncStatus: SyncStatus | undefined;
   pendingChangesCount: number;
+  failedChangesCount: number;
   setIsSaving: (saving: boolean) => void;
   setIsOnline: (isOnline: boolean) => void;
   setSyncStatus: (syncStatus: SyncStatus) => void;
   setPendingChangesCount: (pendingChangesCount: number) => void;
+  setFailedChangesCount: (failedChangesCount: number) => void;
 };
 
 export const useSyncStore = create<SyncStore>((set) => ({
@@ -187,8 +189,10 @@ export const useSyncStore = create<SyncStore>((set) => ({
   isOnline: false,
   syncStatus: undefined,
   pendingChangesCount: 0,
+  failedChangesCount: 0,
   setIsSaving: (isSaving) => set(() => ({ isSaving })),
   setIsOnline: (isOnline) => set(() => ({ isOnline })),
   setSyncStatus: (syncStatus) => set(() => ({ syncStatus })),
   setPendingChangesCount: (pendingChangesCount) => set(() => ({ pendingChangesCount })),
+  setFailedChangesCount: (failedChangesCount) => set(() => ({ failedChangesCount })),
 }));

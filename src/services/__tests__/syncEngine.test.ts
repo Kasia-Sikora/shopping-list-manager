@@ -4,6 +4,8 @@ import { resolveConflict } from '../../utils/resolveConflict';
 import { syncEngine } from '../syncEngine';
 import * as db from '../indexedDB';
 import { apiService } from '../apiService';
+import { useSyncStore } from '../../stores/store';
+import type { SyncQueueWithIdValue } from '../interfaces';
 
 vi.unmock('../syncEngine'); // use the REAL syncEngine
 
@@ -117,7 +119,8 @@ describe('syncEngine — syncChanges', () => {
     await expect(db.getSyncQueue()).resolves.toHaveLength(0);
   });
 
-  it('does NOT clear the queue when an item is still pending/failed', async () => {
+  it('does NOT clear the queue when an item is still pending/failed when online', async () => {
+    useSyncStore.setState({ isOnline: true });
     await db.addToQueue({ action: 'create', data: makeList('a') });
     vi.mocked(apiService.createList).mockRejectedValue(new Error('network down'));
     const setTimeoutSpy = vi
@@ -142,6 +145,29 @@ describe('syncEngine — syncChanges', () => {
     await syncEngine.syncChanges();
 
     expect(apiService.createList).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves failed items untouched — drives pending only', async () => {
+    await db.addToQueue({ action: 'create', data: makeList('a') });
+    await db.updateQueueItemStatus(1, 'failed');
+
+    await syncEngine.syncChanges();
+
+    expect(apiService.createList).not.toHaveBeenCalled();
+    const [item] = await db.getSyncQueue();
+    expect(item.status).toEqual('failed');
+  });
+
+  it('coalesces overlapping runs into a single in-flight sync', async () => {
+    await db.addToQueue({ action: 'create', data: makeList('a') });
+    vi.mocked(apiService.createList).mockResolvedValue(makeList('a'));
+
+    // Two overlapping calls should share one run (the concurrency guard), so the API
+    // is hit once — the regression net against parallel sync storms.
+    await Promise.all([syncEngine.syncChanges(), syncEngine.syncChanges()]);
+
+    expect(apiService.createList).toHaveBeenCalledOnce();
+    await expect(db.getSyncQueue()).resolves.toHaveLength(0);
   });
 });
 
@@ -197,6 +223,8 @@ describe('syncEngine — _uploadAction', () => {
   });
 
   it('on API failure, schedules a retry and does NOT mark the item synced', async () => {
+    useSyncStore.setState({ isOnline: true });
+
     await db.addToQueue({ action: 'create', data: makeList('a') });
     const [item] = await db.getSyncQueue();
     vi.mocked(apiService.createList).mockRejectedValue(new Error('network down'));
@@ -241,9 +269,11 @@ describe('syncEngine — _retry (backoff)', () => {
   });
 
   it('retryCount increments before scheduling a retry', async () => {
+    useSyncStore.setState({ isOnline: true });
     await db.addToQueue({ action: 'create', data: makeList('a') });
     const [item] = await db.getSyncQueue();
     vi.mocked(apiService.createList).mockRejectedValue(new Error('network down'));
+
     const retrySpy = vi.spyOn(syncEngine, '_retry').mockResolvedValue(undefined);
 
     await syncEngine._uploadAction(item);
@@ -251,6 +281,48 @@ describe('syncEngine — _retry (backoff)', () => {
     expect(retrySpy).toHaveBeenCalledWith(expect.objectContaining({ retryCount: 1 }));
 
     retrySpy.mockRestore();
+  });
+
+  it('change item status to pending instead of retry when offline', async () => {
+    useSyncStore.setState({ isOnline: false });
+    await db.addToQueue({ action: 'create', data: makeList('a') });
+    const [item]: SyncQueueWithIdValue[] = await db.getSyncQueue();
+    vi.mocked(apiService.createList).mockRejectedValue(new Error('network down'));
+
+    const statusSpy = vi.spyOn(db, 'updateQueueItemStatus');
+
+    await syncEngine._uploadAction(item);
+
+    expect(statusSpy).toHaveBeenCalledWith(item.id, 'pending', item.retryCount);
+
+    statusSpy.mockRestore();
+  });
+});
+
+describe('syncEngine — retryFailed', () => {
+  it('revives failed items with a fresh count and syncs them', async () => {
+    await db.addToQueue({ action: 'create', data: makeList('a') });
+    await db.updateQueueItemStatus(1, 'failed', 6);
+    vi.mocked(apiService.createList).mockResolvedValue(makeList('a'));
+    const statusSpy = vi.spyOn(db, 'updateQueueItemStatus');
+
+    await syncEngine.retryFailed();
+
+    expect(statusSpy).toHaveBeenCalledWith(1, 'pending', 0);
+    expect(apiService.createList).toHaveBeenCalledOnce();
+    await expect(db.getSyncQueue()).resolves.toHaveLength(0);
+    statusSpy.mockRestore();
+  });
+
+  it('also revives stale "syncing" rows orphaned by an interrupted run', async () => {
+    await db.addToQueue({ action: 'create', data: makeList('a') });
+    await db.updateQueueItemStatus(1, 'syncing', 2);
+    vi.mocked(apiService.createList).mockResolvedValue(makeList('a'));
+
+    await syncEngine.retryFailed();
+
+    expect(apiService.createList).toHaveBeenCalledOnce();
+    await expect(db.getSyncQueue()).resolves.toHaveLength(0);
   });
 });
 

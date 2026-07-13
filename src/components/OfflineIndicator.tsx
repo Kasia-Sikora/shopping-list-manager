@@ -29,27 +29,27 @@ const PILL_STYLE: Record<SyncState, { background: string; color: string }> = {
   failed: { background: 'var(--sync-failed-bg)', color: 'var(--sync-failed-fg)' },
 }
 
-export const OfflineIndicator = ({loading}: OfflineIndicator) => {
+export const OfflineIndicator = ({ loading }: OfflineIndicator) => {
   const { isOnline } = useNetworkStatus()
-  const { syncStatus, pendingChangesCount, setIsOnline } = useSyncStore()
+  const { syncStatus, failedChangesCount, pendingChangesCount, setIsOnline } = useSyncStore()
 
   const getStatus = useCallback((): StatusIndicator => {
     switch (syncStatus) {
-      case 'failed':
-        return { status: "failed", message: "Błąd synchronizacji", statusIcon: <FailedIcon /> }
       case 'pending':
         return { status: "pending", message: `${pendingChangesCount} w kolejce`, statusIcon: <PendingIcon /> }
       case 'syncing':
         return { status: "syncing", message: "Synchronizuję...", statusIcon: <SyncingIcon className="animate-spin" /> }
+      case 'failed':
+        return { status: "failed", message: `${failedChangesCount} nie zsynchronizowano — ponów`, statusIcon: <FailedIcon /> }
       default:
         return { status: 'synced', message: "Zapisano", statusIcon: <SyncedIcon /> }
     }
-  }, [pendingChangesCount, syncStatus])
+  }, [failedChangesCount, pendingChangesCount, syncStatus])
 
   useEffect(() => {
     const setData = async () => {
       if (isOnline) {
-        syncEngine.syncChanges()
+        syncEngine.retryFailed()
       }
       await setMetadata('isOnline', isOnline)
       setIsOnline(isOnline)
@@ -81,16 +81,28 @@ export const OfflineIndicator = ({loading}: OfflineIndicator) => {
 
   const status = getStatus()
 
+  const generateStatusPill = () => {
+    return status.status === 'failed' ?
+      <button
+        onClick={syncEngine.retryFailed}
+        className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold border border-border"
+        style={PILL_STYLE[status.status]}
+      >
+        {status.statusIcon}
+        {status.message}
+      </button> :
+      <div
+        role="status"
+        aria-live="polite"
+        className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold border border-border"
+        style={PILL_STYLE[status.status]}
+      >
+        {status.statusIcon}
+        {status.message}
+      </div>
+  }
+
   return loading ?
     <div className="w-23 h-8 bg-loading-items rounded-full animate-pulse" />
-    : <div
-      role="status"
-      aria-live="polite"
-      className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold border border-border"
-      style={PILL_STYLE[status.status]}
-    >
-      {status.statusIcon}
-      {status.message}
-    </div>
-
+    : generateStatusPill()
 }
