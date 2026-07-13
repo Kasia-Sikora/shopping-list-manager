@@ -243,6 +243,17 @@ describe('indexedDB — sync queue', () => {
     expect(item1.id).toEqual(1);
     expect(item2.id).toEqual(2);
   });
+
+  it('addToQueue delete-coalescing', async () => {
+    await db.addToQueue({ action: 'create', data: makeList('a') });
+    await db.addToQueue({ action: 'update', data: makeList('a') });
+    await db.addToQueue({ action: 'delete', data: makeList('a') });
+    await db.addToQueue({ action: 'update', data: makeList('a') });
+    
+    const queue = await db.getSyncQueue();
+    expect(queue).toHaveLength(1);
+    expect(queue[0].action).toBe('update');
+  });
 });
 
 describe('indexedDB — metadata', () => {
