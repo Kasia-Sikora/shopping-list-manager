@@ -36,13 +36,13 @@ export const OfflineIndicator = ({loading}: OfflineIndicator) => {
   const getStatus = useCallback((): StatusIndicator => {
     switch (syncStatus) {
       case 'failed':
-        return { status: "failed", message: "Sync Failed", statusIcon: <FailedIcon /> }
+        return { status: "failed", message: "Błąd synchronizacji", statusIcon: <FailedIcon /> }
       case 'pending':
-        return { status: "pending", message: `${pendingChangesCount} pending changes`, statusIcon: <PendingIcon /> }
+        return { status: "pending", message: `${pendingChangesCount} w kolejce`, statusIcon: <PendingIcon /> }
       case 'syncing':
-        return { status: "syncing", message: "Syncing...", statusIcon: <SyncingIcon className="animate-spin" /> }
+        return { status: "syncing", message: "Synchronizuję...", statusIcon: <SyncingIcon className="animate-spin" /> }
       default:
-        return { status: 'synced', message: "Synced", statusIcon: <SyncedIcon /> }
+        return { status: 'synced', message: "Zapisano", statusIcon: <SyncedIcon /> }
     }
   }, [pendingChangesCount, syncStatus])
 

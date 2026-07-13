@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 
 @theme inline {
+  --font-display: "Plus Jakarta Sans Variable", sans-serif;
   --color-background: var(--background);
   --color-primary: var(--text-primary);
   --color-secondary: var(--text-secondary);
@@ -43,6 +44,7 @@
     --on-accent: var(--color-stone-900);
     --checkbox-border: var(--color-stone-500); 
     --checkbox-bg: var(--color-orange-100);
+    --shadow-card: 3px 3px var(--shadow);
     --focus-ring: var(--color-amber-900); 
     --loading-items: #ead2a6;
 
@@ -90,6 +92,10 @@
     --sync-failed-bg: var(--color-red-950);
     --sync-failed-fg: var(--color-red-300);
   }
+}
+
+body{
+  height: 100%;
 }
 
 input:focus,

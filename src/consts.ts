@@ -18,3 +18,9 @@ export const appGuards = {
     mount = 0;
   },
 };
+
+export const LOADING_CARDS = [
+  { id: 'lc-1', items: 4 },
+  { id: 'lc-2', items: 2 },
+  { id: 'lc-3', items: 3 },
+]

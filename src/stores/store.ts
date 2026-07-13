@@ -1,86 +1,81 @@
 import { create } from 'zustand';
-import type { List, PersistedShoppingListStore } from '../interfaces';
-import { persist } from 'zustand/middleware';
+import type { List } from '../interfaces';
+import { devtools, persist } from 'zustand/middleware';
 import { LOCAL_STORAGE_THEME_KEY } from '../consts';
-import { devtools } from 'zustand/middleware';
 import type { SyncStatus } from '../services/interfaces';
 
-export const DEFAULT_VALUES: PersistedShoppingListStore = {
-  state: {
-    lists: [
+export const DEFAULT_VALUES: List[] = [
+  {
+    id: '0',
+    title: 'First Card',
+    createdAt: new Date().toISOString(),
+    content: [
       {
-        id: '0',
-        title: 'First Card',
-        createdAt: new Date().toISOString(),
-        content: [
-          {
-            id: '1',
-            value: 'first el in First List',
-            checked: false,
-            depth: 0,
-            parentId: null,
-          },
-          {
-            id: '2',
-            value: 'second el in First List',
-            checked: false,
-            depth: 0,
-            parentId: null,
-          },
-          {
-            id: '3',
-            value: 'third el in First List',
-            checked: false,
-            depth: 0,
-            parentId: null,
-          },
-          {
-            id: '4',
-            value: 'fourth el in First List',
-            checked: false,
-            depth: 0,
-            parentId: null,
-          },
-        ],
+        id: '1',
+        value: 'first el in First List',
+        checked: false,
+        depth: 0,
+        parentId: null,
       },
       {
         id: '2',
-        title: 'Second Card',
-        createdAt: new Date().toISOString(),
-        content: [
-          {
-            id: '1',
-            value: 'first el in Second List',
-            checked: true,
-            depth: 0,
-            parentId: null,
-          },
-          {
-            id: '2',
-            value: 'second el in Second List',
-            checked: false,
-            depth: 0,
-            parentId: null,
-          },
-          {
-            id: '3',
-            value: 'third el in Second List',
-            checked: false,
-            depth: 0,
-            parentId: null,
-          },
-          {
-            id: '4',
-            value: 'fourth el in Second List',
-            checked: true,
-            depth: 0,
-            parentId: null,
-          },
-        ],
+        value: 'second el in First List',
+        checked: false,
+        depth: 0,
+        parentId: null,
+      },
+      {
+        id: '3',
+        value: 'third el in First List',
+        checked: false,
+        depth: 0,
+        parentId: null,
+      },
+      {
+        id: '4',
+        value: 'fourth el in First List',
+        checked: false,
+        depth: 0,
+        parentId: null,
       },
     ],
   },
-};
+  {
+    id: '2',
+    title: 'Second Card',
+    createdAt: new Date().toISOString(),
+    content: [
+      {
+        id: '1',
+        value: 'first el in Second List',
+        checked: true,
+        depth: 0,
+        parentId: null,
+      },
+      {
+        id: '2',
+        value: 'second el in Second List',
+        checked: false,
+        depth: 0,
+        parentId: null,
+      },
+      {
+        id: '3',
+        value: 'third el in Second List',
+        checked: false,
+        depth: 0,
+        parentId: null,
+      },
+      {
+        id: '4',
+        value: 'fourth el in Second List',
+        checked: true,
+        depth: 0,
+        parentId: null,
+      },
+    ],
+  },
+];
 
 export type StoreState = {
   lists: List[];

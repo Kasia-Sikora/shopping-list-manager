@@ -1,16 +1,11 @@
 import { useMemo } from "react";
+import { LOADING_CARDS } from "../consts";
 
 function getRandomArbitrary() {
   const min = 1;
   const max = 3;
   return Math.round(Math.random() * (max - min) + min) * 10;
 }
-
-const LOADING_CARDS = [
-  { id: 'lc-1', items: 4 },
-  { id: 'lc-2', items: 2 },
-  { id: 'lc-3', items: 3 },
-]
 
 const LoadingBoard = () => {
   return (
@@ -26,18 +21,18 @@ export default LoadingBoard
 
 const LoadingCard = ({ itemsQuantity }: { itemsQuantity: number }) => {
   const titleWidth = useMemo(() => getRandomArbitrary(), [])
-  const arrOfItems = useMemo(() => Array.from({ length: itemsQuantity }, () => getRandomArbitrary()), [itemsQuantity])
+  const arrOfItemsWidth = useMemo(() => Array.from({ length: itemsQuantity }, () => getRandomArbitrary()), [itemsQuantity])
   return (
     <div
-      className={`w-full lg:w-75 border border-border shadow-card flex flex-col align-baseline gap-5 rounded-2xl p-4 relative bg-card pb-4 max-w-3xl m-auto mb-4 break-inside-avoid`}
+      className={`w-full lg:w-75 border border-border shadow-card flex flex-col align-baseline gap-5 rounded-2xl p-4 relative bg-card pb-4 max-w-3xl mb-4 break-inside-avoid`}
       data-testid={'loading-card'}
     >
-      <div className={`h-6 lg:h-7 bg-loading-items animate-pulse rounded gap-2 `} style={{width: `calc(100% - ${titleWidth}%)`}}/>
+      <div className={`h-6 lg:h-7 bg-loading-items animate-pulse rounded`} style={{width: `calc(100% - ${titleWidth}%)`}} data-testid={'loading-card-title'}/>
       <div className="flex flex-col gap-3">
-        {arrOfItems.map((item, idx) => (
-          <div className="flex gap-4 w-full items-center" key={`loading-item-${idx}-with-width-${item}`}>
+        {arrOfItemsWidth.map((width, idx) => (
+          <div className="flex gap-4 w-full items-center py-2" key={`loading-item-${idx}-with-width-${width}`}>
             <div className="size-6 rounded bg-loading-items animate-pulse" />
-            <div className={`h-4 bg-loading-items rounded animate-pulse`} style={{width: `calc(100% - ${item}%)`}}/>
+            <div className={`h-4 bg-loading-items rounded animate-pulse`} style={{width: `calc(100% - ${width}%)`}} data-testid={'loading-card-item'}/>
           </div>
         ))}
       </div>

@@ -205,7 +205,7 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions, cardData
     >
       <ul
         ref={listRef}
-        className={`transition-all duration-300 outline-active rounded-sm relative outline-dashed outline-2 ${active ? 'bg-active/30  outline-active/70 ' : 'outline-transparent'}`}
+        className={`transition-all duration-300 outline-active rounded-sm relative outline-dashed outline-2 ${active ? 'bg-active/10  outline-active/50 ' : 'outline-transparent'}`}
         data-testid={dataId}
       >
         {tree.map((field, index) =>

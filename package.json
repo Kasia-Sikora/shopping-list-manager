@@ -16,6 +16,7 @@
   "dependencies": {
     "@dnd-kit/helpers": "^0.4.0",
     "@dnd-kit/react": "^0.4.0",
+    "@fontsource-variable/plus-jakarta-sans": "^5.2.8",
     "@tailwindcss/vite": "^4.3.0",
     "@vitest/coverage-v8": "^4.1.7",
     "idb": "^8.0.3",
