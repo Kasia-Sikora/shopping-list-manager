@@ -65,13 +65,13 @@ export const getMinDepth = (nextItem: ListItem) => {
 export const buildTree = (list: ListItem[], children: ListItem[]) => {
   const tree = [...list];
   let addedChildren = 0; 
-  for (let i = 0; i < children.length; i++) {
-    const { parentId } = children[i];
+  for (const element of children) {
+    const { parentId } = element;
     const parentIndex = tree.findIndex((el) => el.id === parentId);
 
     if (parentIndex === -1) continue;
 
-    tree.splice(parentIndex + 1 + addedChildren, 0, children[i]);
+    tree.splice(parentIndex + 1 + addedChildren, 0, element);
     addedChildren+=1
   }
 
