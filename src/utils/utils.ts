@@ -53,10 +53,3 @@ export const handleKeyDown = (e: KeyboardEvent, list: Element[]) => {
   }
   if (focusedEl) focusedEl.focus();
 };
-
-export const setFocusOnElement = (cardId: string, itemId: string) => {
-  requestAnimationFrame(() => {
-    const focusEl = document.querySelector(`[data-id="card-${cardId}"] [name="${itemId}.value"]`);
-    if (focusEl && focusEl instanceof HTMLTextAreaElement) focusEl.focus();
-  });
-};

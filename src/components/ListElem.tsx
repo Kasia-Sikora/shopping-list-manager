@@ -49,7 +49,7 @@ const ListElem = ({
   isOverlay = false,
   isActive = false
 }: ListElement) => {
-  const { editingCardId, setEditingCardId } = useActiveCardIdStore()
+  const { editingCardId, setEditingCardId, focusItemId, setFocusItemId } = useActiveCardIdStore()
   const [tempValue, setTempValue] = useState(item.value);
 
   const { ref, handleRef, isDragging, isDragSource } = useSortable({
@@ -126,6 +126,8 @@ const ListElem = ({
           }}
           onChange={(e) => setTempValue(e.target.value)}
           onBlur={handleBlur}
+          onFocus={() => { if (focusItemId === item.id) setFocusItemId(null); }}
+          autoFocus={!isOverlay && item.id === focusItemId}
           data-depth={item.depth}
           aria-describedby={`item-desc-${item.id}`}
           placeholder='Utwórz listę...'
