@@ -3,6 +3,7 @@ import { getSyncQueue } from '../services/indexedDB';
 import type { DbAction, SyncQueueValue } from '../services/interfaces';
 import { useSyncStore } from '../stores/store';
 import * as db from '../services/indexedDB';
+import { syncEngine } from '../services/syncEngine';
 
 export const calculateQueueStatus = (queue: SyncQueueValue[]) => {
   if (queue.some((item) => item.status === 'pending')) return 'pending';
@@ -50,6 +51,9 @@ export const dbActions = async (params: DbAction) => {
     }
 
     await db.addToQueue(params);
+    if (useSyncStore.getState().isOnline) {
+      syncEngine.syncChanges();
+    }
   } catch (error) {
     console.error(`Failed to ${params.action} list:`, error);
     throw error;
