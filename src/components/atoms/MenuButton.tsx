@@ -131,7 +131,7 @@ const MenuDropdown = ({ open, cardId, setOpen, list, actions }: MenuDropdown) =>
     <div id="dropdown" className={`z-10 ${!open ? 'hidden' : ''} bg-menu-bg border border-border rounded-md w-auto`} aria-label="dropdown" style={{ ...popoverPlacement() }}>
       <ul className="p-2 text-sm font-medium" aria-labelledby="dropdownDefaultButton">
         <li className="w-full hover:bg-red-100 rounded"><button className="p-2 text-red-700 text-start hover:cursor-pointer w-full rounded flex items-center" aria-label='delete card' onClick={(e) => handleMenuClick(e, 'remove')}>Usuń kartę <TrashIcon className="relative top-0.5 left-1"/></button></li>
-        <li className="w-full"><button className="p-2 text-start text-muted-graphic/70 w-full rounded" disabled>Dodaj współpracownika</button></li>
+        <li className="w-full"><button className="p-2 text-start text-muted-graphic/70 w-full rounded" disabled>Dodaj współautora</button></li>
         <li className="w-full"><button className="p-2 hover:text-secondary text-start hover:bg-menu-active hover:cursor-pointer w-full rounded" aria-label='copy card' onClick={(e) => handleMenuClick(e, 'copy')}>Utwórz kopię</button></li>
         <li className="w-full"><button className="p-2 hover:text-secondary text-start hover:bg-menu-active hover:cursor-pointer w-full rounded" aria-label='delete all checked items' onClick={(e) => handleMenuClick(e, 'removeChecked')}>Usuń zaznaczone elementy</button></li>
       </ul>

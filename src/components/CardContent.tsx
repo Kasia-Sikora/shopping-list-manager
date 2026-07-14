@@ -58,7 +58,8 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
         }
       };
       const dropdownCardEl = document.querySelector(`[data-id='card-${editedList.id}'] #dropdown`)
-      if (dropdownCardEl && !dropdownCardEl.contains(e.target as Node)) {
+      const menuButton = document.querySelector(`[data-id='card-${editedList.id}'] [aria-label="close menu"]`)
+      if (!dropdownCardEl?.contains(e.target as Node) && !menuButton?.contains(e.target as Node)) {
         setOpenMenu(false)
       }
     }
@@ -147,7 +148,7 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
               name='title'
             />
           ) : (
-            cardId !== EMPTY_CARD_ID && <h2 className="pb-2 text-2xl wrap-break-word font-semibold border-0 text-secondary">{editedList.title || "Untitled"}</h2>
+            cardId !== EMPTY_CARD_ID && <h2 className="pb-2 text-2xl wrap-break-word font-semibold border-0 text-secondary">{editedList.title || "Bez tytułu"}</h2>
           )}
           {uncheckedItems.length > 0 && (
             <ListOfItems
