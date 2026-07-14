@@ -6,7 +6,7 @@ import { DELETE_BUTTON_W_GAP_SIZE, INDENT_VALUE } from '../consts';
 import { useActiveCardIdStore } from '../stores/store';
 import { useDragOperation } from '@dnd-kit/react';
 import { useMemo, memo, useState } from 'react';
-import DragHandleIcon from '../assets/dragHandle.svg?react' 
+import DragHandleIcon from '../assets/dragHandle.svg?react'
 
 function DraggingIndicator() {
   const { source } = useDragOperation();
@@ -83,10 +83,14 @@ const ListElem = ({
     }
   }
 
-  const liStyles = useMemo(() => ({
-    maxWidth: `calc(100% - ${depth * DELETE_BUTTON_W_GAP_SIZE}px)`,
-    marginLeft: `${depth * INDENT_VALUE}px`
-  }), [depth])
+  const liStyles = useMemo(
+    () =>
+      isOverlay ? { maxWidth: '100%', marginLeft: 0 } : {
+        maxWidth: `calc(100% - ${depth * DELETE_BUTTON_W_GAP_SIZE}px)`,
+        marginLeft: `${depth * INDENT_VALUE}px`,
+      },
+    [depth, isOverlay]
+  )
 
   return (
     <li ref={ref} className={`relative transition-opacity duration-200 flex-nowrap ${isDragSource && !isOverlay ? 'opacity-50' : 'opacity-100'} overflow-hidden whitespace-nowrap rounded-sm relative flex items-baseline gap-3 group py-2 ${isDragging ? 'bg-drag-item-active' : ''}`} style={liStyles}>
