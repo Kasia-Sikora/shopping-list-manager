@@ -164,11 +164,15 @@ export const useThemeStore = create<StoreThemeState>()(
 type ActiveCardIdStore = {
   editingCardId: string | null;
   setEditingCardId: (id: string | null) => void;
+  focusItemId: string | null;
+  setFocusItemId: (id: string | null) => void;
 };
 
 export const useActiveCardIdStore = create<ActiveCardIdStore>((set) => ({
   editingCardId: null,
   setEditingCardId: (id) => set(() => ({ editingCardId: id })),
+  focusItemId: null,
+  setFocusItemId: (id) => set(() => ({ focusItemId: id })),
 }));
 
 type SyncStore = {

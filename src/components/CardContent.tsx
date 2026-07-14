@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { RefObject } from 'react';
 import type { List, SetLocalDataActions } from '../interfaces';
 import { useActiveCardIdStore, useStore } from '../stores/store';
-import { generateId, setFocusOnElement, splitItemsToDoneAndUndoneLists } from '../utils/utils';
+import { generateId, splitItemsToDoneAndUndoneLists } from '../utils/utils';
 import AddListItemButton from './atoms/AddListItemButton';
 import { ChevronButton } from './atoms/ChevronButton';
 import MenuButton from './atoms/MenuButton';
@@ -19,7 +19,7 @@ interface CardContentProps {
 }
 
 const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardContentProps) => {
-  const { editingCardId } = useActiveCardIdStore()
+  const { editingCardId, setFocusItemId } = useActiveCardIdStore()
   const { removeList } = useStore()
 
   const [openMenu, setOpenMenu] = useState<boolean>(false)
@@ -93,8 +93,11 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
     const newItem = { id: generateId(), value: '', checked: false, depth: itemDepth, parentId: parentId };
     const newData = [...editedList.content]
     newData.splice(indexOfActiveEl + 1, 0, newItem)
+    // Focus the new item via React's autoFocus (see ListElem) rather than an imperative
+    // .focus(): React focuses the freshly-mounted node during commit, which sticks in
+    // WebKit (in-gesture) and Chrome/FF, and survives the edit-mode remount.
+    setFocusItemId(newItem.id);
     actions.update({ ...editedList, content: newData });
-    setTimeout(() => setFocusOnElement(cardId, newItem.id), 0)
   };
 
   const handleFormEvents = (e: React.KeyboardEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
