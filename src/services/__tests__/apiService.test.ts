@@ -2,23 +2,14 @@ import * as db from '../indexedDB';
 import { waitFor } from '@testing-library/react';
 import { syncEngine } from '../syncEngine';
 import { apiService } from '../apiService';
-import type { List } from '../../interfaces';
 import { fetchApi, HttpError } from '../apiClient';
+import { makeList } from '../../utils/testHelpers';
 
 vi.unmock('../apiService');
 vi.mock('../apiClient', async (orig) => ({ ...(await orig()), fetchApi: vi.fn() }));
 
 beforeEach(() => {
   vi.clearAllMocks();
-});
-
-const makeList = (id: string, overrides: Partial<List> = {}): List => ({
-  id,
-  title: `List ${id}`,
-  content: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  ...overrides,
 });
 
 describe('apiService', () => {

@@ -1,17 +1,8 @@
-import type { List } from '../../interfaces';
+import { makeList } from '../../utils/testHelpers';
 import { fetchApi, HttpError } from '../apiClient';
 
 beforeEach(() => {
   vi.clearAllMocks();
-});
-
-const makeList = (id: string, overrides: Partial<List> = {}): List => ({
-  id,
-  title: `List ${id}`,
-  content: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  ...overrides,
 });
 
 describe('apiClient', () => {

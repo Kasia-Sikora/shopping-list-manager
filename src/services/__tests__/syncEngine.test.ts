@@ -6,20 +6,12 @@ import * as db from '../indexedDB';
 import { apiService } from '../apiService';
 import { useSyncStore } from '../../stores/store';
 import type { SyncQueueWithIdValue } from '../interfaces';
+import { makeList } from '../../utils/testHelpers';
 
 vi.unmock('../syncEngine'); // use the REAL syncEngine
 
 beforeEach(() => {
   vi.clearAllMocks(); // reset apiService call counts between tests (DB is reset by global setup)
-});
-
-const makeList = (id: string, overrides: Partial<List> = {}): List => ({
-  id,
-  title: `List ${id}`,
-  content: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  ...overrides,
 });
 
 describe('syncEngine - Conflict Resolution', () => {

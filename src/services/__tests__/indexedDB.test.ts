@@ -1,21 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import * as db from '../indexedDB';
-import type { List } from '../../interfaces';
-import type { DbAction } from '../interfaces';
-
-const makeList = (id: string, overrides: Partial<List> = {}): List => ({
-  id,
-  title: `List ${id}`,
-  content: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  ...overrides,
-});
-
-const makeCreateAction = (id: string): DbAction => ({
-  action: 'create',
-  data: makeList(id),
-});
+import { makeCreateAction, makeList } from '../../utils/testHelpers';
 
 describe('indexedDB — lists CRUD', () => {
   it('getLists returns all inserted lists', async () => {
