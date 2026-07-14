@@ -249,10 +249,80 @@ describe('indexedDB — sync queue', () => {
     await db.addToQueue({ action: 'update', data: makeList('a') });
     await db.addToQueue({ action: 'delete', data: makeList('a') });
     await db.addToQueue({ action: 'update', data: makeList('a') });
-    
+
     const queue = await db.getSyncQueue();
     expect(queue).toHaveLength(1);
     expect(queue[0].action).toBe('update');
+  });
+
+  it('should enqueue items when update the same list', async () => {
+    await db.addToQueue({ action: 'update', data: makeList('a') });
+    const [item] = await db.getSyncQueue();
+
+    await db.addToQueue({ action: 'update', data: makeList('a') });
+    const [item2] = await db.getSyncQueue();
+    const queue = await db.getSyncQueue();
+
+    expect(queue).toHaveLength(1);
+    expect(queue[0]).not.toBe(item);
+    expect(queue[0]).toStrictEqual(item2);
+  });
+
+  it('should enqueue items when update right after create', async () => {
+    await db.addToQueue({ action: 'create', data: makeList('a') });
+    const [item] = await db.getSyncQueue();
+
+    await db.addToQueue({ action: 'update', data: makeList('a') });
+    const [item2] = await db.getSyncQueue();
+    const queue = await db.getSyncQueue();
+
+    expect(queue).toHaveLength(1);
+    expect(queue[0]).not.toBe(item);
+    expect(queue[0]).toStrictEqual({
+      ...item,
+      data: item2.data,
+      timestamp: item2.timestamp,
+      retryCount: item2.retryCount,
+    });
+  });
+
+  it('should not enqueue items when update 2 different lists', async () => {
+    await db.addToQueue({ action: 'update', data: makeList('a') });
+    await db.addToQueue({ action: 'update', data: makeList('b') });
+    const queue = await db.getSyncQueue();
+
+    expect(queue).toHaveLength(2);
+  });
+
+  it('should enqueue items with new status and retryCount when first update failed', async () => {
+    await db.addToQueue({ action: 'update', data: makeList('a') });
+
+    const [item] = await db.getSyncQueue();
+    await db.updateQueueItemStatus(item.id, 'failed');
+
+    await db.addToQueue({ action: 'update', data: makeList('a') });
+    const [item2] = await db.getSyncQueue();
+    const queue = await db.getSyncQueue();
+
+    expect(queue).toHaveLength(1);
+    expect(queue[0]).toStrictEqual({
+      ...item,
+      data: item2.data,
+      timestamp: item2.timestamp,
+      retryCount: item2.retryCount,
+    });
+  });
+
+    it('should not enqueue items when update list and list with the same id is in syncing', async () => {
+    await db.addToQueue({ action: 'update', data: makeList('a') });
+
+    const [item] = await db.getSyncQueue();
+    await db.updateQueueItemStatus(item.id, 'syncing');
+
+    await db.addToQueue({ action: 'update', data: makeList('a') });
+    const queue = await db.getSyncQueue();
+
+    expect(queue).toHaveLength(2);
   });
 });
 

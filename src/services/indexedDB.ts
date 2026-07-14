@@ -148,7 +148,7 @@ export const getPendingItems = async () => {
   const database = await getDb();
   const store = (await database.getAll('sync_queue')) as SyncQueueWithIdValue[];
   return store.filter((item) => item.status === 'pending');
-}
+};
 
 export const getPendingOrFailedItems = async () => {
   const database = await getDb();
@@ -192,6 +192,27 @@ export const addToQueue = async (params: DbAction) => {
       status: 'pending' as SyncStatus,
       retryCount: 0,
     };
+
+    if (params.action === 'update') {
+      const queue = (await database.getAll('sync_queue')) as SyncQueueWithIdValue[];
+      const existingItemWithTheSameId = queue.find(
+        (item) =>
+          item.listId === params.data.id &&
+          (item.action === 'create' || item.action === 'update') &&
+          (item.status === 'pending' || item.status === 'failed')
+      );
+
+      if (existingItemWithTheSameId) {
+        await database.put('sync_queue', {
+          ...existingItemWithTheSameId,
+          data: params.data,
+          status: 'pending',
+          retryCount: 0,
+          timestamp: Date.now(),
+        });
+        return;
+      }
+    }
     await database.add('sync_queue', syncData);
   } catch (error: unknown) {
     if (error instanceof Error && error.name === 'QuotaExceededError') {

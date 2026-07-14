@@ -2,7 +2,6 @@ import BasketIcon from '../assets/basket.svg?react';
 import ArrowUp from '../assets/arrowUp.svg?react'
 import { DEFAULT_VALUES, useStore } from '../stores/store';
 import { dbActions } from '../utils/storeUtils';
-import { syncEngine } from '../services/syncEngine';
 import { generateId } from '../utils/utils';
 import { setMetadata } from '../services/indexedDB';
 
@@ -20,7 +19,6 @@ const EmptyBoard = () => {
         console.error('Failed to save list:', error);
       }
     }
-    syncEngine.syncChanges()
     await setMetadata('listOrder', listOrder)
   }
 

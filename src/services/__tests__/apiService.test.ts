@@ -23,12 +23,12 @@ const makeList = (id: string, overrides: Partial<List> = {}): List => ({
 
 describe('apiService', () => {
   it('should handle updateList action when list was already deleted (404 status)', async () => {
-    await db.addToQueue({ action: 'create', data: makeList('a') });
     const updatedData = makeList('a');
     await db.addToQueue({ action: 'update', data: updatedData });
+
     vi.mocked(fetchApi).mockRejectedValue(new HttpError(404, 'List already deleted'));
 
-    await waitFor(async () => expect(await db.getSyncQueue()).toHaveLength(2));
+    await waitFor(async () => expect(await db.getSyncQueue()).toHaveLength(1)); 
 
     await syncEngine.syncChanges();
 
@@ -36,12 +36,11 @@ describe('apiService', () => {
   });
 
   it('should handle updateList action when list was already deleted (410 status)', async () => {
-    await db.addToQueue({ action: 'create', data: makeList('a') });
     const updatedData = makeList('a');
     await db.addToQueue({ action: 'update', data: updatedData });
     vi.mocked(fetchApi).mockRejectedValue(new HttpError(410, 'List already deleted'));
 
-    await waitFor(async () => expect(await db.getSyncQueue()).toHaveLength(2));
+    await waitFor(async () => expect(await db.getSyncQueue()).toHaveLength(1));
 
     await syncEngine.syncChanges();
 
@@ -49,12 +48,11 @@ describe('apiService', () => {
   });
 
   it('should throw other errors than 404 while updateList', async () => {
-    await db.addToQueue({ action: 'create', data: makeList('a') });
     const updatedData = makeList('a');
     await db.addToQueue({ action: 'update', data: updatedData });
     vi.mocked(fetchApi).mockRejectedValue(new HttpError(500, 'Server is not responding'));
 
-    await waitFor(async () => expect(await db.getSyncQueue()).toHaveLength(2));
+    await waitFor(async () => expect(await db.getSyncQueue()).toHaveLength(1));
 
     await syncEngine.syncChanges();
 
