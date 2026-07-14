@@ -74,7 +74,7 @@ export const OfflineIndicator = ({ loading }: OfflineIndicator) => {
         className="fixed top-0 left-0 z-10 flex w-full items-center justify-center gap-2 px-3 py-1 text-sm"
         style={{ background: 'var(--sync-pending-bg)', color: 'var(--sync-pending-fg)' }}
       >
-        <OfflineIcon />  Working Offline - Changes will sync when back online
+        <OfflineIcon />  Offline - zmiany zapiszą się po ponownym połączeniu
       </div>
     )
   }
