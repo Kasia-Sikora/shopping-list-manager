@@ -10,14 +10,18 @@ An **offline-first** shopping list app with nested drag-and-drop items. The loca
 **🔗 Live demo:** https://shopping-list-manager-seven.vercel.app
 **⚙️ Backend repo:** [shopping-list-manager-api](https://github.com/Kasia-Sikora/shopping-list-manager-api)
 
-<!-- TODO: add a screenshot of the app -->
+![Demo](docs/demo.gif)
+
+
+## Mobile View
+<img src="docs/LM_Mobile.png" width="250" /> <img src="docs/DM_Mobile.png" width="250" />
 
 ---
 
 ## Features
 
 - **Offline-first** — every read/write hits IndexedDB first; the app is fully usable with no connection
-- **Background sync engine** — queues offline changes and uploads them with exponential-backoff retries when back online
+- **Background sync engine** — queues offline changes and uploads them with incremental-backoff retries (capped) when back online
 - **Bidirectional sync** — pulls remote changes on load, pushes local changes via the queue
 - **Conflict resolution** — Last-Write-Wins on timestamps, with a documented upgrade path (see [below](#conflict-resolution--known-trade-offs))
 - **Nested drag-and-drop** — reorder and re-nest list items (tree structure with depth + parent references)
@@ -40,7 +44,7 @@ Sync Queue ──► Sync Engine ──► Backend API ──► PostgreSQL
 ```
 
 - **IndexedDB** (via `idb`) is structured in three stores: `lists` (data), `sync_queue` (pending changes), `metadata` (`lastSync`, etc.).
-- **The sync engine** reads the queue, uploads each change, and retries failures with exponential backoff. Items are removed from the queue as they succeed (outbox model).
+- **The sync engine** reads the queue, uploads each change, and retries failures with incremental backoff up to a retry cap. Items are removed from the queue as they succeed (outbox model).
 - **The backend** is a clean layered Next.js API (`route → service → queries`) over Postgres, kept intentionally thin so collaboration features (auth, realtime) can be added later without a rewrite.
 
 ## Tech stack
@@ -52,7 +56,7 @@ Sync Queue ──► Sync Engine ──► Backend API ──► PostgreSQL
 | **Testing** | Vitest · Testing Library · fake-indexeddb |
 | **CI/CD** | GitHub Actions · Codecov · SonarCloud · Vercel |
 
-## Testing & CI/CD
+## Testing, CI/CD & Quality
 
 - **150+ automated tests** — IndexedDB integration (against `fake-indexeddb`), sync-engine logic (queue, retries, conflict resolution), and component/interaction tests.
 - **CI pipeline** (GitHub Actions on every push + PR): lint → test + coverage → build. Coverage is reported to **Codecov**; code quality/security to **SonarCloud**.
@@ -63,6 +67,19 @@ npm test            # run the suite (watch)
 npx vitest run      # run once (CI mode)
 npm run coverage    # with coverage report
 ```
+
+**Mobile**
+
+<img src="docs/Lighthouse_Mobile.png" width="250" /> 
+
+**Desktop**
+
+<img src="docs/Lighthouse_Desktop.png" width="250" />
+
+| Target  | Perf | A11y | Best Practices | SEO |
+|---------|------|------|----------------|-----|
+| Desktop | 100  | 100  | 100            | 100 |
+| Mobile  | 94   | 100  | 100            | 100 |
 
 ## Getting started
 
