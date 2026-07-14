@@ -22,13 +22,32 @@ const makeList = (id: string, overrides: Partial<List> = {}): List => ({
 });
 
 describe('apiService', () => {
+  it('getAllLists requests the lists endpoint and returns the lists', async () => {
+    const list = [makeList('a'), makeList('b')];
+    vi.mocked(fetchApi).mockResolvedValueOnce(list);
+
+    await expect(apiService.getAllLists()).resolves.toEqual(list);
+    expect(fetchApi).toHaveBeenCalledWith(expect.stringContaining('/lists'));
+  });
+
+  it('createList requests the lists endpoint and returns the new list', async () => {
+    const list = makeList('b');
+    vi.mocked(fetchApi).mockResolvedValueOnce(list);
+
+    await expect(apiService.createList(list)).resolves.toEqual(list);
+    expect(fetchApi).toHaveBeenCalledWith(
+      expect.stringContaining('/lists'),
+      expect.objectContaining({ method: 'POST', body: JSON.stringify(list) })
+    );
+  });
+
   it('should handle updateList action when list was already deleted (404 status)', async () => {
     const updatedData = makeList('a');
     await db.addToQueue({ action: 'update', data: updatedData });
 
     vi.mocked(fetchApi).mockRejectedValue(new HttpError(404, 'List already deleted'));
 
-    await waitFor(async () => expect(await db.getSyncQueue()).toHaveLength(1)); 
+    await waitFor(async () => expect(await db.getSyncQueue()).toHaveLength(1));
 
     await syncEngine.syncChanges();
 
