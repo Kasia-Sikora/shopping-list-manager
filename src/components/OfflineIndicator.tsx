@@ -85,7 +85,7 @@ export const OfflineIndicator = ({ loading }: OfflineIndicator) => {
     return status.status === 'failed' ?
       <button
         onClick={syncEngine.retryFailed}
-        className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold border border-border"
+        className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold border border-border cursor-pointer"
         style={PILL_STYLE[status.status]}
       >
         {status.statusIcon}
