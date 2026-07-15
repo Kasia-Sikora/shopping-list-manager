@@ -14,6 +14,7 @@ beforeEach(async () => {
 
 afterEach(() => {
   cleanup();
+  vi.unstubAllGlobals()
 });
 
 Object.defineProperty(window, 'matchMedia', {
