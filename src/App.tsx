@@ -14,6 +14,8 @@ import { apiService } from './services/apiService';
 import CartIcon from './assets/cart.svg?react'
 import LoadingBoard from './components/LoadingBoard';
 import EmptyBoard from './components/EmptyBoard';
+import { SpeedInsights } from "@vercel/speed-insights/react"
+import { Analytics } from '@vercel/analytics/react';
 
 const App = () => {
   const { lists, setLists, moveList } = useStore()
@@ -120,10 +122,12 @@ const App = () => {
 
   return (
     <div className={`font-display text-primary p-2 lg:p-5 placeholder:text-primary/50 ${!isOnline ? 'sm:pt-14' : ''}`}>
+      <Analytics />
+      <SpeedInsights />
       <header className='flex justify-between items-center w-full mb-5 lg:mb-10'>
         <h1 className='flex flex-nowrap gap-2 text-xl lg:text-3xl font-bold text-accent items-center'><CartIcon className='size-9' /><span className='block invisible w-0 sm:visible sm:w-auto'>Listy zakupów</span></h1>
         <div className='flex justify-end gap-3 transition-all duration-300 '>
-          <OfflineIndicator loading={!isReady}/>
+          <OfflineIndicator loading={!isReady} />
           <ThemeToggle />
         </div>
       </header>
