@@ -218,7 +218,7 @@ describe('<App/> dropdown buttons functionality', () => {
 
     expect(queryMenuCardButtons('delete all checked items')).toBeVisible()
     expect(await user.click(queryMenuCardButtons('delete all checked items')!)).toThrow(Error)
-    expect(consoleSpy).toHaveBeenCalledWith("item not updated to IndexedDB, list with id: 0 was not found")
+    expect(consoleSpy).toHaveBeenCalledWith("item not updated to IndexedDB, list with id: 0 was not found. Error: Error: item not updated to IndexedDB, list with id: 0 was not found")
   })
 
     it('should throw while copying checked list items when listId was not found in db', async () => {
@@ -228,7 +228,7 @@ describe('<App/> dropdown buttons functionality', () => {
 
     expect(queryMenuCardButtons('copy card')).toBeVisible()
     expect(await user.click(queryMenuCardButtons('copy card')!)).toThrow(Error)
-    expect(consoleSpy).toHaveBeenCalledWith("item not copied to IndexedDB, list with id: 0 was not found")
+    expect(consoleSpy).toHaveBeenCalledWith("item not copied to IndexedDB, list with id: 0 was not found. Error: Error: item not copied to IndexedDB, list with id: 0 was not found")
   })
 })
 
