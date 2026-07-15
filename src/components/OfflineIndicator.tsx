@@ -36,13 +36,13 @@ export const OfflineIndicator = ({ loading }: OfflineIndicator) => {
   const getStatus = useCallback((): StatusIndicator => {
     switch (syncStatus) {
       case 'pending':
-        return { status: "pending", message: `${pendingChangesCount} w kolejce`, statusIcon: <PendingIcon /> }
+        return { status: "pending", message: `${pendingChangesCount} w kolejce`, statusIcon: <PendingIcon title="pendingIcon"/> }
       case 'syncing':
-        return { status: "syncing", message: "Synchronizuję...", statusIcon: <SyncingIcon className="animate-spin" /> }
+        return { status: "syncing", message: "Synchronizuję...", statusIcon: <SyncingIcon title="syncingIcon" className="animate-spin" /> }
       case 'failed':
-        return { status: "failed", message: `${failedChangesCount} nie zsynchronizowano — ponów`, statusIcon: <FailedIcon /> }
+        return { status: "failed", message: `${failedChangesCount} nie zsynchronizowano — ponów`, statusIcon: <FailedIcon title="failedIcon"/> }
       default:
-        return { status: 'synced', message: "Zapisano", statusIcon: <SyncedIcon /> }
+        return { status: 'synced', message: "Zapisano", statusIcon: <SyncedIcon title="syncedIcon"/> }
     }
   }, [failedChangesCount, pendingChangesCount, syncStatus])
 
@@ -69,13 +69,12 @@ export const OfflineIndicator = ({ loading }: OfflineIndicator) => {
 
   if (!isOnline) {
     return (
-      <div
-        role="status"
+      <output
         className="fixed top-0 left-0 z-10 flex w-full items-center justify-center gap-2 px-3 py-1 text-sm"
         style={{ background: 'var(--sync-pending-bg)', color: 'var(--sync-pending-fg)' }}
       >
-        <OfflineIcon />  Offline - zmiany zapiszą się po ponownym połączeniu
-      </div>
+        <OfflineIcon title="offlineIcon"/>  Offline - zmiany zapiszą się po ponownym połączeniu
+      </output>
     )
   }
 
@@ -103,6 +102,6 @@ export const OfflineIndicator = ({ loading }: OfflineIndicator) => {
   }
 
   return loading ?
-    <div className="w-23 h-8 bg-loading-items rounded-full animate-pulse" />
+    <div className="w-23 h-8 bg-loading-items rounded-full animate-pulse" title='loadingPill'/>
     : generateStatusPill()
 }
