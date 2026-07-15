@@ -102,7 +102,7 @@ describe('EmptyBoard — when it renders (App)', () => {
     render(<App />)
 
     expect(await findCard()).toBeInTheDocument()
-    expect(queryLoadDatabutton()).not.toBeInTheDocument()
+    await waitFor(() => expect(queryLoadDatabutton()).not.toBeInTheDocument())
   });
 });
 

@@ -151,7 +151,7 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
               name='title'
             />
           ) : (
-            cardId !== EMPTY_CARD_ID && <h2 className="pb-2 text-2xl wrap-break-word font-semibold border-0 text-secondary">{editedList.title || "Bez tytułu"}</h2>
+            cardId !== EMPTY_CARD_ID && <h2 className="pb-2 text-2xl wrap-break-word font-semibold border-0 text-secondary text-start">{editedList.title || "Bez tytułu"}</h2>
           )}
           {uncheckedItems.length > 0 && (
             <ListOfItems

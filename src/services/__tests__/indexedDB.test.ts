@@ -298,7 +298,7 @@ describe('indexedDB — sync queue', () => {
     });
   });
 
-    it('should not enqueue items when update list and list with the same id is in syncing', async () => {
+  it('should not enqueue items when update list and list with the same id is in syncing', async () => {
     await db.addToQueue({ action: 'update', data: makeList('a') });
 
     const [item] = await db.getSyncQueue();
@@ -308,6 +308,28 @@ describe('indexedDB — sync queue', () => {
     const queue = await db.getSyncQueue();
 
     expect(queue).toHaveLength(2);
+  });
+
+  it('throws when no item in sync_queue', async () => {
+    await expect(db.updateQueueItemStatus(3346346, 'syncing')).rejects.toBeInstanceOf(Error);
+  });
+
+  it('getPendingItems should return only pending items', async () => {
+    await db.addToQueue({ action: 'update', data: makeList('a') });
+    await db.addToQueue({ action: 'update', data: makeList('b') });
+    await db.addToQueue({ action: 'update', data: makeList('c') });
+    await db.addToQueue({ action: 'update', data: makeList('d') });
+
+    const queue = await db.getSyncQueue();
+
+    expect(queue).toHaveLength(4);
+
+    await db.updateQueueItemStatus(queue[0].id, 'pending');
+    await db.updateQueueItemStatus(queue[1].id, 'syncing');
+    await db.updateQueueItemStatus(queue[3].id, 'failed');
+    await db.updateQueueItemStatus(queue[2].id, 'pending');
+
+    await expect(db.getPendingItems()).resolves.toHaveLength(2);
   });
 });
 

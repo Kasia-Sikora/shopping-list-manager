@@ -4,6 +4,7 @@ import { dbActions } from "../../utils/storeUtils";
 import * as db from '../../services/indexedDB'
 import { generateId } from "../../utils/utils";
 import TrashIcon from '../../assets/trash.svg?react'
+import MenuIcon from '../../assets/menu.svg?react'
 
 type MenuButton = {
   openMenu: boolean;
@@ -19,7 +20,7 @@ const MenuButton = ({ cardId, openMenu, setOpenMenu, list, actions }: MenuButton
       <button className="absolute bottom-1.5 right-1.5 rounded-full size-7 hover:cursor-pointer" aria-label={openMenu ? 'close menu' : 'open menu'} onClick={(e) => { e.stopPropagation(); setOpenMenu(!openMenu) }}>
         <div className="absolute -bottom-0.5 -right-0.5 rounded-full bg-accent size-6" />
         <div className="size-7 absolute bottom-0 border-3 bg-white/40 transition-all duration-200 hover:bg-white/75 border-muted-graphic rounded-full">
-          <div className='size-7 absolute text-on-accent bottom-0 after:content-["\2807"] rounded-full after:text-2xl' />
+          <MenuIcon className='relative text-on-accent right-px bottom-px' />
         </div>
       </button>
       <MenuDropdown open={openMenu} cardId={cardId} setOpen={setOpenMenu} list={list} actions={actions} />
@@ -58,43 +59,51 @@ const MenuDropdown = ({ open, cardId, setOpen, list, actions }: MenuDropdown) =>
     if (cardId === editingCardId) {
       actions.update({ content: filteredList })
     } else {
-      removeCheckedListItems(cardId)
-      const list = await db.getList(cardId);
-      if (list) {
-        const updatedItem = {
-          ...list,
-          content: list.content.filter((el) => !el.checked),
-          updatedAt: new Date().toISOString(),
-        };
-        try {
-          await dbActions({ action: 'update', data: updatedItem })
-        } catch (error) {
-          console.error('Failed to delete checked items in list:', error);
+      try {
+        const list = await db.getList(cardId);
+        if (list) {
+          const updatedItem = {
+            ...list,
+            content: list.content.filter((el) => !el.checked),
+            updatedAt: new Date().toISOString(),
+          };
+          try {
+            removeCheckedListItems(cardId)
+            await dbActions({ action: 'update', data: updatedItem })
+          } catch (error) {
+            console.error('Failed to delete checked items in list:', error);
+          }
+        } else {
+          throw new Error(`item not updated to IndexedDB, list with id: ${cardId} was not found`)
         }
-      } else {
-        console.warn(`item not updated to IndexedDB, list with id: ${cardId} was not found`)
-        throw Error(`item not updated to IndexedDB, list with id: ${cardId} was not found`)
+      } catch (error) {
+        console.warn(`item not updated to IndexedDB, list with id: ${cardId} was not found. Error: ${error}`)
+        //TODO - Prompt message
       }
     }
   }
 
   const copyIntoDB = async (newId: string) => {
-    const list = await db.getList(cardId);
-    if (list) {
-      const copiedItem = {
-        ...list,
-        title: `${list.title}-copy`,
-        id: newId,
-        createdAt: new Date().toISOString(),
-      };
-      try {
-        await dbActions({ action: 'create', data: copiedItem })
-      } catch (error) {
-        console.error('Failed to save list:', error);
+    try {
+      const list = await db.getList(cardId);
+      if (list) {
+        const copiedItem = {
+          ...list,
+          title: `${list.title}-copy`,
+          id: newId,
+          createdAt: new Date().toISOString(),
+        };
+        try {
+          await dbActions({ action: 'create', data: copiedItem })
+        } catch (error) {
+          console.error('Failed to save list:', error);
+        }
+      } else {
+        throw new Error(`item not copied to IndexedDB, list with id: ${cardId} was not found`)
       }
-    } else {
-      console.warn(`item not copied to IndexedDB, list with id: ${cardId} was not found`)
-      throw Error(`item not copied to IndexedDB, list with id: ${cardId} was not found`)
+    } catch (error) {
+      console.warn(`item not copied to IndexedDB, list with id: ${cardId} was not found. Error: ${error}`)
+      //TODO - Prompt message
     }
   }
 
@@ -130,7 +139,7 @@ const MenuDropdown = ({ open, cardId, setOpen, list, actions }: MenuDropdown) =>
   return (
     <div id="dropdown" className={`z-10 ${!open ? 'hidden' : ''} bg-menu-bg border border-border rounded-md w-auto`} aria-label="dropdown" style={{ ...popoverPlacement() }}>
       <ul className="p-2 text-sm font-medium" aria-labelledby="dropdownDefaultButton">
-        <li className="w-full hover:bg-red-100 rounded"><button className="p-2 text-red-700 text-start hover:cursor-pointer w-full rounded flex items-center" aria-label='delete card' onClick={(e) => handleMenuClick(e, 'remove')}>Usuń kartę <TrashIcon className="relative top-0.5 left-1"/></button></li>
+        <li className="w-full hover:bg-red-100 rounded"><button className="p-2 text-red-700 text-start hover:cursor-pointer w-full rounded flex items-center" aria-label='delete card' onClick={(e) => handleMenuClick(e, 'remove')}>Usuń kartę <TrashIcon className="relative top-0.5 left-1" /></button></li>
         <li className="w-full"><button className="p-2 text-start text-muted-graphic/70 w-full rounded" disabled>Dodaj współautora</button></li>
         <li className="w-full"><button className="p-2 hover:text-secondary text-start hover:bg-menu-active hover:cursor-pointer w-full rounded" aria-label='copy card' onClick={(e) => handleMenuClick(e, 'copy')}>Utwórz kopię</button></li>
         <li className="w-full"><button className="p-2 hover:text-secondary text-start hover:bg-menu-active hover:cursor-pointer w-full rounded" aria-label='delete all checked items' onClick={(e) => handleMenuClick(e, 'removeChecked')}>Usuń zaznaczone elementy</button></li>

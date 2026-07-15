@@ -113,9 +113,9 @@ export const useStore = create<StoreState>()(
     removeList: (listId) => set((state) => ({ lists: state.lists.filter((item) => item.id !== listId) })),
     copyList: (listId, newId) =>
       set((state) => {
-        const itemToCopy = state.lists.filter((item) => item.id === listId)?.[0];
-        const index = state.lists.indexOf(itemToCopy);
+        const itemToCopy = state.lists.find((item) => item.id === listId);
         if (itemToCopy) {
+          const index = state.lists.indexOf(itemToCopy);
           const updatedList = [...state.lists];
           const copiedItem = {
             ...itemToCopy,
