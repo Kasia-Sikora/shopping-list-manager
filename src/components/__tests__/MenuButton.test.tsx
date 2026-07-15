@@ -1,4 +1,4 @@
-import { cleanup, render, waitFor } from "@testing-library/react"
+import { cleanup, render, screen, waitFor } from "@testing-library/react"
 import Card from "../Card"
 import { editedElements, elements } from "./testHelpers"
 import userEvent from "@testing-library/user-event"
@@ -174,6 +174,8 @@ describe('<App/> dropdown buttons functionality', () => {
   it('should remove checked items from card', async () => {
     expect(getEditCard()).toBeVisible()
     expect(getEditCard('1')).toBeVisible()
+    expect(getEditIndicator('0')).toHaveAttribute('aria-hidden', "false")
+
 
     await user.click(queryMenuButton(dopdownClosed)!)
     expect(queryMenuButton(dopdownOpen)).not.toHaveClass('hidden')
@@ -188,4 +190,46 @@ describe('<App/> dropdown buttons functionality', () => {
     expect(queryItemsList(true)).not.toBeInTheDocument()
     expect(queryItemsList(false)).toHaveLength(2)
   })
+
+  it('should remove checked items from card that is not currently edited', async () => {
+    await user.click(document.body)
+    expect(getEditCard()).toBeVisible()
+    expect(getEditCard('1')).toBeVisible()
+    expect(getEditIndicator('1')).toHaveAttribute('aria-hidden', "true")
+
+    await user.click(queryMenuButton(dopdownClosed)!)
+    expect(queryMenuButton(dopdownOpen)).not.toHaveClass('hidden')
+    expect(queryMenuCardButtons('delete all checked items')).toBeVisible()
+    expect(queryItemsList(true)).toHaveLength(2)
+    expect(queryItemsList(false)).toHaveLength(2)
+
+
+    await user.click(queryMenuCardButtons('delete all checked items')!)
+    expect(queryMenuButton(dopdownClosed)).toBeVisible()
+    expect(queryMenuDropdown()).toHaveClass("hidden")
+    expect(queryItemsList(true)).not.toBeInTheDocument()
+    expect(queryItemsList(false)).toHaveLength(2)
+  })
+
+  it('should throw while deleting checked list items when listId was not found in db', async () => {
+     await user.click(document.body)
+    vi.spyOn(db, 'getList').mockResolvedValueOnce(undefined)
+    const consoleSpy = vi.spyOn(console, 'warn')
+
+    expect(queryMenuCardButtons('delete all checked items')).toBeVisible()
+    expect(await user.click(queryMenuCardButtons('delete all checked items')!)).toThrow(Error)
+    expect(consoleSpy).toHaveBeenCalledWith("item not updated to IndexedDB, list with id: 0 was not found")
+  })
+
+    it('should throw while copying checked list items when listId was not found in db', async () => {
+     await user.click(document.body)
+    vi.spyOn(db, 'getList').mockResolvedValueOnce(undefined)
+    const consoleSpy = vi.spyOn(console, 'warn')
+
+    expect(queryMenuCardButtons('copy card')).toBeVisible()
+    expect(await user.click(queryMenuCardButtons('copy card')!)).toThrow(Error)
+    expect(consoleSpy).toHaveBeenCalledWith("item not copied to IndexedDB, list with id: 0 was not found")
+  })
 })
+
+const getEditIndicator = (id: string) => screen.queryByTestId(`card-${id}-edit-indicator`);

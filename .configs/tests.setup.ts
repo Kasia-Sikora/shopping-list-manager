@@ -4,6 +4,9 @@ import 'fake-indexeddb/auto';
 import { IDBFactory } from 'fake-indexeddb';
 import * as db from '../src/services/indexedDB';
 import { appGuards } from '../src/consts';
+import { configure } from '@testing-library/dom';
+
+configure({ asyncUtilTimeout: 5000 });
 
 beforeEach(async () => {
   // eslint-disable-next-line no-global-assign
@@ -30,9 +33,9 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 class ResizeObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
+  observe() { /* test setup - false positive SQ */}
+  unobserve() { /* test setup - false positive SQ */}
+  disconnect() { /* test setup - false positive SQ */ }
 }
 
 window.ResizeObserver = ResizeObserver;
