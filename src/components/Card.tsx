@@ -37,14 +37,12 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
     disabled: index === undefined
   })
 
-  const defaultValues: List = useMemo(() => editedList
-    ? editedList
-    : {
-      id: generateId(),
-      title: '',
-      content: [{ id: generateId(), value: '', checked: false, depth: 0, parentId: null }],
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [editedList, emptyCardResetKey]); //emptyCardResetKey is used to trigger creating new values for fresh empty card
+  const defaultValues: List = useMemo(() => editedList ?? {
+    id: generateId(),
+    title: '',
+    content: [{ id: generateId(), value: '', checked: false, depth: 0, parentId: null }],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editedList, emptyCardResetKey]); //emptyCardResetKey is used to trigger creating new values for fresh empty card
 
   const [localDraft, setLocalDraft] = useState<List | null>(null);
 
