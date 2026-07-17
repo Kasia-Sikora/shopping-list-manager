@@ -44,17 +44,3 @@ export const splitItemsToDoneAndUndoneLists = (items: ListItem[]) => {
 
   return { uncheckedItems, checkedItems };
 };
-
-export const handleKeyDown = (e: KeyboardEvent, list: Element[]) => {
-  if (!list?.length) return;
-  const elem = e.target as HTMLTextAreaElement;
-  const indexOfCurrEl = list.indexOf(elem);
-
-  let focusedEl;
-  if (e.key === 'ArrowDown') {
-    focusedEl = list[indexOfCurrEl + 1] as HTMLTextAreaElement;
-  } else if (e.key === 'ArrowUp') {
-    focusedEl = list[indexOfCurrEl - 1] as HTMLTextAreaElement;
-  }
-  if (focusedEl) focusedEl.focus();
-};
