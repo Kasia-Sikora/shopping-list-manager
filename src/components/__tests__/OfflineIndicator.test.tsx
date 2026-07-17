@@ -15,17 +15,17 @@ describe('OfflineIndicator', () => {
   it('should set default status to synced', () => {
     render(<OfflineIndicator loading={false} />)
 
-    expect(getSyncIndicator()).toHaveTextContent('Zapisano')
+    expect(getSyncIndicator()).toHaveTextContent('Synced')
     expect(getPillIcon()).toBeVisible()
     expect(getOfflineIcon()).not.toBeInTheDocument()
   })
 
   it.each`
     status               | statusText      | statusIcon
-${'synced'}   | ${'Zapisano'} | ${'syncedIcon'}
-${'syncing'}   | ${'Synchronizuję...'} | ${'syncingIcon'}
-${'pending'}   | ${'0 w kolejce'} | ${'pendingIcon'}
-${'failed'}   | ${'0 nie zsynchronizowano — ponów'} | ${'failedIcon'}
+${'synced'}   | ${'Synced'} | ${'syncedIcon'}
+${'syncing'}   | ${'Syncing...'} | ${'syncingIcon'}
+${'pending'}   | ${'0 pending changes'} | ${'pendingIcon'}
+${'failed'}   | ${'0 sync failed - retry'} | ${'failedIcon'}
     ` ('should set $statusText text and $statusIcon icon for $status status store', ({ status, statusText, statusIcon }) => {
     useSyncStore.getState().setSyncStatus(status)
     render(<OfflineIndicator loading={false} />)
@@ -44,7 +44,7 @@ ${'failed'}   | ${'0 nie zsynchronizowano — ponów'} | ${'failedIcon'}
 
     render(<OfflineIndicator loading={false} />)
 
-    expect(getSyncIndicator()).toHaveTextContent('Offline - zmiany zapiszą się po ponownym połączeniu')
+    expect(getSyncIndicator()).toHaveTextContent('Working Offline - Changes will sync when back online')
     expect(getOfflineIcon()).toBeVisible()
     expect(getPillIcon()).not.toBeInTheDocument()
   })

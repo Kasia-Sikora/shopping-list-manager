@@ -10,6 +10,11 @@ export const splitItemsToDoneAndUndoneLists = (items: ListItem[]) => {
   let checkedParentId: string | null = null;
   let uncheckedParentId: string | null = null;
 
+  const setParentId = (item: ListItem) => {
+    if (item.depth === 0) return null;
+    return item.checked ? checkedParentId : uncheckedParentId;
+  };
+
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     const isNextItemRoot = i < items.length - 1 && items[i + 1].depth === 0;
@@ -17,7 +22,7 @@ export const splitItemsToDoneAndUndoneLists = (items: ListItem[]) => {
 
     const itemWithRelations = {
       ...item,
-      parentId: item.depth === 0 ? null : (item.checked ? checkedParentId : uncheckedParentId),
+      parentId: setParentId(item),
     };
 
     if (item.checked) {
@@ -38,18 +43,4 @@ export const splitItemsToDoneAndUndoneLists = (items: ListItem[]) => {
   }
 
   return { uncheckedItems, checkedItems };
-};
-
-export const handleKeyDown = (e: KeyboardEvent, list: Element[]) => {
-  if (!list || !list.length) return;
-  const elem = e.target as HTMLTextAreaElement;
-  const indexOfCurrEl = list.indexOf(elem);
-
-  let focusedEl;
-  if (e.key === 'ArrowDown') {
-    focusedEl = list[indexOfCurrEl + 1] as HTMLTextAreaElement;
-  } else if (e.key === 'ArrowUp') {
-    focusedEl = list[indexOfCurrEl - 1] as HTMLTextAreaElement;
-  }
-  if (focusedEl) focusedEl.focus();
 };

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Card from './components/Card';
 import { DragDropProvider, useDroppable } from '@dnd-kit/react';
-import { useStore, useSyncStore } from './stores/store';
+import { isLocale, useLocaleStore, useStore, useSyncStore} from './stores/store';
 import type { List } from './interfaces';
 import ThemeToggle from './components/atoms/ThemeToggle';
 import { dbActions, rebuildListOrder, sortByListOrder, sortListContent } from './utils/storeUtils';
@@ -16,11 +16,30 @@ import LoadingBoard from './components/LoadingBoard';
 import EmptyBoard from './components/EmptyBoard';
 import { SpeedInsights } from "@vercel/speed-insights/react"
 import { Analytics } from '@vercel/analytics/react';
+import { useTranslation } from './hooks/useTranslationHook';
 
 const App = () => {
   const { lists, setLists, moveList } = useStore()
   const { isOnline } = useSyncStore()
+  const { lang, setLang } = useLocaleStore()
   const [isReady, setIsReady] = useState(false);
+  const t = useTranslation()
+
+  useEffect(() => {
+    if (!lang) {
+      const locale = navigator.language.split("-")[0] ?? "en"
+      if (isLocale(locale)) {
+        setLang(locale)
+        if (!document.documentElement.lang.includes(locale)) {
+          document.documentElement.setAttribute('lang', locale);
+        }
+      } else {
+        setLang('en')
+      }
+    } else if (!document.documentElement.lang.includes(lang)) {
+      document.documentElement.setAttribute('lang', lang);
+    }
+  }, [lang, setLang])
 
   useEffect(() => {
     const getIndexDBLists = async () => {
@@ -125,7 +144,7 @@ const App = () => {
       <Analytics />
       <SpeedInsights />
       <header className='flex justify-between items-center w-full mb-5 lg:mb-10'>
-        <h1 className='flex flex-nowrap gap-2 text-xl lg:text-3xl font-bold text-accent items-center'><CartIcon className='size-9' /><span className='block invisible w-0 sm:visible sm:w-auto'>Listy zakupów</span></h1>
+        <h1 className='flex flex-nowrap gap-2 text-xl lg:text-3xl font-bold text-accent items-center'><CartIcon className='size-9' /><span className='block invisible w-0 sm:visible sm:w-auto'>{t('header.title')}</span></h1>
         <div className='flex justify-end gap-3 transition-all duration-300 '>
           <OfflineIndicator loading={!isReady} />
           <ThemeToggle />

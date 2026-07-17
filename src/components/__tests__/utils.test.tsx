@@ -1,6 +1,5 @@
 import type { ListItem, PersistedShoppingListStore } from '../../interfaces';
 import { sortList, sortListContent } from '../../utils/storeUtils';
-import { handleKeyDown } from '../../utils/utils';
 
 vi.mock('../../utils/utils.ts', { spy: true })
 vi.mock('../../utils/storeUtils', { spy: true })
@@ -22,22 +21,6 @@ describe('edge cases utils tests', () => {
     it('should return empty array if items are empty', () => {
       const exampleStore = { state: { lists: [] } }
       expect(sortListContent(exampleStore)).toEqual([])
-    })
-  })
-
-  describe('handleKeyDown tests', () => {
-    it('it should return if no list was provided', () => {
-      const mockEvent = new KeyboardEvent('keydown', {
-        key: 'ArrowUp',
-        code: 'ArrowUp',
-        keyCode: 38,
-        bubbles: true,
-        cancelable: true
-      });
-      const brokenList = undefined as unknown as Element[]
-      handleKeyDown(mockEvent, brokenList)
-      expect(handleKeyDown).toHaveBeenCalled()
-      expect(handleKeyDown).toHaveReturnedWith(undefined)
     })
   })
 })

@@ -10,7 +10,7 @@ const EditIndicator = ({ id, isEdit }: EditIndicator) => {
     <div
       data-testid={`card-${id}-edit-indicator`}
       className={`relative -top-5 -left-5 transition-opacity duration-300 ${isEdit ? 'opacity-100' : 'opacity-0'}`}
-      aria-hidden={`${isEdit ? 'false' : 'true'}`}
+      aria-hidden={!isEdit}
     >
       <div className={`absolute -top-1 -left-2.5 size-8 rounded-full bg-accent `} />
       <div className={`absolute -top-1 -left-2.5 size-8 rounded-full border-3 border-card outline-2 outline-secondary `} />

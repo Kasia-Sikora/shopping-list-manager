@@ -1,81 +1,8 @@
 import { create } from 'zustand';
 import type { List } from '../interfaces';
 import { devtools, persist } from 'zustand/middleware';
-import { LOCAL_STORAGE_THEME_KEY } from '../consts';
+import { LOCAL_STORAGE_LANG_KEY, LOCAL_STORAGE_THEME_KEY } from '../consts';
 import type { SyncStatus } from '../services/interfaces';
-
-export const DEFAULT_VALUES: List[] = [
-  {
-    id: '0',
-    title: 'Spożywka',
-    createdAt: new Date().toISOString(),
-    content: [
-      {
-        id: '1',
-        value: 'Nabiał',
-        checked: false,
-        depth: 0,
-        parentId: null,
-      },
-      {
-        id: '2',
-        value: 'Mleko',
-        checked: false,
-        depth: 1,
-        parentId: '1',
-      },
-      {
-        id: '3',
-        value: 'Ser',
-        checked: false,
-        depth: 1,
-        parentId: '1',
-      },
-      {
-        id: '4',
-        value: 'Kawa',
-        checked: false,
-        depth: 0,
-        parentId: null,
-      },
-    ],
-  },
-  {
-    id: '2',
-    title: 'Chemia',
-    createdAt: new Date().toISOString(),
-    content: [
-      {
-        id: '1',
-        value: 'Płyn do podłóg',
-        checked: true,
-        depth: 0,
-        parentId: null,
-      },
-      {
-        id: '2',
-        value: 'Ręcznik papierowy',
-        checked: false,
-        depth: 0,
-        parentId: null,
-      },
-      {
-        id: '3',
-        value: 'Płyn do szyb',
-        checked: false,
-        depth: 0,
-        parentId: null,
-      },
-      {
-        id: '4',
-        value: 'Zmywaczki',
-        checked: true,
-        depth: 0,
-        parentId: null,
-      },
-    ],
-  },
-];
 
 export type StoreState = {
   lists: List[];
@@ -113,9 +40,9 @@ export const useStore = create<StoreState>()(
     removeList: (listId) => set((state) => ({ lists: state.lists.filter((item) => item.id !== listId) })),
     copyList: (listId, newId) =>
       set((state) => {
-        const itemToCopy = state.lists.filter((item) => item.id === listId)?.[0];
-        const index = state.lists.indexOf(itemToCopy);
+        const itemToCopy = state.lists.find((item) => item.id === listId);
         if (itemToCopy) {
+          const index = state.lists.indexOf(itemToCopy);
           const updatedList = [...state.lists];
           const copiedItem = {
             ...itemToCopy,
@@ -200,3 +127,25 @@ export const useSyncStore = create<SyncStore>((set) => ({
   setPendingChangesCount: (pendingChangesCount) => set(() => ({ pendingChangesCount })),
   setFailedChangesCount: (failedChangesCount) => set(() => ({ failedChangesCount })),
 }));
+
+export type LocaleTypes = 'en' | 'pl';
+
+type LocaleStore = {
+  lang: LocaleTypes | undefined;
+  setLang: (lang: LocaleTypes) => void;
+};
+
+export const AVAILABLE_LANGUAGES = ['en', 'pl'] as const satisfies readonly LocaleTypes[];
+
+export const isLocale = (value: string): value is LocaleTypes =>
+  (AVAILABLE_LANGUAGES as readonly string[]).includes(value);
+
+export const useLocaleStore = create<LocaleStore>()(
+  persist(
+    (set) => ({
+      lang: undefined,
+      setLang: (lang: LocaleTypes) => set(() => ({ lang })),
+    }),
+    { name: LOCAL_STORAGE_LANG_KEY }
+  )
+);

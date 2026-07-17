@@ -63,7 +63,7 @@ describe('Card', () => {
 });
 
 const getEmptyCard = () => screen.getByTestId('card-empty');
-const getEmptyCardTitleEl = () => screen.queryByPlaceholderText('Tytuł...');
+const getEmptyCardTitleEl = () => screen.queryByPlaceholderText('Title...');
 
 const getCard = (itemId: string = exampleItem.id) => screen.queryByTestId(`card-${itemId}`);
 const getTitleEl = () => screen.getByRole('heading');
@@ -72,4 +72,4 @@ const getEditIndicator = (listId: string = exampleItem.id) => screen.queryByTest
 const getListTextarea = (itemId: string = exampleItem.id) =>
   screen.queryByTestId(`card-${itemId}-textarea`) as unknown as HTMLTextAreaElement;
 const getAddElemButton = (itemId: string = exampleItem.id) =>
-  within(getCard(itemId)!).queryByRole('button', { name: 'Element listy' });
+  within(getCard(itemId)!).queryByRole('button', { name: 'Add list item' });

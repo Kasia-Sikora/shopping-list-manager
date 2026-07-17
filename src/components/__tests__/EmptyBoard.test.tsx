@@ -3,8 +3,9 @@ import { describe, it } from 'vitest';
 import App from '../../App';
 import * as db from '../../services/indexedDB'
 import userEvent from '@testing-library/user-event';
-import { DEFAULT_VALUES, useStore } from '../../stores/store';
+import { useStore } from '../../stores/store';
 import { syncEngine } from '../../services/syncEngine';
+import { getSampleData } from '../../stores/sampleData';
 
 describe('EmptyBoard', () => {
   const user = userEvent.setup()
@@ -16,7 +17,7 @@ describe('EmptyBoard', () => {
     expect(button).toBeVisible()
   }
 
-  it('renders the empty-state heading ("Nie masz jeszcze żadnych list")', async () => {
+  it('renders the empty-state heading ("You don\'t have any lists yet")', async () => {
     await loadApp()
     expect(await emptyBoardHeader()).toBeVisible()
     expect(await hint()).toBeVisible()
@@ -31,11 +32,11 @@ describe('EmptyBoard', () => {
 
     const card = await findCard()
     expect(card).toBeVisible()
-    expect(card).toHaveTextContent(DEFAULT_VALUES[0].title)
+    expect(card).toHaveTextContent(getSampleData()[0].title)
 
-    await waitFor(() => expect(useStore.getState().lists).toHaveLength(DEFAULT_VALUES.length))
-    expect(useStore.getState().lists.map(l => l.title)).toContain(DEFAULT_VALUES[0].title)
-    await waitFor(async () => expect(await db.getLists()).toHaveLength(DEFAULT_VALUES.length))
+    await waitFor(() => expect(useStore.getState().lists).toHaveLength(getSampleData().length))
+    expect(useStore.getState().lists.map(l => l.title)).toContain(getSampleData()[0].title)
+    await waitFor(async () => expect(await db.getLists()).toHaveLength(getSampleData().length))
   });
 
 
@@ -47,9 +48,9 @@ describe('EmptyBoard', () => {
 
     await user.click(button)
 
-    await waitFor(async () => expect((await db.getLists())).toHaveLength(DEFAULT_VALUES.length))
-    expect((await db.getLists()).map(i => i.id)).not.toEqual(DEFAULT_VALUES.map(i => i.id))
-    expect((await db.getLists()).map(i => i.content.map(x => x.id))).not.toEqual(DEFAULT_VALUES.map(i => i.content.map(x => x.id)))
+    await waitFor(async () => expect((await db.getLists())).toHaveLength(getSampleData().length))
+    expect((await db.getLists()).map(i => i.id)).not.toEqual(getSampleData().map(i => i.id))
+    expect((await db.getLists()).map(i => i.content.map(x => x.id))).not.toEqual(getSampleData().map(i => i.content.map(x => x.id)))
   });
 
   it('kicks off a sync after loading the sample data', async () => {
@@ -97,19 +98,19 @@ describe('EmptyBoard — when it renders (App)', () => {
   });
 
   it('does not render when at least one list exists', async () => {
-    await db.insertList(DEFAULT_VALUES[0])
+    await db.insertList(getSampleData()[0])
 
     render(<App />)
 
     expect(await findCard()).toBeInTheDocument()
-    expect(queryLoadDatabutton()).not.toBeInTheDocument()
+    await waitFor(() => expect(queryLoadDatabutton()).not.toBeInTheDocument())
   });
 });
 
-const emptyBoardHeader = () => screen.findByText('Nie masz jeszcze żadnych list')
-const hint = () => screen.findByText('Utwórz swoją pierwszą listę powyżej')
-const loadDatabutton = () => screen.findByText('Załaduj przykładowe dane')
-const findCard = (idx = 0) => screen.findByText(DEFAULT_VALUES[idx].title)
-const queryLoadDatabutton = () => screen.queryByText('Załaduj przykładowe dane')
+const emptyBoardHeader = () => screen.findByText("You don't have any lists yet")
+const hint = () => screen.findByText("Create your first list above")
+const loadDatabutton = () => screen.findByText("Load sample data")
+const findCard = (idx = 0) => screen.findByText(getSampleData()[idx].title)
+const queryLoadDatabutton = () => screen.queryByText("Load sample data")
 const getLoadingCards = () => screen.getAllByTestId('loading-card')
 const queryLoadingCards = () => screen.queryAllByTestId('loading-card')
