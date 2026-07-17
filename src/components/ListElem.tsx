@@ -7,6 +7,7 @@ import { useActiveCardIdStore } from '../stores/store';
 import { useDragOperation } from '@dnd-kit/react';
 import { useMemo, memo, useState } from 'react';
 import DragHandleIcon from '../assets/dragHandle.svg?react'
+import { useTranslation } from '../hooks/useTranslationHook';
 
 function DraggingIndicator() {
   const { source } = useDragOperation();
@@ -51,6 +52,7 @@ const ListElem = ({
 }: ListElement) => {
   const { editingCardId, setEditingCardId, focusItemId, setFocusItemId } = useActiveCardIdStore()
   const [tempValue, setTempValue] = useState(item.value);
+  const t = useTranslation()
 
   const { ref, handleRef, isDragging, isDragSource } = useSortable({
     ...config,
@@ -101,7 +103,7 @@ const ListElem = ({
         <button
           ref={handleRef}
           type="button"
-          aria-label={`Drag to reorder: ${item.value || 'item'}`}
+          aria-label={`${t('card.listItem.buttons.dragButton')} ${item.value || t('card.listItem.item')}`}
           aria-roledescription="drag handle"
           className='relative top-1.25 cursor-move size-6 rounded-sm bg-primary/20 shrink-0 flex justify-center hover:bg-primary/30'
         >
@@ -116,7 +118,7 @@ const ListElem = ({
           checked={item?.checked}
           className="size-6 shrink-0 rounded-sm cursor-pointer before:bg-accent"
           onChange={(e) => saveValue('checked', e.target.checked)}
-          aria-label={`Done: ${item.value || 'unnamed item'}`}
+          aria-label={`${t('card.listItem.checkboxAria')} ${item.value || t('card.listItem.ariaUndefinedItem')}`}
         />
         <textarea
           id={`item-${item.id}`}
@@ -134,12 +136,12 @@ const ListElem = ({
           autoFocus={!isOverlay && item.id === focusItemId}
           data-depth={item.depth}
           aria-describedby={`item-desc-${item.id}`}
-          placeholder='Utwórz listę...'
+          placeholder={t('card.listItem.textAreaPlaceholder')}
         />
-        <span id={`item-desc-${item.id}`} className="sr-only">{tempValue ?? 'Utwórz listę...'}</span>
+        <span id={`item-desc-${item.id}`} className="sr-only">{tempValue ?? t('card.listItem.textAreaPlaceholder')}</span>
       </div>
 
-      <DeleteButton ariaLabel={`Delete: ${item.value || 'unnamed item'}`} handleRemoveItem={handleRemoveItem} />
+      <DeleteButton ariaLabel={`${t('card.listItem.buttons.removeItemButton')} ${item.value || t('card.listItem.ariaUndefinedItem')}`} handleRemoveItem={handleRemoveItem} />
     </li>
   );
 };

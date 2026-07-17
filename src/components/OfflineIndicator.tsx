@@ -9,6 +9,7 @@ import SyncingIcon from '../assets/syncing.svg?react';
 import SyncedIcon from '../assets/synced.svg?react';
 import PendingIcon from '../assets/pending.svg?react'
 import FailedIcon from '../assets/failed.svg?react'
+import { useTranslation } from "../hooks/useTranslationHook"
 
 type SyncState = 'failed' | 'pending' | 'syncing' | 'synced'
 
@@ -32,19 +33,20 @@ const PILL_STYLE: Record<SyncState, { background: string; color: string }> = {
 export const OfflineIndicator = ({ loading }: OfflineIndicator) => {
   const { isOnline } = useNetworkStatus()
   const { syncStatus, failedChangesCount, pendingChangesCount, setIsOnline } = useSyncStore()
+  const t = useTranslation()
 
   const getStatus = useCallback((): StatusIndicator => {
     switch (syncStatus) {
       case 'pending':
-        return { status: "pending", message: `${pendingChangesCount} w kolejce`, statusIcon: <PendingIcon title="pendingIcon"/> }
+        return { status: "pending", message: `${pendingChangesCount} ${t('header.syncStatus.pending')}`, statusIcon: <PendingIcon title="pendingIcon" /> }
       case 'syncing':
-        return { status: "syncing", message: "Synchronizuję...", statusIcon: <SyncingIcon title="syncingIcon" className="animate-spin" /> }
+        return { status: "syncing", message: t('header.syncStatus.syncing'), statusIcon: <SyncingIcon title="syncingIcon" className="animate-spin" /> }
       case 'failed':
-        return { status: "failed", message: `${failedChangesCount} nie zsynchronizowano — ponów`, statusIcon: <FailedIcon title="failedIcon"/> }
+        return { status: "failed", message: `${failedChangesCount} ${t('header.syncStatus.failed')}`, statusIcon: <FailedIcon title="failedIcon" /> }
       default:
-        return { status: 'synced', message: "Zapisano", statusIcon: <SyncedIcon title="syncedIcon"/> }
+        return { status: 'synced', message: t('header.syncStatus.synced'), statusIcon: <SyncedIcon title="syncedIcon" /> }
     }
-  }, [failedChangesCount, pendingChangesCount, syncStatus])
+  }, [failedChangesCount, pendingChangesCount, syncStatus, t])
 
   useEffect(() => {
     const setData = async () => {
@@ -73,7 +75,7 @@ export const OfflineIndicator = ({ loading }: OfflineIndicator) => {
         className="fixed top-0 left-0 z-10 flex w-full items-center justify-center gap-2 px-3 py-1 text-sm"
         style={{ background: 'var(--sync-pending-bg)', color: 'var(--sync-pending-fg)' }}
       >
-        <OfflineIcon title="offlineIcon"/>  Offline - zmiany zapiszą się po ponownym połączeniu
+        <OfflineIcon title="offlineIcon" />  {t('header.offlineMessage')}
       </output>
     )
   }
@@ -102,6 +104,6 @@ export const OfflineIndicator = ({ loading }: OfflineIndicator) => {
   }
 
   return loading ?
-    <div className="w-23 h-8 bg-loading-items rounded-full animate-pulse" title='loadingPill'/>
+    <div className="w-23 h-8 bg-loading-items rounded-full animate-pulse" title='loadingPill' />
     : generateStatusPill()
 }

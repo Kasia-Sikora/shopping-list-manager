@@ -5,6 +5,7 @@ import * as db from '../../services/indexedDB'
 import { generateId } from "../../utils/utils";
 import TrashIcon from '../../assets/trash.svg?react'
 import MenuIcon from '../../assets/menu.svg?react'
+import { useTranslation } from "../../hooks/useTranslationHook";
 
 type MenuButton = {
   openMenu: boolean;
@@ -15,9 +16,10 @@ type MenuButton = {
 }
 
 const MenuButton = ({ cardId, openMenu, setOpenMenu, list, actions }: MenuButton) => {
+  const t = useTranslation()
   return (
     <>
-      <button className="absolute bottom-1.5 right-1.5 rounded-full size-7 hover:cursor-pointer" aria-label={openMenu ? 'close menu' : 'open menu'} onClick={(e) => { e.stopPropagation(); setOpenMenu(!openMenu) }}>
+      <button className="absolute bottom-1.5 right-1.5 rounded-full size-7 hover:cursor-pointer" aria-label={openMenu ? t('card.menuPopover.closeMenuAriaButton') : t('card.menuPopover.openMenuAriaButton')} onClick={(e) => { e.stopPropagation(); setOpenMenu(!openMenu) }}>
         <div className="absolute -bottom-0.5 -right-0.5 rounded-full bg-accent size-6" />
         <div className="size-7 absolute bottom-0 border-3 bg-white/40 transition-all duration-200 hover:bg-white/75 border-muted-graphic rounded-full">
           <MenuIcon className='relative text-on-accent right-px bottom-px' />
@@ -47,6 +49,7 @@ type MenuOperationTypes =
 
 const MenuDropdown = ({ open, cardId, setOpen, list, actions }: MenuDropdown) => {
 
+  const t = useTranslation()
   const { copyList, removeList, removeCheckedListItems } = useStore()
   const { editingCardId } = useActiveCardIdStore()
   const popoverPlacement = () => {
@@ -139,10 +142,10 @@ const MenuDropdown = ({ open, cardId, setOpen, list, actions }: MenuDropdown) =>
   return (
     <div id="dropdown" className={`z-10 ${!open ? 'hidden' : ''} bg-menu-bg border border-border rounded-md w-auto`} aria-label="dropdown" style={{ ...popoverPlacement() }}>
       <ul className="p-2 text-sm font-medium" aria-labelledby="dropdownDefaultButton">
-        <li className="w-full hover:bg-red-100 rounded"><button className="p-2 text-red-700 text-start hover:cursor-pointer w-full rounded flex items-center" aria-label='delete card' onClick={(e) => handleMenuClick(e, 'remove')}>Usuń kartę <TrashIcon className="relative top-0.5 left-1" /></button></li>
-        <li className="w-full"><button className="p-2 text-start text-muted-graphic/70 w-full rounded" disabled>Dodaj współautora</button></li>
-        <li className="w-full"><button className="p-2 hover:text-secondary text-start hover:bg-menu-active hover:cursor-pointer w-full rounded" aria-label='copy card' onClick={(e) => handleMenuClick(e, 'copy')}>Utwórz kopię</button></li>
-        <li className="w-full"><button className="p-2 hover:text-secondary text-start hover:bg-menu-active hover:cursor-pointer w-full rounded" aria-label='delete all checked items' onClick={(e) => handleMenuClick(e, 'removeChecked')}>Usuń zaznaczone elementy</button></li>
+        <li className="w-full hover:bg-red-100 rounded"><button className="p-2 text-red-700 text-start hover:cursor-pointer w-full rounded flex items-center" aria-label='delete card' onClick={(e) => handleMenuClick(e, 'remove')}>{t('card.menuPopover.removeCard')} <TrashIcon className="relative top-0.5 left-1" /></button></li>
+        <li className="w-full"><button className="p-2 text-start text-muted-graphic/70 w-full rounded" disabled>{t('card.menuPopover.addCoAuthor')}</button></li>
+        <li className="w-full"><button className="p-2 hover:text-secondary text-start hover:bg-menu-active hover:cursor-pointer w-full rounded" aria-label='copy card' onClick={(e) => handleMenuClick(e, 'copy')}>{t('card.menuPopover.copyCard')}</button></li>
+        <li className="w-full"><button className="p-2 hover:text-secondary text-start hover:bg-menu-active hover:cursor-pointer w-full rounded" aria-label='delete all checked items' onClick={(e) => handleMenuClick(e, 'removeChecked')}>{t('card.menuPopover.removeChecked')}</button></li>
       </ul>
     </div>
   )
