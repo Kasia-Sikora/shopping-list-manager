@@ -10,8 +10,19 @@ const pl: Labels = {
       failed: 'nie zsynchronizowano — ponów',
     },
     offlineMessage: 'Offline - zmiany zapiszą się po ponownym połączeniu',
-    darkMode: 'tryb nocny',
-    lightMode: 'tryb dzienny',
+    settings: {
+      label: 'Ustawienia',
+      theme: {
+        label: 'Motyw',
+        darkMode: 'tryb nocny',
+        lightMode: 'tryb dzienny',
+      },
+      lang: {
+        label: 'Język',
+        en: 'EN',
+        pl: 'PL',
+      },
+    },
   },
   card: {
     header: {

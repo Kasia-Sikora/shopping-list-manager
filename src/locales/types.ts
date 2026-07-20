@@ -19,8 +19,7 @@ export type HeaderLabels = {
   title: string;
   syncStatus: SyncStatusLabels;
   offlineMessage: string;
-  darkMode: string;
-  lightMode: string;
+  settings: SettingsLabels;
 };
 
 export type CardHeaderLabels = {
@@ -62,4 +61,18 @@ type EmptyBoardLabels = {
   header: string;
   hint: string;
   ctaButton: string;
+};
+
+type SettingsLabels = {
+  label: string;
+  theme: {
+    label: string;
+    darkMode: string;
+    lightMode: string;
+  };
+  lang: {
+    label: string;
+    en: string;
+    pl: string;
+  };
 };

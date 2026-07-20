@@ -42,9 +42,9 @@ export const editedElements = {
   queryEditCard: (id: string = '0') => screen.queryByTestId(`card-${id}`),
   queryItemsList: (isChecked: boolean, id: string = '0') => elements.queryItemsList(isChecked, id),
   queryMenuButton: (open: boolean, id: string = '0') => within(editedElements.getEditCard(id)).queryByLabelText(open ? 'close menu' : 'open menu'),
-  queryMenuDropdown: (id: string = '0') => within(editedElements.getEditCard(id)).queryByLabelText('dropdown'),
+  queryMenuPopover: (id: string = '0') => screen.queryByTestId(`${id}-menu`),
   queryMenuCardButtons: (buttonText: string, id: string = '0') => {
-    const dropdown = editedElements.queryMenuDropdown(id)
+    const dropdown = editedElements.queryMenuPopover(id)
     if (dropdown) {
       return within(dropdown).getByLabelText(buttonText)
     }

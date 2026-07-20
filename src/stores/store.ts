@@ -73,9 +73,10 @@ export const useStore = create<StoreState>()(
   }))
 );
 
+
 type StoreThemeState = {
   theme: string;
-  setTheme: (theme: string) => void;
+  setTheme: (theme: 'light' | 'dark') => void;
 };
 
 export const useThemeStore = create<StoreThemeState>()(
@@ -149,3 +150,15 @@ export const useLocaleStore = create<LocaleStore>()(
     { name: LOCAL_STORAGE_LANG_KEY }
   )
 );
+
+type PopoverIdStore = {
+  openPopoverId: string | null;
+  setOpenPopoverId: (id: string | null) => void;
+  closePopover: () => void;
+};
+
+export const usePopoverIdStore = create<PopoverIdStore>((set) => ({
+  openPopoverId: null,
+  setOpenPopoverId: (openPopoverId) => set(() => ({ openPopoverId })),
+  closePopover: () => set(() => ({ openPopoverId: null })),
+}));

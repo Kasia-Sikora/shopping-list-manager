@@ -3,7 +3,6 @@ import Card from './components/Card';
 import { DragDropProvider, useDroppable } from '@dnd-kit/react';
 import { isLocale, useLocaleStore, useStore, useSyncStore} from './stores/store';
 import type { List } from './interfaces';
-import ThemeToggle from './components/atoms/ThemeToggle';
 import { dbActions, rebuildListOrder, sortByListOrder, sortListContent } from './utils/storeUtils';
 import { appGuards, EMPTY_CARD_ID } from './consts';
 import { OfflineIndicator } from './components/OfflineIndicator';
@@ -17,6 +16,7 @@ import EmptyBoard from './components/EmptyBoard';
 import { SpeedInsights } from "@vercel/speed-insights/react"
 import { Analytics } from '@vercel/analytics/react';
 import { useTranslation } from './hooks/useTranslationHook';
+import SettingsButton from './components/atoms/SettingsButton';
 
 const App = () => {
   const { lists, setLists, moveList } = useStore()
@@ -147,7 +147,7 @@ const App = () => {
         <h1 className='flex flex-nowrap gap-2 text-xl lg:text-3xl font-bold text-accent items-center'><CartIcon className='size-9' /><span className='block invisible w-0 sm:visible sm:w-auto'>{t('header.title')}</span></h1>
         <div className='flex justify-end gap-3 transition-all duration-300 '>
           <OfflineIndicator loading={!isReady} />
-          <ThemeToggle />
+          <SettingsButton />
         </div>
       </header>
       <main>

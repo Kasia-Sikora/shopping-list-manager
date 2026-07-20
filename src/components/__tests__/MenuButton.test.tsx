@@ -6,7 +6,7 @@ import App from "../../App"
 import type { PersistedShoppingListStore } from "../../interfaces"
 import * as db from '../../services/indexedDB'
 
-const { getEditCard, getListItemTextarea, queryMenuButton, queryMenuDropdown, queryMenuCardButtons, queryEditCard } = editedElements
+const { getEditCard, getListItemTextarea, queryMenuButton, queryMenuPopover, queryMenuCardButtons, queryEditCard } = editedElements
 const { queryElByText, queryItemsList } = elements
 
 const defaultStoreState: PersistedShoppingListStore = {
@@ -100,7 +100,7 @@ describe('Menu button functionality', () => {
     const isDropdownOpen = false
     expect(getEditCard()).toBeVisible()
     expect(queryMenuButton(isDropdownOpen)).toBeVisible()
-    expect(queryMenuDropdown()).toHaveClass("hidden")
+    expect(queryMenuPopover()).toHaveClass("hidden")
   })
 
   it('should display menu dropdown on button click', async () => {
@@ -108,11 +108,11 @@ describe('Menu button functionality', () => {
 
     expect(getEditCard()).toBeVisible()
     expect(queryMenuButton(dopdownClosed)).toBeVisible()
-    expect(queryMenuDropdown()).toHaveClass("hidden")
+    expect(queryMenuPopover()).toHaveClass("hidden")
 
     await user.click(queryMenuButton(dopdownClosed)!)
     expect(queryMenuButton(dopdownOpen)).toBeVisible()
-    expect(queryMenuDropdown()).not.toHaveClass("hidden")
+    expect(queryMenuPopover()).not.toHaveClass("hidden")
   })
 })
 
@@ -149,9 +149,9 @@ describe('<App/> dropdown buttons functionality', () => {
 
     await user.click(queryMenuButton(dopdownClosed)!)
     expect(queryMenuButton(dopdownOpen)).not.toHaveClass('hidden')
-    expect(queryMenuCardButtons('delete card')).toBeVisible()
+    expect(queryMenuCardButtons('Delete card')).toBeVisible()
 
-    await user.click(queryMenuCardButtons('delete card')!)
+    await user.click(queryMenuCardButtons('Delete card')!)
     expect(queryEditCard()).not.toBeInTheDocument()
     expect(queryEditCard('1')).toBeVisible()
   })
@@ -162,12 +162,12 @@ describe('<App/> dropdown buttons functionality', () => {
 
     await user.click(queryMenuButton(dopdownClosed)!)
     expect(queryMenuButton(dopdownOpen)).not.toHaveClass('hidden')
-    expect(queryMenuCardButtons('copy card')).toBeVisible()
+    expect(queryMenuCardButtons('Copy card')).toBeVisible()
     expect(queryElByText('second el in First List')).toHaveLength(1)
 
-    await user.click(queryMenuCardButtons('copy card')!)
+    await user.click(queryMenuCardButtons('Copy card')!)
     await waitFor(() => expect(queryMenuButton(dopdownClosed)).toBeVisible())
-    expect(queryMenuDropdown()).toHaveClass("hidden")
+    expect(queryMenuPopover()).toHaveClass("hidden")
     expect(queryElByText('second el in First List')).toHaveLength(2)
   })
 
@@ -179,14 +179,14 @@ describe('<App/> dropdown buttons functionality', () => {
 
     await user.click(queryMenuButton(dopdownClosed)!)
     expect(queryMenuButton(dopdownOpen)).not.toHaveClass('hidden')
-    expect(queryMenuCardButtons('delete all checked items')).toBeVisible()
+    expect(queryMenuCardButtons('Remove done items')).toBeVisible()
     expect(queryItemsList(true)).toHaveLength(2)
     expect(queryItemsList(false)).toHaveLength(2)
 
 
-    await user.click(queryMenuCardButtons('delete all checked items')!)
+    await user.click(queryMenuCardButtons('Remove done items')!)
     expect(queryMenuButton(dopdownClosed)).toBeVisible()
-    expect(queryMenuDropdown()).toHaveClass("hidden")
+    expect(queryMenuPopover()).toHaveClass("hidden")
     expect(queryItemsList(true)).not.toBeInTheDocument()
     expect(queryItemsList(false)).toHaveLength(2)
   })
@@ -199,14 +199,14 @@ describe('<App/> dropdown buttons functionality', () => {
 
     await user.click(queryMenuButton(dopdownClosed)!)
     expect(queryMenuButton(dopdownOpen)).not.toHaveClass('hidden')
-    expect(queryMenuCardButtons('delete all checked items')).toBeVisible()
+    expect(queryMenuCardButtons('Remove done items')).toBeVisible()
     expect(queryItemsList(true)).toHaveLength(2)
     expect(queryItemsList(false)).toHaveLength(2)
 
 
-    await user.click(queryMenuCardButtons('delete all checked items')!)
+    await user.click(queryMenuCardButtons('Remove done items')!)
     expect(queryMenuButton(dopdownClosed)).toBeVisible()
-    expect(queryMenuDropdown()).toHaveClass("hidden")
+    expect(queryMenuPopover()).toHaveClass("hidden")
     expect(queryItemsList(true)).not.toBeInTheDocument()
     expect(queryItemsList(false)).toHaveLength(2)
   })
@@ -216,8 +216,8 @@ describe('<App/> dropdown buttons functionality', () => {
     vi.spyOn(db, 'getList').mockResolvedValueOnce(undefined)
     const consoleSpy = vi.spyOn(console, 'warn')
 
-    expect(queryMenuCardButtons('delete all checked items')).toBeVisible()
-    expect(await user.click(queryMenuCardButtons('delete all checked items')!)).toThrow(Error)
+    expect(queryMenuCardButtons('Remove done items')).toBeVisible()
+    expect(await user.click(queryMenuCardButtons('Remove done items')!)).toThrow(Error)
     expect(consoleSpy).toHaveBeenCalledWith("item not updated to IndexedDB, list with id: 0 was not found. Error: Error: item not updated to IndexedDB, list with id: 0 was not found")
   })
 
@@ -226,8 +226,8 @@ describe('<App/> dropdown buttons functionality', () => {
     vi.spyOn(db, 'getList').mockResolvedValueOnce(undefined)
     const consoleSpy = vi.spyOn(console, 'warn')
 
-    expect(queryMenuCardButtons('copy card')).toBeVisible()
-    expect(await user.click(queryMenuCardButtons('copy card')!)).toThrow(Error)
+    expect(queryMenuCardButtons('Copy card')).toBeVisible()
+    expect(await user.click(queryMenuCardButtons('Copy card')!)).toThrow(Error)
     expect(consoleSpy).toHaveBeenCalledWith("item not copied to IndexedDB, list with id: 0 was not found. Error: Error: item not copied to IndexedDB, list with id: 0 was not found")
   })
 })
