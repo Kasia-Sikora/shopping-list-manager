@@ -31,7 +31,7 @@ describe('<App>', () => {
     expect(getListItemTextarea()).toHaveLength(2);
   });
 
-  it('should create new line when "+ Element Listy" button was clicked', async () => {
+  it('should create new line when "+ Dodaj element" button was clicked', async () => {
     await userEvent.type(getListItemTextarea()[0], 'Kup chleb');
     expect(getListItemTextarea()).toHaveLength(1);
 

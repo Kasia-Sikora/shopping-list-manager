@@ -1,7 +1,8 @@
 import type { List, ListItem } from '../../interfaces';
 import * as db from '../../services/indexedDB';
 import { syncEngine } from '../../services/syncEngine';
-import { DEFAULT_VALUES, useSyncStore } from '../../stores/store';
+import { getSampleData } from '../../stores/sampleData';
+import { useSyncStore } from '../../stores/store';
 import { calculateQueueStatus, dbActions, rebuildListOrder, sortByListOrder, sortList } from '../storeUtils';
 import { makeCreateAction, makeList } from '../testHelpers';
 
@@ -44,7 +45,7 @@ describe('storeUtils', () => {
   });
 
   it('sortList puts unchecked items before checked ones', () => {
-    const data: ListItem[] = DEFAULT_VALUES[1].content; // ids: 1, 2, 3, 4
+    const data: ListItem[] = getSampleData()[1].content; // ids: 1, 2, 3, 4
 
     const mappedSortedIds = sortList(data).map((i) => i.id);
 
@@ -57,21 +58,21 @@ describe('storeUtils', () => {
 
   it('sortByListOrder orders lists to match the given id order', () => {
     const orderedLists = ['2', '0'];
-    const lists: List[] = DEFAULT_VALUES;
+    const lists: List[] = getSampleData();
 
-    expect(sortByListOrder(orderedLists, lists)).toStrictEqual([DEFAULT_VALUES[1], DEFAULT_VALUES[0]]);
+    expect(sortByListOrder(orderedLists, lists)).toStrictEqual([getSampleData()[1], getSampleData()[0]]);
   });
 
   it('sortByListOrder drops ids that are not present in the provided lists', () => {
     const orderedLists = ['2', '5', '8', '0', '13'];
-    const lists: List[] = DEFAULT_VALUES;
+    const lists: List[] = getSampleData();
 
-    expect(sortByListOrder(orderedLists, lists)).toStrictEqual([DEFAULT_VALUES[1], DEFAULT_VALUES[0]]);
+    expect(sortByListOrder(orderedLists, lists)).toStrictEqual([getSampleData()[1], getSampleData()[0]]);
   });
 
   it('rebuildListOrder keeps only ids that still exist in the lists', () => {
     const orderedLists = ['2', '5', '8', '0', '13'];
-    const lists: List[] = DEFAULT_VALUES;
+    const lists: List[] = getSampleData();
 
     expect(rebuildListOrder(orderedLists, lists)).toStrictEqual(['2', '0']);
   });

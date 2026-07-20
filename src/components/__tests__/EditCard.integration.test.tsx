@@ -238,7 +238,7 @@ describe('<App>', () => {
     await user.click(getCheckbox('3')!);
 
     expect(getDoneElemExpandButton()).toBeVisible();
-    expect(getDoneElemExpandButton()).toHaveTextContent('2 ukończonych elementów');
+    expect(getDoneElemExpandButton()).toHaveTextContent('2 done items');
 
     expect(queryItemsList(true)).toHaveLength(2);
     expect(queryItemsList(true)?.[0]).toBeVisible();
@@ -258,7 +258,7 @@ describe('<App>', () => {
     await user.click(getCheckbox('4'));
     expect(queryItemsList(true)).toHaveLength(2);
     expect(queryItemsList(true)?.[0]).toBeVisible();
-    expect(getDoneElemExpandButton()).toHaveTextContent('2 ukończonych elementów');
+    expect(getDoneElemExpandButton()).toHaveTextContent('2 done items');
 
     expect(queryItemsList(true)).toHaveLength(2);
     expect(queryItemsList(false)).toHaveLength(3);
@@ -286,7 +286,7 @@ describe('<App>', () => {
       expect(queryItemsList(false)).not.toBeInTheDocument();
     });
     expect(queryItemsList(true)?.[0]).toBeVisible();
-    expect(getDoneElemExpandButton()).toHaveTextContent('4 ukończonych elementów');
+    expect(getDoneElemExpandButton()).toHaveTextContent('4 done items');
 
     await user.click(getCheckbox('1'));
     await user.click(getCheckbox('2'));

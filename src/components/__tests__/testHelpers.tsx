@@ -2,14 +2,14 @@ import { screen, within } from '@testing-library/react';
 
 export const elements = {
   getCard: (cardId?: string) => screen.getByTestId(cardId ? `card-${cardId}` : 'card-empty'),
-  getTitleEl: (id?: string) => within(elements.getCard(id)).queryByPlaceholderText('Tytuł...'),
+  getTitleEl: (id?: string) => within(elements.getCard(id)).queryByPlaceholderText('Title...'),
   getListItemTextarea: (id?: string) =>
-    within(elements.getCard(id)).getAllByPlaceholderText('Utwórz listę...') as unknown as HTMLTextAreaElement[],
-  getAddElButton: (id?: string) => within(elements.getCard(id)).getByRole('button', { name: 'Element listy' }),
+    within(elements.getCard(id)).getAllByPlaceholderText('Create a list item...') as unknown as HTMLTextAreaElement[],
+  getAddElButton: (id?: string) => within(elements.getCard(id)).getByRole('button', { name: 'Add list item' }),
   getDeleteButton: (index: number = 0, id?: string) => {
-    const listElement = within(elements.getCard(id)).getAllByPlaceholderText('Utwórz listę...')?.[index]?.parentElement?.parentElement
+    const listElement = within(elements.getCard(id)).getAllByPlaceholderText('Create a list item...')?.[index]?.parentElement?.parentElement
     if (listElement) {
-      return within(listElement).getByLabelText('Delete', {exact: false})
+      return within(listElement).getByLabelText('Remove list item', {exact: false})
     } return null
   },
   getCheckbox: (checkboxId: string, id?: string) =>
@@ -18,11 +18,11 @@ export const elements = {
     within(elements.getCard(id)).queryByTestId(`list-item-${checkboxId}-checkbox`),
   getEditIndicator: (id: string = '0') => screen.queryByTestId(`card-${id}-edit-indicator`),
   getDoneElemExpandButton: (id?: string) =>
-    within(elements.getCard(id)).queryByText('ukończonych elementów', { exact: false }),
+    within(elements.getCard(id)).queryByRole('button', { expanded: true }),
   queryItemsList: (isChecked: boolean, id: string = '0') => {
     const list = screen.queryByTestId(`card-${id}-${isChecked ? 'checkedItems' : 'uncheckedItems'}`)
     if (list) {
-      return within(list).queryAllByPlaceholderText('Utwórz listę...') as HTMLUListElement[]
+      return within(list).queryAllByPlaceholderText('Create a list item...') as HTMLUListElement[]
     }
     return null;
   },
@@ -42,9 +42,9 @@ export const editedElements = {
   queryEditCard: (id: string = '0') => screen.queryByTestId(`card-${id}`),
   queryItemsList: (isChecked: boolean, id: string = '0') => elements.queryItemsList(isChecked, id),
   queryMenuButton: (open: boolean, id: string = '0') => within(editedElements.getEditCard(id)).queryByLabelText(open ? 'close menu' : 'open menu'),
-  queryMenuDropdown: (id: string = '0') => within(editedElements.getEditCard(id)).queryByLabelText('dropdown'),
+  queryMenuPopover: (id: string = '0') => screen.queryByTestId(`${id}-menu`),
   queryMenuCardButtons: (buttonText: string, id: string = '0') => {
-    const dropdown = editedElements.queryMenuDropdown(id)
+    const dropdown = editedElements.queryMenuPopover(id)
     if (dropdown) {
       return within(dropdown).getByLabelText(buttonText)
     }

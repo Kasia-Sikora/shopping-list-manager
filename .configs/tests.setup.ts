@@ -5,6 +5,7 @@ import { IDBFactory } from 'fake-indexeddb';
 import * as db from '../src/services/indexedDB';
 import { appGuards } from '../src/consts';
 import { configure } from '@testing-library/dom';
+import { useLocaleStore } from '../src/stores/store';
 
 configure({ asyncUtilTimeout: 5000 });
 
@@ -13,6 +14,7 @@ beforeEach(async () => {
   indexedDB = new IDBFactory();
   db._resetDbForTests(); // drop the app's cached connection
   appGuards._resetForTests();
+  useLocaleStore.setState({ lang: 'en' })
 });
 
 afterEach(() => {
