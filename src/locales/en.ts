@@ -10,8 +10,19 @@ const en: Labels = {
       failed: 'sync failed - retry',
     },
     offlineMessage: 'Working Offline - Changes will sync when back online',
-    darkMode: 'dark mode',
-    lightMode: 'light mode',
+    settings: {
+      label: 'Settings',
+      theme: {
+        label: 'Theme',
+        darkMode: 'dark mode',
+        lightMode: 'light mode',
+      },
+      lang: {
+        label: 'Language',
+        en: 'EN',
+        pl: 'PL',
+      },
+    },
   },
   card: {
     header: {
@@ -28,7 +39,7 @@ const en: Labels = {
         expandButton: {
           one: 'done item',
           other: 'done items',
-        },        
+        },
         dragButton: 'Drag to reorder:',
         addElementButton: 'Add list item',
         removeItemButton: 'Remove list item',
@@ -45,7 +56,7 @@ const en: Labels = {
   },
   emptyBoard: {
     header: "You don't have any lists yet",
-    hint: "Create your first list above",
+    hint: 'Create your first list above',
     ctaButton: 'Load sample data',
   },
 };

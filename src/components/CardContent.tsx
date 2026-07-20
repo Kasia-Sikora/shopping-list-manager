@@ -24,7 +24,6 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
   const { removeList } = useStore()
   const t = useTranslation()
 
-  const [openMenu, setOpenMenu] = useState<boolean>(false)
   const { uncheckedItems, checkedItems } = splitItemsToDoneAndUndoneLists(editedList.content);
   const [contentExpanded, setContentExpanded] = useState<boolean>(true);
   const doneTaskQuantity = checkedItems.length;
@@ -59,17 +58,12 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
           handleSubmit();
         }
       };
-      const dropdownCardEl = document.querySelector(`[data-id='card-${editedList.id}'] #dropdown`)
-      const menuButton = document.querySelector(`[data-id='card-${editedList.id}'] [aria-label="close menu"]`)
-      if (!dropdownCardEl?.contains(e.target as Node) && !menuButton?.contains(e.target as Node)) {
-        setOpenMenu(false)
-      }
     }
 
     document.addEventListener('mouseup', handleClickOutside);
 
     return () => document.removeEventListener('mouseup', handleClickOutside);
-  }, [cardRef, handleSubmit, setOpenMenu, editedList.id, editingCardId, cardId]);
+  }, [cardRef, handleSubmit, editingCardId, cardId]);
 
   const handleCreateNewLine = (e: React.KeyboardEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -184,7 +178,7 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
           )}
         </div>
       </form>
-      {cardId !== EMPTY_CARD_ID && <MenuButton cardId={editedList.id} openMenu={openMenu} setOpenMenu={setOpenMenu} list={editedList} actions={actions} />}
+      {cardId !== EMPTY_CARD_ID && <MenuButton cardId={editedList.id} list={editedList} actions={actions} />}
     </>
   );
 };

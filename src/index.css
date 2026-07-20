@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 @theme inline {
-  --font-display: "Plus Jakarta Sans Variable", sans-serif;
+  --font-display: 'Plus Jakarta Sans Variable', sans-serif;
   --color-background: var(--background);
   --color-primary: var(--text-primary);
   --color-secondary: var(--text-secondary);
@@ -21,33 +21,39 @@
   --color-checkbox-bg: var(--checkbox-bg);
   --shadow-card: var(--shadow-card);
   --color-loading-items: var(--loading-items);
+  --color-theme-toggle-bg: var(--theme-toggle-bg);
+  --color-theme-toggle-text-active: var(--theme-toggle-text-active);
+  --color-theme-toggle-text-inactive: var(--theme-toggle-text-inactive);
+  
+  --color-theme-radio-bg: var(--theme-radio-bg);
+  --color-theme-radio-text-active: var(--theme-radio-text-active);
+  --color-theme-radio-text-inactive: var(--theme-radio-text-inactive);
 }
 
 @layer base {
   :root,
   [data-theme='theme-light'] {
     --background: var(--color-orange-100);
-    --text-primary: var(--color-amber-950); 
-    --text-secondary: var(--color-yellow-800); 
+    --text-primary: var(--color-amber-950);
+    --text-secondary: var(--color-yellow-800);
     --card: var(--color-orange-50);
     --board: rgb(245, 221, 190);
-    --muted: var(--color-amber-900); 
+    --muted: var(--color-amber-900);
     --muted-graphic: var(--color-stone-600);
     --accent: var(--color-yellow-800);
-    --text-accent: var(--color-yellow-900); 
-    --shadow: var(--color-stone-400); 
+    --text-accent: var(--color-yellow-900);
+    --shadow: var(--color-stone-400);
     --active: var(--color-orange-300);
     --menu-bg: var(--color-amber-50);
     --menu-active: var(--color-amber-100);
-    --drag-item-active: var(--color-orange-200); 
-    --border: var(--color-stone-300); 
+    --drag-item-active: var(--color-orange-200);
+    --border: var(--color-stone-300);
     --on-accent: var(--color-stone-900);
-    --checkbox-border: var(--color-stone-500); 
+    --checkbox-border: var(--color-stone-500);
     --checkbox-bg: var(--color-orange-100);
     --shadow-card: 3px 3px var(--shadow);
-    --focus-ring: var(--color-amber-900); 
+    --focus-ring: var(--color-amber-900);
     --loading-items: #ead2a6;
-
 
     /* sync status pills — Tailwind status ramps, tint bg + same-hue dark text (all ≥6:1) */
     --sync-synced-bg: var(--color-green-100);
@@ -58,28 +64,36 @@
     --sync-pending-fg: var(--color-stone-700);
     --sync-failed-bg: var(--color-red-100);
     --sync-failed-fg: var(--color-red-800);
+
+    --theme-toggle-bg: #ead2a6;
+    --theme-toggle-text-active: var(--color-amber-900);
+    --theme-toggle-text-inactive: var(--color-yellow-900);
+
+    --theme-radio-bg: #ead2a6;
+    --theme-radio-text-active: var(--color-yellow-800);
+    --theme-radio-text-inactive: var(--color-amber-900);
   }
 
   [data-theme='theme-dark'] {
     --background: var(--color-stone-950);
-    --text-primary: var(--color-orange-50); 
+    --text-primary: var(--color-orange-50);
     --text-secondary: var(--color-amber-500);
     --card: var(--color-stone-800);
     --board: var(--color-stone-900);
-    --muted: var(--color-stone-400); 
+    --muted: var(--color-stone-400);
     --muted-graphic: var(--color-stone-700);
-    --accent: var(--color-amber-400); 
-    --text-accent: var(--color-amber-400); 
+    --accent: var(--color-amber-400);
+    --text-accent: var(--color-amber-400);
     --shadow: var(--color-stone-700);
-    --active: var(--color-amber-900); 
-    --menu-bg: var(--color-stone-800);
+    --active: var(--color-amber-900);
+    --menu-bg: var(--color-stone-900);
     --menu-active: var(--color-stone-700);
-    --drag-item-active: var(--color-stone-800); 
-    --border: var(--color-stone-700); 
+    --drag-item-active: var(--color-stone-800);
+    --border: var(--color-stone-700);
     --on-accent: var(--color-stone-900);
-    --checkbox-border: var(--color-stone-500); 
+    --checkbox-border: var(--color-stone-500);
     --checkbox-bg: var(--color-stone-950);
-    --focus-ring: var(--color-amber-300); 
+    --focus-ring: var(--color-amber-300);
     --shadow-card: 3px 3px var(--shadow);
     --loading-items: var(--color-stone-700);
 
@@ -91,10 +105,18 @@
     --sync-pending-fg: var(--color-stone-300);
     --sync-failed-bg: var(--color-red-950);
     --sync-failed-fg: var(--color-red-300);
+
+    --theme-toggle-bg: var(--color-orange-50);
+    --theme-toggle-text-active: var(--color-orange-50);
+    --theme-toggle-text-inactive: var(--color-stone-800);
+
+    --theme-radio-bg: var(--color-orange-50);
+    --theme-radio-text-active: var(--color-stone-800);
+    --theme-radio-text-inactive: var(--color-stone-300);
   }
 }
 
-body{
+body {
   height: 100%;
 }
 
@@ -141,7 +163,7 @@ input[type='checkbox']:checked::before {
   transform: scale(1.2);
 }
 
-li button:last-of-type {
+[data-testid="delete-item-button"] {
   opacity: 0;
 }
 
@@ -178,8 +200,4 @@ input[type='checkbox']:focus ~ button:last-of-type {
 
 .indent {
   padding-left: 35px;
-}
-
-#dropdown button {
-  opacity: 100;
 }
