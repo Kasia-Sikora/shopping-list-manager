@@ -53,6 +53,31 @@ describe('SettingsButton', () => {
     expect(getSettingsButton()).not.toHaveFocus()
   })
 
+  it('should call setPopoverId with settings if popoverId is null', async () => {
+    const setPopoverSpy = vi.spyOn(usePopoverIdStore.getState(), 'setOpenPopoverId')
+    render(<SettingsButton />)
+
+    await waitFor(() => expect(getSettingsButton()).toBeVisible())
+
+    await user.click(getSettingsButton())
+
+    expect(setPopoverSpy).toHaveBeenCalledWith('settings')
+    setPopoverSpy.mockRestore()
+  })
+
+  it('should call setPopoverId with null if popoverId is settings', async () => {
+    usePopoverIdStore.getState().setOpenPopoverId('settings')
+    const setPopoverSpy = vi.spyOn(usePopoverIdStore.getState(), 'setOpenPopoverId')
+    render(<SettingsButton />)
+
+    await waitFor(() => expect(getSettingsButton()).toBeVisible())
+
+    await user.click(getSettingsButton())
+
+    expect(setPopoverSpy).toHaveBeenCalledWith(null)
+    setPopoverSpy.mockRestore()
+  })
+
   const getSettingsButton = () => screen.getByRole('button', { name: 'Settings' })
   const getPopover = () => screen.getByTestId('settings')
   const getThemeSwitcher = () => screen.getByTestId('theme-toggle')

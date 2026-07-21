@@ -14,7 +14,7 @@
   --color-accent: var(--accent);
   --color-shadow: var(--shadow);
   --color-active: var(--active);
-  --color-text-active: var(--text-accent);
+  --color-text-active: var(--text-active);
   --color-menu-bg: var(--menu-bg);
   --color-menu-active: var(--menu-active);
   --color-drag-item-active: var(--drag-item-active);
@@ -45,6 +45,7 @@
     --text-accent: var(--color-yellow-900);
     --shadow: var(--color-stone-400);
     --active: var(--color-orange-300);
+    --text-active: var(--color-yellow-900);
     --menu-bg: var(--color-amber-50);
     --menu-active: var(--color-amber-100);
     --drag-item-active: var(--color-orange-200);
@@ -53,7 +54,7 @@
     --checkbox-border: var(--color-stone-500);
     --checkbox-bg: var(--color-orange-100);
     --shadow-card: 3px 3px var(--shadow);
-    --drag-shadow-card: 4px 4px 10px 1px var(--color-accent);
+    --drag-shadow-card: 4px 4px 10px 1px var(--color-muted-graphic);
     --focus-ring: var(--color-amber-900);
     --loading-items: #ead2a6;
 
@@ -77,17 +78,18 @@
   }
 
   [data-theme='theme-dark'] {
-    --background: var(--color-stone-950);
+    --background: var(--color-stone-800);
     --text-primary: var(--color-orange-50);
-    --text-secondary: var(--color-amber-500);
-    --card: var(--color-stone-800);
-    --board: var(--color-stone-900);
+    --text-secondary: var(--color-orange-300);
+    --card: var(--color-stone-900);
+    --board: oklch(0.2329 0.006 56.04);
     --muted: var(--color-stone-400);
     --muted-graphic: var(--color-stone-700);
     --accent: var(--color-amber-400);
     --text-accent: var(--color-amber-400);
-    --shadow: var(--color-stone-700);
-    --active: var(--color-amber-900);
+    --shadow: var(--color-stone-950);
+    --active: var(--color-yellow-700);
+    --text-active: var(--color-amber-900);
     --menu-bg: var(--color-stone-900);
     --menu-active: var(--color-stone-700);
     --drag-item-active: var(--color-stone-800);
@@ -97,13 +99,13 @@
     --checkbox-bg: var(--color-stone-950);
     --focus-ring: var(--color-amber-300);
     --shadow-card: 3px 3px var(--shadow);
-    --drag-shadow-card: 4px 4px 10px 1px var(--active);
+    --drag-shadow-card: 4px 4px 10px 1px var(--color-black);
     --loading-items: var(--color-stone-700);
 
     --sync-synced-bg: var(--color-green-950);
     --sync-synced-fg: var(--color-green-300);
-    --sync-syncing-bg: var(--color-stone-800);
-    --sync-syncing-fg: var(--color-amber-300);
+    --sync-syncing-bg: oklch(0.2329 0.006 56.04);
+    --sync-syncing-fg: var(--color-orange-300);
     --sync-pending-bg: var(--color-stone-800);
     --sync-pending-fg: var(--color-stone-300);
     --sync-failed-bg: var(--color-red-950);

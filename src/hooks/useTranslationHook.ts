@@ -10,7 +10,7 @@ const messages = {
 
 type Translation = (key: DotPaths<Labels>, values?: ObjectToInterpolate) => string;
 
-type DotPaths<T> = {
+export type DotPaths<T> = {
   [K in keyof T & string]: T[K] extends object ? `${K}.${DotPaths<T[K]>}` : K;
 }[keyof T & string];
 

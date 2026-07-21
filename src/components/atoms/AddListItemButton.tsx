@@ -10,7 +10,7 @@ const AddListItemButton = ({ handleCreateNewLine }: AddListItemButtonProps) => {
   return (
     <button
       onClick={handleCreateNewLine}
-      className="flex items-center gap-2 self-start font-medium text-secondary text-shadow-primary hover:text-text-active cursor-pointer"
+      className="flex items-center gap-2 self-start font-medium text-secondary hover:text-text-active cursor-pointer"
     >
       <PlusIcon className='size-4'/> {t('card.listItem.buttons.addElementButton')}
     </button>
