@@ -55,10 +55,12 @@ describe('indexedDB — lists CRUD', () => {
   });
 
   it('insertList throws ConstraintError when a list with the same id already exists', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     await db.insertList(makeList('a'));
     await db.insertList(makeList('b'));
 
     await expect(db.insertList(makeList('b'))).rejects.toThrow();
+    consoleSpy.mockRestore()
   });
 
   it('updateList replaces an existing list', async () => {

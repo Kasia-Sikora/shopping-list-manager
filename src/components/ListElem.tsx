@@ -87,7 +87,13 @@ const ListElem = ({
 
   const liStyles = useMemo(
     () =>
-      isOverlay ? { maxWidth: '100%', marginLeft: 0 } : {
+      isOverlay ? {
+        maxWidth: `calc(100% - ${depth * DELETE_BUTTON_W_GAP_SIZE}px)`,
+        marginLeft: `${depth * INDENT_VALUE}px`,
+        height: '45px', marginTop: '2px'
+        //Single line of listItem has 47px (including DraggingIndicator 2px). 
+        // Overlay item height is set to 45px so DraggingIndicator can always be visible.
+      } : {
         maxWidth: `calc(100% - ${depth * DELETE_BUTTON_W_GAP_SIZE}px)`,
         marginLeft: `${depth * INDENT_VALUE}px`,
       },
@@ -95,7 +101,7 @@ const ListElem = ({
   )
 
   return (
-    <li ref={ref} className={`relative transition-opacity duration-200 flex-nowrap ${isDragSource && !isOverlay ? 'opacity-50' : 'opacity-100'} overflow-hidden whitespace-nowrap rounded-sm relative flex items-baseline gap-3 group py-2 px-0.5 ${isDragging ? 'bg-drag-item-active' : ''}`} style={liStyles}>
+    <li ref={ref} className={`relative transition-opacity duration-200 flex-nowrap ${isDragSource && !isOverlay ? 'opacity-80' : 'opacity-100'} overflow-hidden whitespace-nowrap rounded-sm relative flex items-baseline gap-3 group py-2 px-0.5 ${isDragging ? 'bg-drag-item-active' : ''}`} style={liStyles}>
       {isActive && !isOverlay && <DraggingIndicator />}
 
 

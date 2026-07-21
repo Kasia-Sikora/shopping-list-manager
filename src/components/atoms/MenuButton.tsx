@@ -24,7 +24,7 @@ const MenuButton = ({ cardId, list, actions }: MenuButton) => {
   return (
     <>
       <button aria-expanded={isOpen} aria-controls={`${cardId}-menu`} className="absolute bottom-1.5 right-1.5 rounded-full size-7 hover:cursor-pointer" aria-label={ariaLabel} onClick={(e) => { e.stopPropagation(); setOpenPopoverId(!isOpen ? `${cardId}-menu` : null) }}>
-        <div className="absolute -bottom-0.5 -right-0.5 rounded-full bg-accent size-6" />
+        <div className="absolute -bottom-0.5 -right-0.5 rounded-full bg-secondary size-6" />
         <div className="size-7 absolute bottom-0 border-3 bg-white/40 transition-all duration-200 hover:bg-white/75 border-muted-graphic rounded-full">
           <MenuIcon className='relative text-on-accent right-px bottom-px' />
         </div>

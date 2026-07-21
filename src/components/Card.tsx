@@ -7,6 +7,7 @@ import { useActiveCardIdStore, useStore, useSyncStore } from '../stores/store';
 import { generateId } from '../utils/utils';
 import { EMPTY_CARD_ID } from '../consts';
 import { dbActions } from '../utils/storeUtils';
+import { useMasonrySpan } from '../hooks/useMasonrySpan';
 
 type Card = {
   emptyCardId?: string;
@@ -21,6 +22,7 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
 
   const { addList, updateList } = useStore()
   const { editingCardId, setEditingCardId } = useActiveCardIdStore()
+  useMasonrySpan(cardRef)
 
   const cardId = editedList?.id ?? emptyCardId;
   const [emptyCardResetKey, setEmptyCardResetKey] = useState(0);
@@ -152,7 +154,7 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
     <div
       ref={cardRef}
       onClick={handleEdit}
-      className={`transition-all duration-200 w-full ${editedList ? 'lg:w-75' : 'md:min-w-75'} border  ${isDragging ? 'border-accent shadow-drag-card' : 'border-border shadow-card'} flex flex-col align-baseline gap-2 rounded-2xl p-4 relative bg-card ${editedList ? 'pb-10' : 'pb-4'} ${!editedList ? 'max-w-3xl m-auto' : ''} ${styles} ${isDragging && 'bg-background'}`}
+      className={`transition-all duration-200 w-full ${editedList ? 'lg:w-75' : 'md:min-w-75'} border  ${isDragging ? 'border-active shadow-drag-card' : 'border-border shadow-card'} flex flex-col align-baseline gap-2 rounded-2xl p-4 relative bg-card ${editedList ? 'pb-10' : 'pb-4'} ${!editedList ? 'max-w-3xl m-auto' : ''} ${styles} ${isDragging && 'bg-background'}`}
       data-id={cardDataId}
       data-testid={cardDataId}
     >

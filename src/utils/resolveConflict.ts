@@ -8,5 +8,5 @@ export const resolveConflict = (local: List, remote: List): List => {
     return local.createdAt > remote.createdAt ? local : remote;
   }
 
-  throw Error("updatedAt or createdAt prop doesn't exist");
+  throw new Error("updatedAt or createdAt prop doesn't exist");
 };
