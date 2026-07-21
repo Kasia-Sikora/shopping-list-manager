@@ -7,6 +7,7 @@ import { useActiveCardIdStore, useStore, useSyncStore } from '../stores/store';
 import { generateId } from '../utils/utils';
 import { EMPTY_CARD_ID } from '../consts';
 import { dbActions } from '../utils/storeUtils';
+import { useMasonrySpan } from '../hooks/useMasonrySpan';
 
 type Card = {
   emptyCardId?: string;
@@ -21,6 +22,7 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
 
   const { addList, updateList } = useStore()
   const { editingCardId, setEditingCardId } = useActiveCardIdStore()
+  useMasonrySpan(cardRef)
 
   const cardId = editedList?.id ?? emptyCardId;
   const [emptyCardResetKey, setEmptyCardResetKey] = useState(0);
