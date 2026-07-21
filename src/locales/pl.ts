@@ -5,11 +5,17 @@ const pl: Labels = {
     title: 'Listy zakupów',
     syncStatus: {
       synced: 'Zapisano',
-      syncing: 'Synchronizuję...',
-      pending: 'w kolejce',
+      syncing: 'Zapisuję...',
       failed: 'nie zsynchronizowano — ponów',
     },
-    offlineMessage: 'Offline - zmiany zapiszą się po ponownym połączeniu',
+    offlineMessage: {
+      label: 'Offline - {count} {change} się po ponownym połączeniu',
+      change: {
+        one: 'zmiana zapisze',
+        few: 'zmiany zapiszą',
+        many: 'zmian zapisze',
+      },
+    },
     settings: {
       label: 'Ustawienia',
       theme: {

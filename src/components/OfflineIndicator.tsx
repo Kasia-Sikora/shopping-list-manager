@@ -1,20 +1,22 @@
 import { useNetworkStatus } from "../hooks/useNetworkStatus"
 import { setMetadata } from "../services/indexedDB"
-import { useCallback, useEffect, type ReactElement } from "react"
-import { useSyncStore } from "../stores/store"
+import { useCallback, useEffect, useMemo, type ReactElement } from "react"
+import { useLocaleStore, useSyncStore } from "../stores/store"
 import { syncEngine } from "../services/syncEngine"
 import { SYNC_DELAY } from "../consts"
 import OfflineIcon from '../assets/offline.svg?react'
 import SyncingIcon from '../assets/syncing.svg?react';
 import SyncedIcon from '../assets/synced.svg?react';
-import PendingIcon from '../assets/pending.svg?react'
 import FailedIcon from '../assets/failed.svg?react'
 import { useTranslation } from "../hooks/useTranslationHook"
+import type { LocaleKeys } from "../interfaces"
 
 type SyncState = 'failed' | 'pending' | 'syncing' | 'synced'
 
+type PillState = Exclude<SyncState, 'pending'>
+
 type StatusIndicator = {
-  status: SyncState,
+  status: PillState,
   message: string,
   statusIcon: ReactElement
 }
@@ -23,10 +25,9 @@ type OfflineIndicator = {
   loading: boolean
 }
 
-const PILL_STYLE: Record<SyncState, { background: string; color: string }> = {
+const PILL_STYLE: Record<PillState, { background: string; color: string }> = {
   synced: { background: 'var(--sync-synced-bg)', color: 'var(--sync-synced-fg)' },
   syncing: { background: 'var(--sync-syncing-bg)', color: 'var(--sync-syncing-fg)' },
-  pending: { background: 'var(--sync-pending-bg)', color: 'var(--sync-pending-fg)' },
   failed: { background: 'var(--sync-failed-bg)', color: 'var(--sync-failed-fg)' },
 }
 
@@ -34,11 +35,14 @@ export const OfflineIndicator = ({ loading }: OfflineIndicator) => {
   const { isOnline } = useNetworkStatus()
   const { syncStatus, failedChangesCount, pendingChangesCount, setIsOnline } = useSyncStore()
   const t = useTranslation()
+  const lang = useLocaleStore(s => s.lang)
+  const localeRules = useMemo(() => new Intl.PluralRules(lang), [lang])
+
+  const key = localeRules.select(pendingChangesCount) as LocaleKeys
 
   const getStatus = useCallback((): StatusIndicator => {
     switch (syncStatus) {
       case 'pending':
-        return { status: "pending", message: `${pendingChangesCount} ${t('header.syncStatus.pending')}`, statusIcon: <PendingIcon title="pendingIcon" /> }
       case 'syncing':
         return { status: "syncing", message: t('header.syncStatus.syncing'), statusIcon: <SyncingIcon title="syncingIcon" className="animate-spin" /> }
       case 'failed':
@@ -46,12 +50,12 @@ export const OfflineIndicator = ({ loading }: OfflineIndicator) => {
       default:
         return { status: 'synced', message: t('header.syncStatus.synced'), statusIcon: <SyncedIcon title="syncedIcon" /> }
     }
-  }, [failedChangesCount, pendingChangesCount, syncStatus, t])
+  }, [failedChangesCount, syncStatus, t])
 
   useEffect(() => {
     const setData = async () => {
       if (isOnline) {
-        syncEngine.retryFailed()
+        await syncEngine.retryFailed()
       }
       await setMetadata('isOnline', isOnline)
       setIsOnline(isOnline)
@@ -75,7 +79,7 @@ export const OfflineIndicator = ({ loading }: OfflineIndicator) => {
         className="fixed top-0 left-0 z-10 flex w-full items-center justify-center gap-2 px-3 py-1 text-sm"
         style={{ background: 'var(--sync-pending-bg)', color: 'var(--sync-pending-fg)' }}
       >
-        <OfflineIcon title="offlineIcon" />  {t('header.offlineMessage')}
+        <OfflineIcon title="offlineIcon" />{t('header.offlineMessage.label', { count: `${pendingChangesCount}`, change: t(`header.offlineMessage.change.${key}`) })}
       </output>
     )
   }

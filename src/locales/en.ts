@@ -4,12 +4,17 @@ const en: Labels = {
   header: {
     title: 'Shopping lists',
     syncStatus: {
-      synced: 'Synced',
-      syncing: 'Syncing...',
-      pending: 'pending changes',
+      synced: 'Saved',
+      syncing: 'Saving...',
       failed: 'sync failed - retry',
     },
-    offlineMessage: 'Working Offline - Changes will sync when back online',
+    offlineMessage: {
+      label: 'Working Offline - {count} {change} will sync when back online',
+      change: {
+        one: 'change',
+        other: 'changes',
+      },
+    },
     settings: {
       label: 'Settings',
       theme: {

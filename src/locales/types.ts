@@ -8,18 +8,27 @@ export type Labels = {
   emptyBoard: EmptyBoardLabels;
 };
 
-export type SyncStatusLabels = {
-  synced: string;
-  syncing: string;
-  pending: string;
-  failed: string;
-};
-
 export type HeaderLabels = {
   title: string;
   syncStatus: SyncStatusLabels;
-  offlineMessage: string;
+  offlineMessage: OfflineLabels;
   settings: SettingsLabels;
+};
+
+export type OfflineLabels = {
+  label: string;
+  change: {
+    one?: string;
+    few?: string;
+    many?: string;
+    other?: string;
+  };
+};
+
+export type SyncStatusLabels = {
+  synced: string;
+  syncing: string;
+  failed: string;
 };
 
 export type CardHeaderLabels = {
