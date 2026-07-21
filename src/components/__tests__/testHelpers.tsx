@@ -5,6 +5,8 @@ export const elements = {
   getTitleEl: (id?: string) => within(elements.getCard(id)).queryByPlaceholderText('Title...'),
   getListItemTextarea: (id?: string) =>
     within(elements.getCard(id)).getAllByPlaceholderText('Create a list item...') as unknown as HTMLTextAreaElement[],
+  queryListItemTextarea: (id?: string) =>
+    within(elements.getCard(id)).queryAllByPlaceholderText('Create a list item...') as unknown as HTMLTextAreaElement[],
   getAddElButton: (id?: string) => within(elements.getCard(id)).getByRole('button', { name: 'Add list item' }),
   getDeleteButton: (index: number = 0, id?: string) => {
     const listElement = within(elements.getCard(id)).getAllByPlaceholderText('Create a list item...')?.[index]?.parentElement?.parentElement
@@ -48,5 +50,6 @@ export const editedElements = {
     if (dropdown) {
       return within(dropdown).getByLabelText(buttonText)
     }
-  }
+  },
+  queryLoadingSpinner: (id: string = '0') => screen.queryByTestId(`${id}-spinner`)
 }

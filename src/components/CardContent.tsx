@@ -36,8 +36,16 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
   const handleSubmit = useCallback(async () => {
     if (!editingCardId) return;
     const activeEl = document.activeElement
+    let newestListItem: { id: string, value: string } | null = null;
+    if (activeEl instanceof HTMLTextAreaElement && activeEl.name !== 'title') {
+      newestListItem = { id: activeEl.name.split('.')[0], value: activeEl.value }
+    }
     if (activeEl instanceof HTMLElement) activeEl.blur()
-    const data = { ...editedList, content: editedList.content.filter(item => item.value) }
+    let content = editedList.content
+    if (newestListItem) {
+      content = editedList.content.map(item => item.id === newestListItem.id ? { ...item, value: newestListItem.value } : item)
+    }
+    const data = { ...editedList, content: content.filter(item => item.value) }
     if (data.title || data.content.length) {
       actions.save(data)
     } else {

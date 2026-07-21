@@ -5,6 +5,7 @@ import App from '../../App';
 import { editedElements } from './testHelpers';
 import type { PersistedShoppingListStore } from '../../interfaces';
 import * as db from '../../services/indexedDB'
+import { useSyncStore } from '../../stores/store';
 
 describe('<App>', () => {
   const user = userEvent.setup();
@@ -19,6 +20,7 @@ describe('<App>', () => {
     getCheckbox,
     queryItemsList,
     getDoneElemExpandButton,
+    queryLoadingSpinner
   } = editedElements;
 
   const defaultStoreState: PersistedShoppingListStore = {
@@ -124,7 +126,7 @@ describe('<App>', () => {
   });
 
   it('should create new line when Enter key was hit', async () => {
-    await user.type(getListItemTextarea("0")[4], 'Kup chleb{enter}');
+    await user.type(getListItemTextarea("0")[4], 'Buy bread{enter}');
     expect(getListItemTextarea()).toHaveLength(6);
   });
 
@@ -138,11 +140,11 @@ describe('<App>', () => {
   });
 
   it('should save list when Enter + Shift keys was hit', async () => {
-    await user.type(getListItemTextarea()[4], 'Kup chleb{Enter}');
+    await user.type(getListItemTextarea()[4], 'Buy bread{Enter}');
     expect(getListItemTextarea()).toHaveLength(6);
 
     expect(getListItemTextarea()[5]).toBeVisible();
-    await user.type(getListItemTextarea()[5], 'Kup mleko{Enter}');
+    await user.type(getListItemTextarea()[5], 'Buy milk{Enter}');
     expect(getListItemTextarea()).toHaveLength(7);
 
     expect(getListItemTextarea()[6]).toBeVisible();
@@ -150,6 +152,71 @@ describe('<App>', () => {
 
     //After Enter+Shift cardContent should be saved and cleared
     await waitFor(() => expect(getListItemTextarea()).toHaveLength(6));
+  });
+
+  it('should show LoadingState only on explicit user save/update', async () => {
+
+    await user.type(getListItemTextarea()[4], 'Buy bread{Enter}');
+    expect(getListItemTextarea()).toHaveLength(6);
+    expect(queryLoadingSpinner()).not.toBeInTheDocument()
+
+    expect(getListItemTextarea()[5]).toBeVisible();
+    await user.type(getListItemTextarea()[5], 'Buy milk{Enter}');
+    expect(getListItemTextarea()).toHaveLength(7);
+    expect(queryLoadingSpinner()).not.toBeInTheDocument()
+
+    // Hold the DB write open so the spinner stays mounted long enough to assert.
+    // Otherwise the save completes almost instantly and the visible window is a race.
+    let resolveWrite!: () => void;
+    const pendingWrite = new Promise<void>((resolve) => { resolveWrite = resolve; });
+    const writeSpy = vi.spyOn(db, 'updateList').mockImplementation(() => pendingWrite);
+
+    expect(getListItemTextarea()[6]).toBeVisible();
+    await user.type(getListItemTextarea()[6], '{Shift>}{Enter}{/Shift}');
+
+    await waitFor(() => expect(queryLoadingSpinner()).toBeInTheDocument())
+
+    resolveWrite()
+    await waitFor(() => expect(queryLoadingSpinner()).not.toBeInTheDocument())
+
+    writeSpy.mockRestore()
+  });
+
+  it('should set isSaving to true on save and turn back to false', async () => {
+    await user.type(getListItemTextarea()[4], 'Buy bread{Enter}');
+    expect(getListItemTextarea()).toHaveLength(6);
+
+    await waitFor(() => expect(useSyncStore.getState().isSaving).toBeFalsy())
+
+    let resolveWrite!: () => void;
+    const pendingWrite = new Promise<void>((resolve) => { resolveWrite = resolve; });
+    const writeSpy = vi.spyOn(db, 'updateList').mockImplementation(() => pendingWrite);
+
+    expect(getListItemTextarea()[5]).toBeVisible();
+    await user.type(getListItemTextarea()[5], 'Buy milk{Shift>}{Enter}{/Shift}');
+
+    await waitFor(() => expect(useSyncStore.getState().isSaving).toBe(true))
+
+    resolveWrite()
+    await waitFor(() => expect(useSyncStore.getState().isSaving).toBe(false))
+
+    writeSpy.mockRestore()
+  });
+
+  it('shows the saving spinner only on the edited card, not on other cards', async () => {
+    let resolveWrite!: () => void;
+    const pendingWrite = new Promise<void>((resolve) => { resolveWrite = resolve; });
+    const writeSpy = vi.spyOn(db, 'updateList').mockImplementation(() => pendingWrite);
+
+    await user.type(getListItemTextarea()[4], 'Buy bread{Shift>}{Enter}{/Shift}');
+
+    await waitFor(() => expect(queryLoadingSpinner('0')).toBeInTheDocument())
+    expect(queryLoadingSpinner('1')).not.toBeInTheDocument()
+
+    resolveWrite()
+    await waitFor(() => expect(queryLoadingSpinner('0')).not.toBeInTheDocument())
+
+    writeSpy.mockRestore()
   });
 
   it('should move trough list using arrow up and down', async () => {
@@ -206,11 +273,11 @@ describe('<App>', () => {
 
   it('should save data when user clicked outside card', async () => {
     expect(getListItemTextarea()[4]).toBeVisible();
-    await user.type(getListItemTextarea()[4], 'Kup mleko{Enter}');
+    await user.type(getListItemTextarea()[4], 'Buy milk{Enter}');
     expect(getListItemTextarea()).toHaveLength(6);
 
     expect(getListItemTextarea()[5]).toBeVisible();
-    await user.type(getListItemTextarea()[5], 'Kup jaja');
+    await user.type(getListItemTextarea()[5], 'Buy eggs');
     await user.click(document.body);
 
     //After click outside the card, cardContent should be saved and cleared
@@ -300,9 +367,9 @@ describe('<App>', () => {
   });
 
   it('should update element', async () => {
-    await user.type(getListItemTextarea()[4], 'Kup chleb{Enter}');
+    await user.type(getListItemTextarea()[4], 'Buy bread{Enter}');
     expect(getListItemTextarea()).toHaveLength(6);
-    expect(getListItemTextarea()[4].value).toBe('Kup chleb');
+    expect(getListItemTextarea()[4].value).toBe('Buy bread');
 
     await user.click(getListItemTextarea()[2]);
     expect(getListItemTextarea()[2].value).toEqual('third el in First List');

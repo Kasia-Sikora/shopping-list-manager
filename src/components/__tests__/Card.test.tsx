@@ -8,7 +8,7 @@ import { EMPTY_CARD_ID } from '../../consts';
 const exampleItem: List = {
   id: '1',
   title: 'list title',
-  content: [{ id: '333', checked: false, value: 'kup bułki', depth: 0, parentId: null }],
+  content: [{ id: '333', checked: false, value: 'buy bread', depth: 0, parentId: null }],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 };
@@ -37,11 +37,11 @@ describe('Card', () => {
     expect(getCard()).toHaveClass('lg:w-75')
 
     expect(getTitleEl().textContent).toEqual('list title');
-    expect(getListTextarea().value).toEqual('kup bułki');
+    expect(getListTextarea().value).toEqual('buy bread');
     expect(getAddElemButton()).toBeVisible();
 
     //check if card is in preview mode
-    expect(getListTextarea().value).toEqual('kup bułki');
+    expect(getListTextarea().value).toEqual('buy bread');
     expect(getEditIndicator()).toHaveAttribute('aria-hidden', 'true');
   });
 
@@ -51,14 +51,14 @@ describe('Card', () => {
     expect(getCard()).toBeVisible();
     //check if card is in preview mode
     expect(getEditIndicator()).toHaveAttribute('aria-hidden', 'true');
-    expect(getListTextarea().value).toEqual('kup bułki');
+    expect(getListTextarea().value).toEqual('buy bread');
 
     await userEvent.click(getCard() as Element);
 
     //check if card is in edit mode
     await waitFor(() => expect(getListTextarea()).not.toBeNull());
     expect(getEditIndicator()).toHaveAttribute('aria-hidden', 'false');
-    expect(getListTextarea().value).toEqual('kup bułki');
+    expect(getListTextarea().value).toEqual('buy bread');
   });
 });
 
