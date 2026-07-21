@@ -5,6 +5,7 @@ import App from '../../App';
 import { editedElements } from './testHelpers';
 import type { PersistedShoppingListStore } from '../../interfaces';
 import * as db from '../../services/indexedDB'
+import { useSyncStore } from '../../stores/store';
 
 describe('<App>', () => {
   const user = userEvent.setup();
@@ -19,6 +20,7 @@ describe('<App>', () => {
     getCheckbox,
     queryItemsList,
     getDoneElemExpandButton,
+    queryLoadingSpinner
   } = editedElements;
 
   const defaultStoreState: PersistedShoppingListStore = {
@@ -150,6 +152,36 @@ describe('<App>', () => {
 
     //After Enter+Shift cardContent should be saved and cleared
     await waitFor(() => expect(getListItemTextarea()).toHaveLength(6));
+  });
+
+  it('should show LoadingState only on explicit user save/update', async () => {
+    await user.type(getListItemTextarea()[4], 'Kup chleb{Enter}');
+    expect(getListItemTextarea()).toHaveLength(6);
+    expect(queryLoadingSpinner()).not.toBeInTheDocument()
+
+    expect(getListItemTextarea()[5]).toBeVisible();
+    await user.type(getListItemTextarea()[5], 'Kup mleko{Enter}');
+    expect(getListItemTextarea()).toHaveLength(7);
+    expect(queryLoadingSpinner()).not.toBeInTheDocument()
+
+    expect(getListItemTextarea()[6]).toBeVisible();
+    await user.type(getListItemTextarea()[6], '{Shift>}{Enter}{/Shift}');
+
+    await waitFor(() => expect(queryLoadingSpinner()).toBeInTheDocument())
+    //After Enter+Shift cardContent should be saved and cleared
+    await waitFor(() => expect(getListItemTextarea()).toHaveLength(6));
+  });
+
+  it('should set isSaving to true on save and turn back to false', async () => {
+    await user.type(getListItemTextarea()[4], 'Kup chleb{Enter}');
+    expect(getListItemTextarea()).toHaveLength(6);
+
+    await waitFor(() => expect(useSyncStore.getState().isSaving).toBeFalsy())
+
+    expect(getListItemTextarea()[5]).toBeVisible();
+    await user.type(getListItemTextarea()[5], 'Kup mleko{Shift>}{Enter}{/Shift}');
+    expect(useSyncStore.getState().isSaving).toBeTruthy()
+    await waitFor(() => expect(useSyncStore.getState().isSaving).toBeFalsy())
   });
 
   it('should move trough list using arrow up and down', async () => {

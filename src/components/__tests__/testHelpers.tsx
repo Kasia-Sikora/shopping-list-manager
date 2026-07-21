@@ -48,5 +48,6 @@ export const editedElements = {
     if (dropdown) {
       return within(dropdown).getByLabelText(buttonText)
     }
-  }
+  },
+  queryLoadingSpinner: (id: string = '0') => screen.queryByTestId(`${id}-spinner`)
 }
