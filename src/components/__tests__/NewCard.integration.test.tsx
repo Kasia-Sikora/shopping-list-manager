@@ -1,14 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { render, waitFor } from '@testing-library/react';
+import { render, waitFor, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import App from '../../App';
 import { elements } from './testHelpers';
+import * as db from '../../services/indexedDB';
 
 describe('<App>', () => {
-  const {getCard, getTitleEl, getListItemTextarea, getAddElButton, getDeleteButton} = elements
+  const { getCard, getTitleEl, getListItemTextarea, getAddElButton, getDeleteButton, queryListItemTextarea } = elements
   const prepareComponent = async () => {
     render(<App />);
-    
+
     expect(getCard()).toBeVisible();
     expect(getTitleEl()).toBeNull();
     expect(getListItemTextarea()[0]).not.toBeNull();
@@ -26,13 +27,13 @@ describe('<App>', () => {
   });
 
   it('should create new line when Enter key was hit', async () => {
-    await userEvent.type(getListItemTextarea()[0], 'Kup chleb{enter}');
+    await userEvent.type(getListItemTextarea()[0], 'Buy bread{Enter}');
 
     expect(getListItemTextarea()).toHaveLength(2);
   });
 
   it('should create new line when "+ Dodaj element" button was clicked', async () => {
-    await userEvent.type(getListItemTextarea()[0], 'Kup chleb');
+    await userEvent.type(getListItemTextarea()[0], 'Buy bread');
     expect(getListItemTextarea()).toHaveLength(1);
 
     expect(getAddElButton()).toBeInTheDocument();
@@ -42,11 +43,11 @@ describe('<App>', () => {
   });
 
   it('should save list when Enter + Shift keys was hit', async () => {
-    await userEvent.type(getListItemTextarea()[0], 'Kup chleb{Enter}');
+    await userEvent.type(getListItemTextarea()[0], 'Buy bread{Enter}');
     expect(getListItemTextarea()).toHaveLength(2);
 
     expect(getListItemTextarea()[1]).toBeVisible();
-    await userEvent.type(getListItemTextarea()[1], 'Kup mleko{Enter}');
+    await userEvent.type(getListItemTextarea()[1], 'Buy milk{Enter}');
     expect(getListItemTextarea()).toHaveLength(3);
 
     expect(getListItemTextarea()[2]).toBeVisible();
@@ -58,11 +59,11 @@ describe('<App>', () => {
   });
 
   it('should move trough list using arrow up and down', async () => {
-    await userEvent.type(getListItemTextarea()[0], 'Kup chleb{Enter}');
+    await userEvent.type(getListItemTextarea()[0], 'Buy bread{Enter}');
     expect(getListItemTextarea()).toHaveLength(2);
 
     expect(getListItemTextarea()[1]).toBeVisible();
-    await userEvent.type(getListItemTextarea()[1], 'Kup mleko{Enter}');
+    await userEvent.type(getListItemTextarea()[1], 'Buy milk{Enter}');
     expect(getListItemTextarea()).toHaveLength(3);
     await waitFor(() => expect(getListItemTextarea()[2]).toHaveFocus());
 
@@ -93,9 +94,9 @@ describe('<App>', () => {
 
   it('should remove element when delete button was clicked', async () => {
     expect(getListItemTextarea()).toHaveLength(1);
-    await userEvent.type(getListItemTextarea()[0], 'Kup chleb{Enter}');
+    await userEvent.type(getListItemTextarea()[0], 'Buy bread{Enter}');
     expect(getListItemTextarea()).toHaveLength(2);
-    expect(getListItemTextarea()[0].value).toBe('Kup chleb');
+    expect(getListItemTextarea()[0].value).toBe('Buy bread');
 
     await userEvent.hover(getListItemTextarea()[0]);
     expect(getDeleteButton()).toBeVisible();
@@ -106,11 +107,11 @@ describe('<App>', () => {
   });
 
   it('should save data when user clicked outside card', async () => {
-    await userEvent.type(getListItemTextarea()[0], 'Kup chleb{Enter}');
+    await userEvent.type(getListItemTextarea()[0], 'Buy bread{Enter}');
     expect(getListItemTextarea()).toHaveLength(2);
 
     expect(getListItemTextarea()[1]).toBeVisible();
-    await userEvent.type(getListItemTextarea()[1], 'Kup mleko{Enter}');
+    await userEvent.type(getListItemTextarea()[1], 'Buy milk{Enter}');
     expect(getListItemTextarea()).toHaveLength(3);
 
     expect(getListItemTextarea()[2]).toBeVisible();
@@ -129,4 +130,25 @@ describe('<App>', () => {
     await waitFor(() => expect(getListItemTextarea()).toHaveLength(1));
     expect(getListItemTextarea()[0].value).toEqual('');
   });
+
+  it("a new list's first queued action is 'create', not 'update' (POST before PATCH)", async () => {
+    await userEvent.type(getListItemTextarea()[0], 'Buy bread{Shift>}{Enter}{/Shift}');
+
+    const queue = await db.getSyncQueue()
+    expect(queue[0].action).toBe('create')
+    expect(queue.some(q => q.action === 'update')).toBe(false)
+  })
+
+  it("should save only title when no listItem was filled", async () => {
+    await waitFor(() => expect(getTitleEl()).toBeInTheDocument())
+    await userEvent.type(getTitleEl()!, 'List title{Shift>}{Enter}{/Shift}');
+
+    const queue = await db.getSyncQueue()
+    expect(queue[0].action).toBe('create')
+    expect(getTitleEl()).not.toBeInTheDocument()
+    const id = queue[0].data.id
+    await waitFor(() => expect(getCard(id)).toBeVisible())
+    expect(within(getCard(id)).queryByRole('heading')).toHaveTextContent('List title')
+    expect(queryListItemTextarea(id)).toHaveLength(0)
+  })
 });

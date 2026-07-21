@@ -3,14 +3,13 @@ import ChevronDown from '../../assets/chevronDown.svg?react';
 import { useMemo, type MouseEventHandler } from 'react';
 import { useTranslation } from '../../hooks/useTranslationHook';
 import { useLocaleStore } from '../../stores/store';
+import type { LocaleKeys } from '../../interfaces';
 
 type ChevronButton = {
   toggle: MouseEventHandler<HTMLButtonElement>;
   contentExpanded: boolean;
   quantity: number;
 };
-
-type LocaleKeys = "one" | "few" | "many" | "other" 
 
 export const ChevronButton = ({ toggle, contentExpanded, quantity }: ChevronButton) => {
   const t = useTranslation()

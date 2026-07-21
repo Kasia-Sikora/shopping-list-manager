@@ -26,3 +26,5 @@ export type SetLocalDataActions = {
   save: (dataToSave: List) => void;
   resetLocalState: () => void;
 };
+
+export type LocaleKeys = "one" | "few" | "many" | "other"

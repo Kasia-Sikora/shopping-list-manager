@@ -157,7 +157,7 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
       data-testid={cardDataId}
     >
       {editedList && <EditIndicator id={editedList.id} isEdit={editingCardId === cardId} />}
-      {(isSaving && editingCardId === cardId) && <div className='absolute right-2 top-2  w-6 aspect-square rounded-full border-5 border-primary border-solid border-r-accent animate-spin'></div>}
+      {(isSaving && editingCardId === cardId) && <div data-testid={`${cardId}-spinner`} className='absolute right-2 top-2  w-6 aspect-square rounded-full border-5 border-primary border-solid border-r-accent animate-spin'/>}
       <CardContent
         editedList={currentData}
         cardRef={cardRef}
