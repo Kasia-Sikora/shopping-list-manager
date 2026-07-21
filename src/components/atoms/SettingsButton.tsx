@@ -13,7 +13,7 @@ const SettingsButton = () => {
 
   return (
     <div className='relative flex'>
-      <button aria-controls='settings' aria-expanded={isOpen} className="cursor-pointer hover:text-accent focus:text-accent" aria-label={t('header.settings.label')} onClick={() => setOpenPopoverId(!isOpen ? "settings" : null)}><SettingsIcon /></button>
+      <button aria-controls='settings' aria-expanded={isOpen} className="cursor-pointer text-muted hover:text-accent focus:text-accent" aria-label={t('header.settings.label')} onClick={() => setOpenPopoverId(!isOpen ? "settings" : null)}><SettingsIcon /></button>
       <Popover placementStyles={placement} id="settings">
         <div className='flex flex-col gap-4 transition-all duration-200 text-primary'>
           <h4 className="flex gap-2 font-semibold border-b border-primary/20 pb-3">{t('header.settings.label')}</h4>
