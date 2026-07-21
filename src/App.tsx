@@ -140,7 +140,7 @@ const App = () => {
   }
 
   return (
-    <div className={`font-display text-primary p-2 lg:p-5 placeholder:text-primary/50 ${!isOnline ? 'sm:pt-14' : ''}`}>
+    <div className={`font-display text-primary p-2 lg:p-5 placeholder:text-primary/50 ${!isOnline ? 'mt-4' : ''}`}>
       <Analytics />
       <SpeedInsights />
       <header className='flex justify-between items-center w-full mb-5 lg:mb-10'>

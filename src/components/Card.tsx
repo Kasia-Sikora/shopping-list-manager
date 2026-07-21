@@ -152,7 +152,7 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
     <div
       ref={cardRef}
       onClick={handleEdit}
-      className={`w-full ${editedList ? 'lg:w-75' : 'md:min-w-75'} border  ${isDragging ? 'border-accent' : 'border-border'} shadow-card flex flex-col align-baseline gap-2 rounded-2xl p-4 relative bg-card ${editedList ? 'pb-10' : 'pb-4'} ${!editedList ? 'max-w-3xl m-auto' : ''} ${styles} ${isDragging && 'bg-background'}`}
+      className={`transition-all duration-200 w-full ${editedList ? 'lg:w-75' : 'md:min-w-75'} border  ${isDragging ? 'border-accent shadow-drag-card' : 'border-border shadow-card'} flex flex-col align-baseline gap-2 rounded-2xl p-4 relative bg-card ${editedList ? 'pb-10' : 'pb-4'} ${!editedList ? 'max-w-3xl m-auto' : ''} ${styles} ${isDragging && 'bg-background'}`}
       data-id={cardDataId}
       data-testid={cardDataId}
     >
