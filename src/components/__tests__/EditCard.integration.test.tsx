@@ -128,15 +128,23 @@ describe('<App>', () => {
   it('should create new line when Enter key was hit', async () => {
     await user.type(getListItemTextarea("0")[4], 'Buy bread{enter}');
     expect(getListItemTextarea()).toHaveLength(6);
+    const uncheckedList = queryItemsList(false)
+    if (uncheckedList) {
+      expect(uncheckedList[uncheckedList.length - 1]).toHaveFocus()
+    }
   });
 
-  it('should create new line when "+ Element List" button was clicked', async () => {
+  it('should create new line at the end of unchecked list when "+ Element List" button was clicked', async () => {
     expect(getListItemTextarea("0")).toHaveLength(5);
 
     expect(getAddElButton()).toBeInTheDocument();
     await user.click(getAddElButton());
 
     expect(getListItemTextarea()).toHaveLength(6);
+    const uncheckedList = queryItemsList(false)
+    if (uncheckedList) {
+      expect(uncheckedList[uncheckedList.length - 1]).toHaveFocus()
+    }
   });
 
   it('should save list when Enter + Shift keys was hit', async () => {
@@ -366,6 +374,32 @@ describe('<App>', () => {
     });
   });
 
+  it('should create new line when focus in on checked item and hit Enter', async () => {
+    await user.click(getCheckbox('1'));
+    await user.click(getCheckbox('2'));
+    await user.click(getCheckbox('3'));
+    await user.click(getCheckbox('4'));
+    await user.click(document.body);
+
+    await waitFor(() => expect(getEditIndicator()).toHaveAttribute('aria-hidden', 'true'));
+
+    await waitFor(() => {
+      expect(queryItemsList(true)).toHaveLength(4);
+      expect(queryItemsList(false)).not.toBeInTheDocument();
+    });
+    expect(queryItemsList(true)?.[0]).toBeVisible();
+    expect(getDoneElemExpandButton()).toHaveTextContent('4 done items');
+
+    await user.click(getListItemTextarea()[1])
+    expect(getListItemTextarea()[1]).toHaveFocus()
+
+    await user.keyboard('{enter}')
+    expect(getListItemTextarea()[2]).toHaveFocus()
+    expect(getListItemTextarea()[2].value).toBe('')
+
+    expect(queryItemsList(true)).toHaveLength(5);
+  });
+
   it('should update element', async () => {
     await user.type(getListItemTextarea()[4], 'Buy bread{Enter}');
     expect(getListItemTextarea()).toHaveLength(6);
@@ -427,5 +461,66 @@ describe('<App>', () => {
     await user.click(getDeleteButton(0, '1')!);
 
     expect(getListItemTextarea('1')).toHaveLength(1);
+  });
+});
+
+describe('<App> — creating lines around nested and checked items', () => {
+  const user = userEvent.setup();
+  const { getEditCard, getListItemTextarea, getCheckbox, queryItemsList } = editedElements;
+
+  const valuesOf = (nodes: HTMLElement[] | null) =>
+    (nodes ?? []).map((node) => (node as HTMLTextAreaElement).value);
+
+  const nestedStore: PersistedShoppingListStore = {
+    state: {
+      lists: [
+        {
+          id: '0',
+          title: 'Groceries',
+          content: [
+            { id: 'n', value: 'Dairy', checked: false, depth: 0, parentId: null },
+            { id: 'm', value: 'Milk', checked: false, depth: 1, parentId: 'n' },
+            { id: 's', value: 'Cheese', checked: false, depth: 1, parentId: 'n' },
+          ],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ],
+    },
+  };
+
+  beforeEach(async () => {
+    await db.insertList(nestedStore.state.lists[0]);
+    render(<App />);
+    await waitFor(() => expect(getEditCard('0')).toBeVisible());
+    await user.click(getEditCard('0')); // enter edit mode (no extra line added)
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+  });
+
+  it('Enter on an unchecked nested child inserts a new unchecked sibling right after it, at the same depth', async () => {
+    await user.click(getListItemTextarea()[1]); // Milk — a depth-1 child of Dairy
+    await user.keyboard('{enter}');
+
+    expect(valuesOf(queryItemsList(false))).toEqual(['Dairy', 'Milk', '', 'Cheese']);
+    expect(getListItemTextarea()[2]).toHaveFocus();
+    expect(getListItemTextarea()[2]).toHaveAttribute('data-depth', '1');
+    expect(queryItemsList(true)).toBeNull(); // nothing checked → no done section
+  });
+
+  it('Enter on a nested checked child inserts a checked sibling under the same parent, without duplicating it', async () => {
+    await user.click(getCheckbox('n')); // check the parent → Dairy + Milk + Cheese all move to the done list
+    expect(valuesOf(queryItemsList(true))).toEqual(['Dairy', 'Milk', 'Cheese']);
+
+    await user.click(getListItemTextarea()[1]); // Milk — now a checked child in the done list
+    await user.keyboard('{enter}');
+
+    expect(valuesOf(queryItemsList(true))).toEqual(['Dairy', 'Milk', '', 'Cheese']);
+    expect(queryItemsList(true)).toHaveLength(4);
+    expect(getListItemTextarea()[2]).toHaveFocus();
+    expect(getListItemTextarea()[2]).toHaveAttribute('data-depth', '1');
+    expect(queryItemsList(false)).toBeNull(); // whole group still in done, no orphan in to-do
   });
 });

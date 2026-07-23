@@ -1,5 +1,5 @@
 import { MAX_LIST_DEPTH } from '../consts';
-import type { ListItem } from '../interfaces';
+import type { DisplayItem, ListItem } from '../interfaces';
 
 export function getDescendants(items: ListItem[], parentId: string): Set<string> {
   const directChildren = items.filter((item) => item.parentId === parentId);
@@ -13,12 +13,17 @@ export function getDragDepth(offset: number, indentationWidth: number) {
   return Math.round(offset / indentationWidth);
 }
 
-export function getProjection(items: ListItem[], targetId: string, projectedDepth: number) {
+export function getProjection(
+  items: ListItem[],
+  targetId: string,
+  projectedDepth: number,
+  maxAllowedDepth: number = MAX_LIST_DEPTH,
+) {
   const targetItemIndex = items.findIndex(({ id }) => id === targetId);
   const previousItem = items[targetItemIndex - 1];
   const targetItem = items[targetItemIndex];
   const nextItem = items[targetItemIndex + 1];
-  const maxDepth = getMaxDepth(targetItem, previousItem);
+  const maxDepth = Math.min(getMaxDepth(targetItem, previousItem), maxAllowedDepth);
   const minDepth = getMinDepth(nextItem);
   let depth = projectedDepth;
 
@@ -62,9 +67,9 @@ export const getMinDepth = (nextItem: ListItem) => {
   return nextItem ? nextItem.depth : 0;
 };
 
-export const buildTree = (list: ListItem[], children: ListItem[]) => {
-  const tree = [...list];
-  let addedChildren = 0; 
+export const buildTree = (list: DisplayItem[], children: ListItem[]) => {
+  const tree = [...list].filter((i) => !i.isShadow);
+  let addedChildren = 0;
   for (const element of children) {
     const { parentId } = element;
     const parentIndex = tree.findIndex((el) => el.id === parentId);
@@ -72,7 +77,7 @@ export const buildTree = (list: ListItem[], children: ListItem[]) => {
     if (parentIndex === -1) continue;
 
     tree.splice(parentIndex + 1 + addedChildren, 0, element);
-    addedChildren+=1
+    addedChildren += 1;
   }
 
   return tree;

@@ -213,6 +213,16 @@ describe('edge cases tree utils tests', () => {
         if (result2.depth === 1) expect(result2.parentId).toBeDefined();
       });
     });
+
+    describe('subtree depth cap (maxAllowedDepth)', () => {
+      it('caps depth so an item that has children cannot be nested under another parent', () => {
+        expect(getProjection(mockItems, 'item-2', 1).depth).toBe(1);
+
+        const capped = getProjection(mockItems, 'item-2', 1, 0);
+        expect(capped.depth).toBe(0);
+        expect(capped.parentId).toBeNull();
+      });
+    });
   });
 
   describe('buildTree', () => {

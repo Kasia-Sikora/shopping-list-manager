@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { RefObject } from 'react';
-import type { List, SetLocalDataActions } from '../interfaces';
+import type { List, ListItem, SetLocalDataActions } from '../interfaces';
 import { useActiveCardIdStore, useStore } from '../stores/store';
 import { generateId, splitItemsToDoneAndUndoneLists } from '../utils/utils';
 import AddListItemButton from './atoms/AddListItemButton';
@@ -26,7 +26,7 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
 
   const { uncheckedItems, checkedItems } = splitItemsToDoneAndUndoneLists(editedList.content);
   const [contentExpanded, setContentExpanded] = useState<boolean>(true);
-  const doneTaskQuantity = checkedItems.length;
+  const doneTaskQuantity = checkedItems.filter(item => !item.isShadow).length;
 
   const toggleExpand = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -75,28 +75,29 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
 
   const handleCreateNewLine = (e: React.KeyboardEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    let indexOfActiveEl: number;
-    let itemDepth = 0
-    let parentId = null;
-    if (e?.target instanceof HTMLTextAreaElement) {
-      const target = e.target instanceof HTMLTextAreaElement ? e.target.name : undefined;
-      if (e.nativeEvent instanceof KeyboardEvent && target) {
-        const targetId = target.split('.')[0];
-        indexOfActiveEl = editedList.content.findIndex(item => item.id === targetId)
-        itemDepth = Number.parseInt(e.target.dataset.depth ?? '0')
-      } else {
-        indexOfActiveEl = editedList.content.length - 1;
-      }
-    }
-    else {
-      indexOfActiveEl = editedList.content.length - 1;
-    }
-    if (itemDepth > 0) {
-      parentId = editedList.content[indexOfActiveEl - 1]?.id ?? null
-    }
-    const newItem = { id: generateId(), value: '', checked: false, depth: itemDepth, parentId: parentId };
-    const newData = [...editedList.content]
-    newData.splice(indexOfActiveEl + 1, 0, newItem)
+    const content = editedList.content;
+
+    const activeTextarea =
+      e.nativeEvent instanceof KeyboardEvent && e.target instanceof HTMLTextAreaElement
+        ? e.target
+        : null;
+
+    const activeItem = activeTextarea
+      ? content.find(item => item.id === activeTextarea.name.split('.')[0])
+      : undefined;
+
+    const newItem: ListItem = {
+      id: generateId(),
+      value: '',
+      depth: activeItem?.depth ?? 0,
+      parentId: activeItem?.parentId ?? null,
+      checked: activeItem?.checked ?? false,
+    };
+
+    const insertAt = activeItem ? content.indexOf(activeItem) + 1 : content.length;
+    const newData = [...content];
+    newData.splice(insertAt, 0, newItem);
+
     // Focus the new item via React's autoFocus (see ListElem) rather than an imperative
     // .focus(): React focuses the freshly-mounted node during commit, which sticks in
     // WebKit (in-gesture) and Chrome/FF, and survives the edit-mode remount.
