@@ -151,8 +151,8 @@ input[type='checkbox'] {
   place-content: center;
 }
 
-input[type='checkbox']:hover,
-input[type='checkbox']:focus {
+input[type='checkbox']:hover:not(:disabled),
+input[type='checkbox']:focus:not(:disabled) {
   border: 2px solid var(--accent);
 }
 
@@ -162,6 +162,10 @@ input[type='checkbox']::before {
   height: 12px;
   transform: scale(0);
   border-radius: 2px;
+}
+
+input[type='checkbox']:checked:disabled::before {
+  background-color: var(--color-muted-graphic);
 }
 
 input[type='checkbox']:checked::before {

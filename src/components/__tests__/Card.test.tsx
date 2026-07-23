@@ -60,10 +60,22 @@ describe('Card', () => {
     expect(getEditIndicator()).toHaveAttribute('aria-hidden', 'false');
     expect(getListTextarea().value).toEqual('buy bread');
   });
+
+  it('hides the row delete button on the empty card until it is being edited', async () => {
+    render(<Card emptyCardId={EMPTY_CARD_ID} />);
+
+    expect(getEmptyCardDeleteButton()).toBeNull();
+
+    await userEvent.click(getEmptyCard());
+    await waitFor(() => expect(getEmptyCardTitleEl()).not.toBeNull());
+    expect(getEmptyCardDeleteButton()).not.toBeNull();
+  });
 });
 
 const getEmptyCard = () => screen.getByTestId('card-empty');
 const getEmptyCardTitleEl = () => screen.queryByPlaceholderText('Title...');
+const getEmptyCardDeleteButton = () =>
+  within(getEmptyCard()).queryByLabelText('Remove list item', { exact: false });
 
 const getCard = (itemId: string = exampleItem.id) => screen.queryByTestId(`card-${itemId}`);
 const getTitleEl = () => screen.getByRole('heading');
