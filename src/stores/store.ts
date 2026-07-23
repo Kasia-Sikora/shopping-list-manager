@@ -118,7 +118,12 @@ type SyncStore = {
 
 export const useSyncStore = create<SyncStore>((set) => ({
   isSaving: false,
-  isOnline: false,
+  // The load-time pull in App gates on this flag and reads it
+  // synchronously at mount — before OfflineIndicator's effect can correct it. A hard-coded `false`
+  // made a cold *online* load skip the initial fetch entirely (empty screen for first-time /
+  // incognito visitors). When genuinely offline, navigator.onLine is false, so the gate still
+  // prevents offline API hammering.
+  isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
   syncStatus: undefined,
   pendingChangesCount: 0,
   failedChangesCount: 0,
