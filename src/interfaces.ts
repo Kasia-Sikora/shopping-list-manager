@@ -14,6 +14,8 @@ export type ListItem = {
   parentId: string | null;
 };
 
+export type DisplayItem = ListItem & {isShadow?: boolean }
+
 export type PersistedShoppingListStore = {
   state: {
     lists: List[];

@@ -1,7 +1,7 @@
 import { move } from '@dnd-kit/helpers';
 import { DragDropProvider, DragOverlay, useDroppable } from '@dnd-kit/react';
 import { useEffect, useRef, useState } from 'react';
-import { EMPTY_CARD_ID, INDENT_VALUE } from '../consts';
+import { EMPTY_CARD_ID, INDENT_VALUE, MAX_LIST_DEPTH } from '../consts';
 import type { List, ListItem, SetLocalDataActions } from '../interfaces';
 import { buildTree, getDescendants, getDragDepth, getProjection } from '../utils/treeUtils';
 import ListElem from './ListElem';
@@ -111,10 +111,12 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions, cardData
             const dragDepth = getDragDepth(offsetLeft, INDENT_VALUE);
             const projectedDepth = initialDepth.current + dragDepth;
 
+            const maxAllowedDepth = sourceChildren.current.length ? 0 : MAX_LIST_DEPTH;
             const { depth, parentId } = getProjection(
               flattenedItems,
               target.id as string,
-              projectedDepth
+              projectedDepth,
+              maxAllowedDepth
             );
 
             const sortedItems = move(flattenedItems, event);
@@ -154,10 +156,12 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions, cardData
 
           const projectedDepth =
             keyboardDepth ?? initialDepth.current + dragDepth;
+          const maxAllowedDepth = sourceChildren.current.length ? 0 : MAX_LIST_DEPTH;
           const { depth, parentId } = getProjection(
             tree,
             source.id as string,
-            projectedDepth
+            projectedDepth,
+            maxAllowedDepth
           );
 
           if (keyboard) {
@@ -221,6 +225,7 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions, cardData
             actions={actions}
             list={editedList.content}
             isActive={field.id === activeItemId}
+            cardDataId={cardDataId}
           />
 
         )}
@@ -240,6 +245,7 @@ const ListOfItems = ({ editedList, list, listId, checkedItems, actions, cardData
               actions={actions}
               list={editedList.content}
               isOverlay={true}
+              cardDataId={cardDataId}
             />
           )}
         </DragOverlay>
