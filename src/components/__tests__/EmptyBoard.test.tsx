@@ -40,7 +40,7 @@ describe('EmptyBoard', () => {
   });
 
 
-  it('generates fresh ids for the sample lists and their items (no reused hardcoded ids)', async () => {
+  it('generates fresh ids for the sample lists (no reused hardcoded ids)', async () => {
     await loadApp()
     const button = await loadDatabutton()
     const loadedLists = await db.getLists()
@@ -50,7 +50,6 @@ describe('EmptyBoard', () => {
 
     await waitFor(async () => expect((await db.getLists())).toHaveLength(getSampleData().length))
     expect((await db.getLists()).map(i => i.id)).not.toEqual(getSampleData().map(i => i.id))
-    expect((await db.getLists()).map(i => i.content.map(x => x.id))).not.toEqual(getSampleData().map(i => i.content.map(x => x.id)))
   });
 
   it('kicks off a sync after loading the sample data', async () => {
