@@ -33,7 +33,8 @@ const orderByTree = (items: ListItem[]): ListItem[] => {
 };
 
 export const splitItemsToDoneAndUndoneLists = (rawItems: ListItem[]): DividedLists => {
-  const items = orderByTree(rawItems);
+  const filteredDeleted = rawItems.filter(item => !item.deleted)
+  const items = orderByTree(filteredDeleted);
   const uncheckedItems: DisplayItem[] = [];
   const checkedItems: DisplayItem[] = [];
   const emittedHeaders = new Set<string>();

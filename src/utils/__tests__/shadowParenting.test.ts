@@ -603,4 +603,29 @@ describe('shadow parenting mechanism', () => {
       { id: '1', value: 'a normal root', checked: false, depth: 0, parentId: null },
     ]);
   });
+
+  it('omits items marked deleted from both the todo and done lists', async () => {
+    const exampleList = [
+      {
+        id: '1',
+        value: 'example item',
+        checked: false,
+        depth: 0,
+        parentId: null,
+      },
+      {
+        id: '2',
+        value: 'example item 2',
+        checked: true,
+        depth: 0,
+        parentId: null,
+        deleted: true,
+      },
+    ];
+
+    const { uncheckedItems, checkedItems } = splitItemsToDoneAndUndoneLists(exampleList);
+
+    expect(uncheckedItems).toHaveLength(1)
+    expect(checkedItems).toHaveLength(0)
+  });
 });

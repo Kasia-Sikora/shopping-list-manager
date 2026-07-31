@@ -30,4 +30,14 @@ describe('<App /> — cold load pulls from the backend', () => {
     await waitFor(() => expect(screen.getByTestId(`card-${remoteList.id}`)).toBeVisible());
     expect(apiService.getAllLists).toHaveBeenCalled();
   });
+
+  it('does not render a list that is tombstoned (deleted: true) in IndexedDB', async () => {
+    await db.insertList({ ...remoteList, id: 'remote-2', deleted: true })
+    await db.insertList(remoteList)
+
+    render(<App />)
+
+    await waitFor(() => expect(screen.getByTestId(`card-${remoteList.id}`)).toBeVisible());
+    expect(screen.queryByTestId('card-remote-2')).not.toBeInTheDocument()
+  });
 });

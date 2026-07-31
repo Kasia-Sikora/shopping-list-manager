@@ -74,11 +74,11 @@ const ListElem = ({
     if (!editingCardId && listId) {
       setEditingCardId(listId)
     }
-    actions.update({ content: list.filter(el => !(el.id === item.id || el.parentId === item.id)) });
+    actions.update({ content: list.map(el => (el.id === item.id || el.parentId === item.id) ? { ...el, deleted: true, updatedAt: new Date().toISOString() } : el) });
   };
 
   const saveValue = (key: string, value: string | boolean) => {
-    if(key === 'value'){
+    if (key === 'value') {
       actions.update({
         content: list.map(contentItem => contentItem.id === item.id ? { ...contentItem, [key]: value as string } : contentItem
         )

@@ -51,13 +51,15 @@ const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardC
     } else {
       removeList(data.id)
       try {
-        await dbActions({ action: "delete", data: { id: data.id } })
+        if (cardId !== EMPTY_CARD_ID) {
+          await dbActions({ action: "update", data: { ...editedList, deleted: true, updatedAt: new Date().toISOString() } })
+        }
       } catch (error) {
         console.error('Failed to delete list:', error);
       }
       actions.resetLocalState()
     }
-  }, [editingCardId, editedList, actions, removeList]);
+  }, [editingCardId, editedList, actions, removeList, cardId]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
