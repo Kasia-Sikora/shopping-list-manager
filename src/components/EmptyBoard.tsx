@@ -14,7 +14,7 @@ const EmptyBoard = () => {
     const sampleData = getSampleData()
     const listOrder = []
     for (const data of sampleData) {
-      const dataWithFreshId = { ...data, id: generateId(), content: data.content.map(item => ({ ...item, id: generateId() })) }
+      const dataWithFreshId = { ...data, id: generateId() }
       useStore.getState().addList(dataWithFreshId)
       try {
         await dbActions({ action: "create", data: dataWithFreshId })
