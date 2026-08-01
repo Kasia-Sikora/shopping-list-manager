@@ -40,12 +40,14 @@ describe('syncEngine - Conflict Resolution', () => {
       title: 'Shopping List',
       updatedAt: '2026-07-01T11:00:00Z', // Older
       content: [{ id: '1', value: 'Apple', checked: false, depth: 0, parentId: null }],
+      createdAt: '2024-07-01T11:00:00Z',
     };
     const serverList: List = {
       id: 'list-2',
       title: 'Shopping List',
       updatedAt: '2026-07-01T12:00:00Z', // Newer
       content: [{ id: '1', value: 'Banana', checked: false, depth: 0, parentId: null }],
+      createdAt: '2024-07-01T11:00:00Z',
     };
     const winner = resolveConflict(localList, serverList);
     expect(winner.content[0].value).toBe('Banana');
@@ -115,7 +117,7 @@ describe('syncEngine — syncChanges', () => {
     useSyncStore.setState({ isOnline: true });
     await db.addToQueue({ action: 'create', data: makeList('a') });
     vi.mocked(apiService.createList).mockRejectedValue(new Error('network down'));
-    const spyConsole = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const spyConsole = vi.spyOn(console, 'error').mockImplementation(() => {});
     const setTimeoutSpy = vi
       .spyOn(globalThis, 'setTimeout')
       .mockReturnValue(0 as unknown as ReturnType<typeof setTimeout>);
@@ -127,7 +129,7 @@ describe('syncEngine — syncChanges', () => {
     expect(queue).toHaveLength(1);
     expect(queue.map((q) => q.status)).toEqual(['syncing']);
     setTimeoutSpy.mockRestore();
-    spyConsole.mockRestore()
+    spyConsole.mockRestore();
   });
 
   it('ignores items already marked "synced"', async () => {
@@ -222,7 +224,7 @@ describe('syncEngine — _uploadAction', () => {
     await db.addToQueue({ action: 'create', data: makeList('a') });
     const [item] = await db.getSyncQueue();
     vi.mocked(apiService.createList).mockRejectedValue(new Error('network down'));
-    const spyConsole = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const spyConsole = vi.spyOn(console, 'error').mockImplementation(() => {});
     const setTimeoutSpy = vi
       .spyOn(globalThis, 'setTimeout')
       .mockReturnValue(0 as unknown as ReturnType<typeof setTimeout>);
@@ -233,7 +235,7 @@ describe('syncEngine — _uploadAction', () => {
     expect(apiService.createList).toHaveBeenCalledOnce();
     expect(queue.map((q) => q.status)).toEqual(['syncing']);
     setTimeoutSpy.mockRestore();
-    spyConsole.mockRestore()
+    spyConsole.mockRestore();
   });
 });
 
@@ -269,7 +271,7 @@ describe('syncEngine — _retry (backoff)', () => {
     await db.addToQueue({ action: 'create', data: makeList('a') });
     const [item] = await db.getSyncQueue();
     vi.mocked(apiService.createList).mockRejectedValue(new Error('network down'));
-    const spyConsole = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const spyConsole = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const retrySpy = vi.spyOn(syncEngine, '_retry').mockResolvedValue(undefined);
 
@@ -278,7 +280,7 @@ describe('syncEngine — _retry (backoff)', () => {
     expect(retrySpy).toHaveBeenCalledWith(expect.objectContaining({ retryCount: 1 }));
 
     retrySpy.mockRestore();
-    spyConsole.mockRestore()
+    spyConsole.mockRestore();
   });
 
   it('change item status to pending instead of retry when offline', async () => {
@@ -286,7 +288,7 @@ describe('syncEngine — _retry (backoff)', () => {
     await db.addToQueue({ action: 'create', data: makeList('a') });
     const [item]: SyncQueueWithIdValue[] = await db.getSyncQueue();
     vi.mocked(apiService.createList).mockRejectedValue(new Error('network down'));
-    const spyConsole = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const spyConsole = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const statusSpy = vi.spyOn(db, 'updateQueueItemStatus');
 
@@ -295,7 +297,7 @@ describe('syncEngine — _retry (backoff)', () => {
     expect(statusSpy).toHaveBeenCalledWith(item.id, 'pending', item.retryCount);
 
     statusSpy.mockRestore();
-    spyConsole.mockRestore()
+    spyConsole.mockRestore();
   });
 });
 
@@ -358,5 +360,28 @@ describe('syncEngine — reconcileLists', () => {
 
     const pulled = await db.getList('1');
     expect(pulled).toBeUndefined();
+  });
+
+  it('applies a remote tombstone that is newer than the local copy', async () => {
+    const olderLocalList = makeList('1', { updatedAt: '2004-01-01T00:00:00Z', title: 'local' });
+    const newerRemoteList = makeList('1', { updatedAt: '2005-01-01T00:00:00Z', title: 'remote', deleted: true });
+
+    await syncEngine.reconcileLists([olderLocalList], [newerRemoteList]);
+
+    const pulled = await db.getList('1');
+    expect(pulled).toHaveProperty('deleted', true);
+  });
+
+  it('does not apply a remote tombstone that is older than the local edit', async () => {
+    const newerLocalList = makeList('1', { updatedAt: '2005-01-01T00:00:00Z', title: 'local' });
+    const olderRemoteList = makeList('1', { updatedAt: '2004-01-01T00:00:00Z', title: 'remote', deleted: true });
+
+    await db.insertList(newerLocalList);
+
+    await syncEngine.reconcileLists([newerLocalList], [olderRemoteList]);
+
+    const pulled = await db.getList('1');
+    expect(pulled).toEqual(newerLocalList);
+    expect(pulled?.deleted).toBeFalsy();
   });
 });

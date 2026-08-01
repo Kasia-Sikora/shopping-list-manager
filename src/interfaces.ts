@@ -1,8 +1,9 @@
 export type List = {
   id: string;
   title: string;
-  createdAt?: string;
+  createdAt: string;
   updatedAt?: string;
+  deleted?: boolean;
   content: ListItem[];
 };
 
@@ -12,6 +13,7 @@ export type ListItem = {
   checked: boolean;
   depth: number;
   parentId: string | null;
+  deleted?: boolean;
 };
 
 export type DisplayItem = ListItem & {isShadow?: boolean }

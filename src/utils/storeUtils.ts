@@ -21,7 +21,7 @@ export const sortList = (list: ListItem[]) => {
 };
 
 export const sortListContent = (storage: PersistedShoppingListStore) => {
-  return storage.state?.lists ? storage.state.lists.map((item) => ({ ...item, content: sortList(item.content) })) : [];
+  return storage.state?.lists ? storage.state.lists.filter(item => !item.deleted).map((item) => ({ ...item, content: sortList(item.content) })) : [];
 };
 
 export const updateSyncState = async () => {

@@ -128,9 +128,13 @@ export const syncEngine = {
 
       if (!hasPendingDelete) {
         if (local && remote) {
-          const winner = resolveConflict(local, remote);
-          if (winner === remote && winner !== local) {
-            await updateList(winner);
+          if (remote.deleted && (remote?.updatedAt || remote.createdAt) > (local?.updatedAt || local.createdAt)) {
+            await updateList(remote);
+          } else {
+            const winner = resolveConflict(local, remote);
+            if (winner === remote && winner !== local) {
+              await updateList(winner);
+            }
           }
         } else if (remote) await updateList(remote);
       }
