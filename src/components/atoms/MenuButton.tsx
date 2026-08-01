@@ -122,7 +122,10 @@ const MenuDropdown = ({ cardId, list, actions }: MenuDropdown) => {
       case "remove":
         removeList(cardId)
         try {
-          await dbActions({ action: 'delete', data: { id: cardId } })
+          const list = await db.getList(cardId);
+          if (list) {
+            await dbActions({ action: 'update', data: { ...list, deleted: true, updatedAt: new Date().toISOString() } })
+          }
         } catch (error) {
           console.error('Failed to remove list:', error);
         }

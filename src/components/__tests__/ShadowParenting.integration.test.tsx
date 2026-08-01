@@ -2,13 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { render, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import App from '../../App';
-import { editedElements } from './testHelpers';
+import { editedElements, elements } from './testHelpers';
 import type { List } from '../../interfaces';
 import * as db from '../../services/indexedDB';
 
 describe('<App /> — shadow parenting', () => {
   const user = userEvent.setup();
-  const { getCheckbox, queryCheckbox, queryItemsList, getEditCard } = editedElements;
+  const { getCheckbox, queryCheckbox, queryItemsList, getEditCard, getDeleteButton } = editedElements;
+  const { queryElByText } = elements
 
   const makeCard = (content: List['content']): List => ({
     id: '0',
@@ -119,5 +120,20 @@ describe('<App /> — shadow parenting', () => {
     // The still-checked child stays in done under a shadow of the parent.
     expect(valuesOf(queryItemsList(true))).toEqual(['Dairy', 'Milk']);
     expect(getCheckbox('shadow-n')).toBeDisabled();
+  });
+
+  it('deleting an item hides the row but keeps a tombstone in content', async () => {
+    await seedAndRender(GROCERIES);
+
+    expect(queryElByText('Cheese')?.[0]).toBeVisible()
+
+    await user.click(getDeleteButton(2)!)
+
+    expect(queryElByText('Cheese')).toHaveLength(0)
+
+    await waitFor(async () => {
+      const list = await db.getList('0');
+      expect(list?.content?.[2]).toMatchObject({ id: 's', value: 'Cheese', deleted: true });
+    });
   });
 });

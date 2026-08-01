@@ -25,8 +25,11 @@ An **offline-first** shopping list app with nested drag-and-drop items. The loca
 - **Bidirectional sync** — pulls remote changes on load, pushes local changes via the queue
 - **Conflict resolution** — Last-Write-Wins on timestamps, with a documented upgrade path (see [below](#conflict-resolution--known-trade-offs))
 - **Nested drag-and-drop** — reorder and re-nest list items (tree structure with depth + parent references)
+- **Grouped “done” list** — checking an item moves it into a done section that mirrors the parent/child nesting
 - **Optimistic updates** — the UI never waits on the network
-- **Keyboard navigation** and **dark / light theme**
+- **Localisation (i18n)** — English & Polish, with type-safe translation keys (compile-time-checked via a mapped type) and automatic browser-language detection
+- **Settings panel** — a popover to switch **language** and **light / dark theme**, persisted locally
+- **Keyboard navigation** — create, move between, and edit items without the mouse
 
 ## Architecture
 
@@ -58,7 +61,7 @@ Sync Queue ──► Sync Engine ──► Backend API ──► PostgreSQL
 
 ## Testing, CI/CD & Quality
 
-- **150+ automated tests** — IndexedDB integration (against `fake-indexeddb`), sync-engine logic (queue, retries, conflict resolution), and component/interaction tests.
+- **250+ automated tests** — IndexedDB integration (against `fake-indexeddb`), sync-engine logic (queue, retries, conflict resolution), tree/nesting logic, and component/interaction tests.
 - **CI pipeline** (GitHub Actions on every push + PR): lint → test + coverage → build. Coverage is reported to **Codecov**; code quality/security to **SonarCloud**.
 - **CD:** merges to `main` auto-deploy to **Vercel**.
 
