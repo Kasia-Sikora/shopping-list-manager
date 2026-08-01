@@ -129,16 +129,6 @@ export const updateList = async (list: List) => {
   }
 };
 
-export const deleteList = async (id: string) => {
-  try {
-    const database = await getDb();
-    await database.delete('lists', id);
-  } catch (error: unknown) {
-    console.error(`Failed to delete list ${id}:`, error);
-    throw error;
-  }
-};
-
 export const getSyncQueue = async () => {
   const database = await getDb();
   return database.getAll('sync_queue') as Promise<SyncQueueWithIdValue[]>;
@@ -160,7 +150,7 @@ export const addToQueue = async (params: DbAction) => {
   try {
     const database = await getDb();
 
-    if (params.action === 'delete') {
+    if (params.action === 'update' && params.data.deleted) {
       // A delete supersedes any not-yet-synced create/update for the same list, so those
       // actions don't keep hitting a list that no longer exists (404 → retry forever).
       // Only pending/failed items — a 'syncing' item is mid-upload and left to finish.

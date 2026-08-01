@@ -1,12 +1,12 @@
 import type { List } from '../interfaces';
 
-export type SyncAction = 'create' | 'update' | 'delete';
+export type SyncAction = 'create' | 'update';
 export type SyncStatus = 'pending' | 'syncing' | 'synced' | 'failed';
 
 export type SyncQueueValue = {
   listId: string;
   action: SyncAction;
-  data: List | { id: string };
+  data: List;
   timestamp: number;
   status: SyncStatus;
   retryCount: number;
@@ -24,7 +24,4 @@ export type MetadataKeyValuePairs =
   | { key: 'schemaVersion'; value: number }
   | { key: 'listOrder'; value: string[] };
 
-export type DbAction =
-  | { action: 'create'; data: List }
-  | { action: 'update'; data: List }
-  | { action: 'delete'; data: { id: string } };
+export type DbAction = { action: 'create'; data: List } | { action: 'update'; data: List };

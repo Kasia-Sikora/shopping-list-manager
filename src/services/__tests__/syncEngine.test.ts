@@ -95,20 +95,19 @@ describe('syncEngine — syncChanges', () => {
     await expect(db.getSyncQueue()).resolves.toHaveLength(0);
   });
 
-  it('routes create/update/delete to the matching apiService method', async () => {
+  it('routes create/update/soft-delete to the matching apiService method', async () => {
     await db.addToQueue({ action: 'create', data: makeList('a') });
     await db.addToQueue({ action: 'update', data: makeList('b') });
-    await db.addToQueue({ action: 'delete', data: makeList('c') });
+    await db.addToQueue({ action: 'update', data: makeList('c', {deleted: true}) });
 
     vi.mocked(apiService.createList).mockResolvedValue(makeList('a'));
     vi.mocked(apiService.updateList).mockResolvedValue(makeList('b'));
-    vi.mocked(apiService.deleteList).mockResolvedValue(makeList('c'));
+    vi.mocked(apiService.updateList).mockResolvedValue({...makeList('c'), deleted: true});
 
     await syncEngine.syncChanges();
 
     expect(apiService.createList).toHaveBeenCalledOnce();
-    expect(apiService.updateList).toHaveBeenCalledOnce();
-    expect(apiService.deleteList).toHaveBeenCalledOnce();
+    expect(apiService.updateList).toHaveBeenCalledTimes(2);
 
     await expect(db.getSyncQueue()).resolves.toHaveLength(0);
   });
@@ -208,14 +207,14 @@ describe('syncEngine — _uploadAction', () => {
     expect(apiService.updateList).toHaveBeenCalledOnce();
   });
 
-  it('calls apiService.deleteList for a "delete" action', async () => {
-    await db.addToQueue({ action: 'delete', data: makeList('a') });
+  it('calls apiService.updateList for a "update" with soft-delete action', async () => {
+    await db.addToQueue({ action: 'update', data: makeList('a', {deleted: true}) });
     const [item] = await db.getSyncQueue();
-    vi.mocked(apiService.deleteList).mockResolvedValue(makeList('a'));
+    vi.mocked(apiService.updateList).mockResolvedValue(makeList('a'));
 
     await syncEngine._uploadAction(item);
 
-    expect(apiService.deleteList).toHaveBeenCalledOnce();
+    expect(apiService.updateList).toHaveBeenCalledOnce();
   });
 
   it('on API failure, schedules a retry and does NOT mark the item synced', async () => {

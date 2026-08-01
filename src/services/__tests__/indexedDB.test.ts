@@ -55,12 +55,12 @@ describe('indexedDB — lists CRUD', () => {
   });
 
   it('insertList throws ConstraintError when a list with the same id already exists', async () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     await db.insertList(makeList('a'));
     await db.insertList(makeList('b'));
 
     await expect(db.insertList(makeList('b'))).rejects.toThrow();
-    consoleSpy.mockRestore()
+    consoleSpy.mockRestore();
   });
 
   it('updateList replaces an existing list', async () => {
@@ -88,37 +88,39 @@ describe('indexedDB — lists CRUD', () => {
     await expect(db.getList('b')).resolves.toBeDefined();
   });
 
-  it('deleteList removes the list with the given id', async () => {
+  it('soft-deleting a list keeps it flagged deleted', async () => {
+    const listToUpdate = makeList('b');
     await db.insertList(makeList('a'));
-    await db.insertList(makeList('b'));
+    await db.insertList(listToUpdate);
 
     await expect(db.getLists()).resolves.toHaveLength(2);
 
-    await db.deleteList('b');
+    await db.updateList({ ...listToUpdate, deleted: true });
     const newLists = await db.getLists();
     const deletedList = await db.getList('b');
 
-    expect(newLists).toHaveLength(1);
-    expect(deletedList).toBeUndefined();
-    expect(newLists.map((l) => l.id)).not.toContain('b');
+    expect(newLists).toHaveLength(2);
+    expect(deletedList?.id).toEqual('b');
+    expect(newLists.map((l) => l.id)).toContain('b');
+    expect(newLists.map((l) => l.deleted)).toContain(true);
   });
 
-  it('deleteList leaves other lists untouched', async () => {
+  it('soft-deleting a list leaves other lists untouched', async () => {
+    const listToUpdate = makeList('b');
     await db.insertList(makeList('a'));
-    await db.insertList(makeList('b'));
+    await db.insertList(listToUpdate);
 
     const listToStay = await db.getList('a');
 
     await expect(db.getLists()).resolves.toHaveLength(2);
 
-    const id = await db.deleteList('b');
+    await db.updateList({ ...listToUpdate, deleted: true });
     const newLists = await db.getLists();
     const deletedList = await db.getList('b');
     const checkListToStay = await db.getList('a');
 
-    expect(newLists).toHaveLength(1);
-    expect(deletedList).toBeUndefined();
-    expect(newLists.map((l) => l.id)).not.toContain(id);
+    expect(newLists).toHaveLength(2);
+    expect(deletedList?.deleted).toBeTruthy();
     expect(listToStay).toEqual(checkListToStay);
   });
 
@@ -234,7 +236,7 @@ describe('indexedDB — sync queue', () => {
   it('addToQueue delete-coalescing', async () => {
     await db.addToQueue({ action: 'create', data: makeList('a') });
     await db.addToQueue({ action: 'update', data: makeList('a') });
-    await db.addToQueue({ action: 'delete', data: makeList('a') });
+    await db.addToQueue({ action: 'update', data: makeList('a', { deleted: true }) });
     await db.addToQueue({ action: 'update', data: makeList('a') });
 
     const queue = await db.getSyncQueue();

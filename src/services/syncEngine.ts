@@ -64,9 +64,6 @@ export const syncEngine = {
       case 'update':
         promise = apiService.updateList(action.data.id, action.data as List);
         break;
-      case 'delete':
-        promise = apiService.deleteList(action.data.id);
-        break;
       default:
         throw new Error('Missing action in upload');
     }
@@ -124,7 +121,7 @@ export const syncEngine = {
     for (const id of allIds) {
       const local = localById.get(id);
       const remote = remoteById.get(id);
-      const hasPendingDelete = pendingOrFailedItems.some((item) => item.action === 'delete' && id === item.listId);
+      const hasPendingDelete = pendingOrFailedItems.some((item) => item.action === 'update' && item.data?.deleted && id === item.listId);
 
       if (!hasPendingDelete) {
         if (local && remote) {
