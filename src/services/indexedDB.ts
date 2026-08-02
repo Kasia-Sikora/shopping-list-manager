@@ -156,10 +156,7 @@ export const addToQueue = async (params: DbAction) => {
       // Only pending/failed items — a 'syncing' item is mid-upload and left to finish.
       const queue = (await database.getAll('sync_queue')) as SyncQueueWithIdValue[];
       const superseded = queue.filter(
-        (item) =>
-          item.listId === params.data.id &&
-          (item.action === 'create' || item.action === 'update') &&
-          (item.status === 'pending' || item.status === 'failed')
+        (item) => item.listId === params.data.id && (item.status === 'pending' || item.status === 'failed')
       );
       const hadUnsyncedCreate = superseded.some((item) => item.action === 'create');
 
@@ -177,28 +174,25 @@ export const addToQueue = async (params: DbAction) => {
     const syncData: SyncQueueValue = {
       listId: params.data.id,
       action: params.action,
-      data: params.data,
       timestamp: Date.now(),
       status: 'pending' as SyncStatus,
       retryCount: 0,
+      listDeleted: params.action === 'update' && !!params.data.deleted,
     };
 
     if (params.action === 'update') {
       const queue = (await database.getAll('sync_queue')) as SyncQueueWithIdValue[];
       const existingItemWithTheSameId = queue.find(
-        (item) =>
-          item.listId === params.data.id &&
-          (item.action === 'create' || item.action === 'update') &&
-          (item.status === 'pending' || item.status === 'failed')
+        (item) => item.listId === params.data.id && (item.status === 'pending' || item.status === 'failed')
       );
 
       if (existingItemWithTheSameId) {
         await database.put('sync_queue', {
           ...existingItemWithTheSameId,
-          data: params.data,
           status: 'pending',
           retryCount: 0,
           timestamp: Date.now(),
+          listDeleted: existingItemWithTheSameId.listDeleted,
         });
         return;
       }

@@ -73,6 +73,7 @@ describe('syncEngine - Conflict Resolution', () => {
 
 describe('syncEngine — syncChanges', () => {
   it('uploads a pending item and clears the queue on success', async () => {
+    await db.insertList(makeList('a'));
     await db.addToQueue({ action: 'create', data: makeList('a') });
     vi.mocked(apiService.createList).mockResolvedValue(makeList('a'));
 
@@ -83,6 +84,9 @@ describe('syncEngine — syncChanges', () => {
   });
 
   it('processes every pending item in the queue', async () => {
+    await db.insertList(makeList('a'));
+    await db.insertList(makeList('b'));
+    await db.insertList(makeList('c'));
     await db.addToQueue({ action: 'create', data: makeList('a') });
     await db.addToQueue({ action: 'create', data: makeList('b') });
     await db.addToQueue({ action: 'create', data: makeList('c') });
@@ -96,13 +100,16 @@ describe('syncEngine — syncChanges', () => {
   });
 
   it('routes create/update/soft-delete to the matching apiService method', async () => {
+    await db.insertList(makeList('a'));
+    await db.updateList(makeList('b'));
+    await db.updateList(makeList('c'));
     await db.addToQueue({ action: 'create', data: makeList('a') });
     await db.addToQueue({ action: 'update', data: makeList('b') });
-    await db.addToQueue({ action: 'update', data: makeList('c', {deleted: true}) });
+    await db.addToQueue({ action: 'update', data: makeList('c', { deleted: true }) });
 
     vi.mocked(apiService.createList).mockResolvedValue(makeList('a'));
     vi.mocked(apiService.updateList).mockResolvedValue(makeList('b'));
-    vi.mocked(apiService.updateList).mockResolvedValue({...makeList('c'), deleted: true});
+    vi.mocked(apiService.updateList).mockResolvedValue({ ...makeList('c'), deleted: true });
 
     await syncEngine.syncChanges();
 
@@ -114,6 +121,7 @@ describe('syncEngine — syncChanges', () => {
 
   it('does NOT clear the queue when an item is still pending/failed when online', async () => {
     useSyncStore.setState({ isOnline: true });
+    await db.insertList(makeList('a'));
     await db.addToQueue({ action: 'create', data: makeList('a') });
     vi.mocked(apiService.createList).mockRejectedValue(new Error('network down'));
     const spyConsole = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -132,6 +140,8 @@ describe('syncEngine — syncChanges', () => {
   });
 
   it('ignores items already marked "synced"', async () => {
+    await db.insertList(makeList('a'));
+    await db.insertList(makeList('b'));
     await db.addToQueue({ action: 'create', data: makeList('a') });
     await db.addToQueue({ action: 'create', data: makeList('b') });
     await db.updateQueueItemStatus(1, 'synced');
@@ -154,6 +164,7 @@ describe('syncEngine — syncChanges', () => {
   });
 
   it('coalesces overlapping runs into a single in-flight sync', async () => {
+    await db.insertList(makeList('a'));
     await db.addToQueue({ action: 'create', data: makeList('a') });
     vi.mocked(apiService.createList).mockResolvedValue(makeList('a'));
 
@@ -178,6 +189,7 @@ describe('syncEngine — _uploadAction', () => {
   });
 
   it('writes lastSync metadata on success', async () => {
+    await db.insertList(makeList('a'));
     await db.addToQueue({ action: 'create', data: makeList('a') });
     const [item] = await db.getSyncQueue();
     vi.mocked(apiService.createList).mockResolvedValue(makeList('a'));
@@ -188,6 +200,7 @@ describe('syncEngine — _uploadAction', () => {
   });
 
   it('calls apiService.createList for a "create" action', async () => {
+    await db.insertList(makeList('a'));
     await db.addToQueue({ action: 'create', data: makeList('a') });
     const [item] = await db.getSyncQueue();
     vi.mocked(apiService.createList).mockResolvedValue(makeList('a'));
@@ -198,6 +211,7 @@ describe('syncEngine — _uploadAction', () => {
   });
 
   it('calls apiService.updateList for an "update" action', async () => {
+    await db.updateList(makeList('a'));
     await db.addToQueue({ action: 'update', data: makeList('a') });
     const [item] = await db.getSyncQueue();
     vi.mocked(apiService.updateList).mockResolvedValue(makeList('a'));
@@ -208,7 +222,8 @@ describe('syncEngine — _uploadAction', () => {
   });
 
   it('calls apiService.updateList for a "update" with soft-delete action', async () => {
-    await db.addToQueue({ action: 'update', data: makeList('a', {deleted: true}) });
+    await db.updateList(makeList('a'));
+    await db.addToQueue({ action: 'update', data: makeList('a', { deleted: true }) });
     const [item] = await db.getSyncQueue();
     vi.mocked(apiService.updateList).mockResolvedValue(makeList('a'));
 
@@ -220,6 +235,7 @@ describe('syncEngine — _uploadAction', () => {
   it('on API failure, schedules a retry and does NOT mark the item synced', async () => {
     useSyncStore.setState({ isOnline: true });
 
+    await db.insertList(makeList('a'));
     await db.addToQueue({ action: 'create', data: makeList('a') });
     const [item] = await db.getSyncQueue();
     vi.mocked(apiService.createList).mockRejectedValue(new Error('network down'));
@@ -235,6 +251,19 @@ describe('syncEngine — _uploadAction', () => {
     expect(queue.map((q) => q.status)).toEqual(['syncing']);
     setTimeoutSpy.mockRestore();
     spyConsole.mockRestore();
+  });
+
+  it('should call apiService.createList with current data, instead of those in the snapshot', async () => {
+    const newList = makeList('a');
+    await db.addToQueue({ action: 'create', data: newList });
+    await db.updateList({ ...newList, title: 'Test title' });
+    vi.mocked(apiService.createList).mockResolvedValue({ ...newList, title: 'Test title' });
+
+    await syncEngine.syncChanges();
+
+    expect(apiService.createList).toHaveBeenCalledOnce();
+
+    expect(apiService.createList).toHaveBeenCalledWith({ ...newList, title: 'Test title' });
   });
 });
 
@@ -267,6 +296,8 @@ describe('syncEngine — _retry (backoff)', () => {
 
   it('retryCount increments before scheduling a retry', async () => {
     useSyncStore.setState({ isOnline: true });
+
+    await db.insertList(makeList('a'));
     await db.addToQueue({ action: 'create', data: makeList('a') });
     const [item] = await db.getSyncQueue();
     vi.mocked(apiService.createList).mockRejectedValue(new Error('network down'));
@@ -284,6 +315,8 @@ describe('syncEngine — _retry (backoff)', () => {
 
   it('change item status to pending instead of retry when offline', async () => {
     useSyncStore.setState({ isOnline: false });
+
+    await db.insertList(makeList('a'));
     await db.addToQueue({ action: 'create', data: makeList('a') });
     const [item]: SyncQueueWithIdValue[] = await db.getSyncQueue();
     vi.mocked(apiService.createList).mockRejectedValue(new Error('network down'));
@@ -302,6 +335,7 @@ describe('syncEngine — _retry (backoff)', () => {
 
 describe('syncEngine — retryFailed', () => {
   it('revives failed items with a fresh count and syncs them', async () => {
+    await db.insertList(makeList('a'));
     await db.addToQueue({ action: 'create', data: makeList('a') });
     await db.updateQueueItemStatus(1, 'failed', 6);
     vi.mocked(apiService.createList).mockResolvedValue(makeList('a'));
@@ -316,6 +350,7 @@ describe('syncEngine — retryFailed', () => {
   });
 
   it('also revives stale "syncing" rows orphaned by an interrupted run', async () => {
+    await db.insertList(makeList('a'));
     await db.addToQueue({ action: 'create', data: makeList('a') });
     await db.updateQueueItemStatus(1, 'syncing', 2);
     vi.mocked(apiService.createList).mockResolvedValue(makeList('a'));
@@ -382,5 +417,18 @@ describe('syncEngine — reconcileLists', () => {
     const pulled = await db.getList('1');
     expect(pulled).toEqual(newerLocalList);
     expect(pulled?.deleted).toBeFalsy();
+  });
+
+  it('reconcile does NOT overwrite a local tombstone that still has a pending soft-delete update in the queue.', async () => {
+    const olderLocalList = makeList('1', { updatedAt: '2004-01-01T00:00:00Z', title: 'local', deleted: true });
+    const newerRemoteList = makeList('1', { updatedAt: '2005-01-01T00:00:00Z', title: 'remote' });
+
+    await db.insertList(olderLocalList);
+    await db.addToQueue({ action: 'update', data: olderLocalList });
+
+    await syncEngine.reconcileLists([olderLocalList], [newerRemoteList]);
+
+    const pulled = await db.getList('1');
+    expect(pulled).toEqual(olderLocalList);
   });
 });

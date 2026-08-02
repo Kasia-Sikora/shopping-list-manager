@@ -269,7 +269,6 @@ describe('indexedDB — sync queue', () => {
     expect(queue[0]).not.toBe(item);
     expect(queue[0]).toStrictEqual({
       ...item,
-      data: item2.data,
       timestamp: item2.timestamp,
       retryCount: item2.retryCount,
     });
@@ -296,7 +295,6 @@ describe('indexedDB — sync queue', () => {
     expect(queue).toHaveLength(1);
     expect(queue[0]).toStrictEqual({
       ...item,
-      data: item2.data,
       timestamp: item2.timestamp,
       retryCount: item2.retryCount,
     });

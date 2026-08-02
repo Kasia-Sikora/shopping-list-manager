@@ -6,10 +6,10 @@ export type SyncStatus = 'pending' | 'syncing' | 'synced' | 'failed';
 export type SyncQueueValue = {
   listId: string;
   action: SyncAction;
-  data: List;
   timestamp: number;
   status: SyncStatus;
   retryCount: number;
+  listDeleted?: boolean;
 };
 
 export type SyncQueueWithIdValue = SyncQueueValue & {
@@ -24,4 +24,4 @@ export type MetadataKeyValuePairs =
   | { key: 'schemaVersion'; value: number }
   | { key: 'listOrder'; value: string[] };
 
-export type DbAction = { action: 'create'; data: List } | { action: 'update'; data: List };
+export type DbAction = { action: 'create' | 'update'; data: List };
