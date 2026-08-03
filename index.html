@@ -24,7 +24,7 @@
           const defaultDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
           theme = defaultDark ? 'dark' : 'light';
         }
-        document.documentElement.setAttribute('data-theme', `theme-${theme}`);
+        document.documentElement.dataset.theme = 'theme-' + theme;
       })();
     </script>
   </head>

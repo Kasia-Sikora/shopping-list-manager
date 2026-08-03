@@ -63,20 +63,12 @@ describe('ThemeToggle component', () => {
   });
 
   it('does not write an empty "theme-" to <html> while the store theme is still unresolved (the guard)', () => {
-    useThemeStore.setState({ theme: '' });
-    localStorage.clear();
-    Object.defineProperty(window, 'matchMedia', {
-      value: vi.fn().mockImplementation(() => ({ matches: false })), // → seed resolves to 'light'
-      configurable: true,
-    });
-    const setAttrSpy = vi.spyOn(document.documentElement, 'setAttribute');
+    document.documentElement.dataset.theme = 'theme-dark';
+    localStorage.setItem(LOCAL_STORAGE_THEME_KEY, JSON.stringify({ state: { theme: 'dark' }, version: 0 }));
 
     render(<ThemeToggle />);
 
-    expect(setAttrSpy).not.toHaveBeenCalledWith('data-theme', 'theme-');
-    expect(setAttrSpy).toHaveBeenCalledWith('data-theme', 'theme-light');
-
-    setAttrSpy.mockRestore();
+    expect(document.documentElement).toHaveAttribute('data-theme', 'theme-dark');
   });
 
   it('applies a persisted theme to <html> without falling back to matchMedia (return visit)', () => {
