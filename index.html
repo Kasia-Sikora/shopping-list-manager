@@ -7,9 +7,29 @@
     <title>Shopping list manager</title>
     <meta name="description" content="Offline-first shopping list manager — create and organize lists that work offline and sync automatically when you're back online." />
     <link href="/src/index.css" rel="stylesheet" type="text/css" />
+    <script>
+      (() => {
+        const themeTypes = ['dark', 'light'];
+        let theme = 'light';
+        try {
+          const localStorageTheme = JSON.parse(localStorage.getItem('theme'));
+          if (localStorageTheme?.state?.theme && themeTypes.includes(localStorageTheme.state.theme)) {
+            theme = localStorageTheme?.state?.theme;
+          } else {
+            const defaultDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            theme = defaultDark ? 'dark' : 'light';
+          }
+        } catch (err) {
+          console.warn(`Error to set theme from local storage: ${err}. Setting theme based on user preferences.`);
+          const defaultDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          theme = defaultDark ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', `theme-${theme}`);
+      })();
+    </script>
   </head>
 
-  <body class="bg-background" data-theme="">
+  <body class="bg-background">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
