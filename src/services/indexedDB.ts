@@ -129,16 +129,6 @@ export const updateList = async (list: List) => {
   }
 };
 
-export const deleteList = async (id: string) => {
-  try {
-    const database = await getDb();
-    await database.delete('lists', id);
-  } catch (error: unknown) {
-    console.error(`Failed to delete list ${id}:`, error);
-    throw error;
-  }
-};
-
 export const getSyncQueue = async () => {
   const database = await getDb();
   return database.getAll('sync_queue') as Promise<SyncQueueWithIdValue[]>;
@@ -160,16 +150,13 @@ export const addToQueue = async (params: DbAction) => {
   try {
     const database = await getDb();
 
-    if (params.action === 'delete') {
+    if (params.action === 'update' && params.data.deleted) {
       // A delete supersedes any not-yet-synced create/update for the same list, so those
       // actions don't keep hitting a list that no longer exists (404 → retry forever).
       // Only pending/failed items — a 'syncing' item is mid-upload and left to finish.
       const queue = (await database.getAll('sync_queue')) as SyncQueueWithIdValue[];
       const superseded = queue.filter(
-        (item) =>
-          item.listId === params.data.id &&
-          (item.action === 'create' || item.action === 'update') &&
-          (item.status === 'pending' || item.status === 'failed')
+        (item) => item.listId === params.data.id && (item.status === 'pending' || item.status === 'failed')
       );
       const hadUnsyncedCreate = superseded.some((item) => item.action === 'create');
 
@@ -187,28 +174,25 @@ export const addToQueue = async (params: DbAction) => {
     const syncData: SyncQueueValue = {
       listId: params.data.id,
       action: params.action,
-      data: params.data,
       timestamp: Date.now(),
       status: 'pending' as SyncStatus,
       retryCount: 0,
+      listDeleted: params.action === 'update' && !!params.data.deleted,
     };
 
     if (params.action === 'update') {
       const queue = (await database.getAll('sync_queue')) as SyncQueueWithIdValue[];
       const existingItemWithTheSameId = queue.find(
-        (item) =>
-          item.listId === params.data.id &&
-          (item.action === 'create' || item.action === 'update') &&
-          (item.status === 'pending' || item.status === 'failed')
+        (item) => item.listId === params.data.id && (item.status === 'pending' || item.status === 'failed')
       );
 
       if (existingItemWithTheSameId) {
         await database.put('sync_queue', {
           ...existingItemWithTheSameId,
-          data: params.data,
           status: 'pending',
           retryCount: 0,
           timestamp: Date.now(),
+          listDeleted: existingItemWithTheSameId.listDeleted,
         });
         return;
       }

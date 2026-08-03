@@ -45,9 +45,6 @@ export const dbActions = async (params: DbAction) => {
       case 'update':
         await db.updateList(params.data);
         break;
-      case 'delete':
-        await db.deleteList(params.data.id);
-        break;
     }
 
     await db.addToQueue(params);

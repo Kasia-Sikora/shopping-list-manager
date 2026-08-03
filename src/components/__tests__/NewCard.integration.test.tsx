@@ -146,7 +146,7 @@ describe('<App>', () => {
     const queue = await db.getSyncQueue()
     expect(queue[0].action).toBe('create')
     expect(getTitleEl()).not.toBeInTheDocument()
-    const id = queue[0].data.id
+    const id = queue[0].listId
     await waitFor(() => expect(getCard(id)).toBeVisible())
     expect(within(getCard(id)).queryByRole('heading')).toHaveTextContent('List title')
     expect(queryListItemTextarea(id)).toHaveLength(0)

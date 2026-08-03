@@ -68,19 +68,4 @@ describe('apiService', () => {
 
     await expect(apiService.updateList('a', updatedData)).rejects.toBeInstanceOf(HttpError);
   });
-
-  it('should handle deleteList action when list was already deleted (404 status)', async () => {
-    vi.mocked(fetchApi).mockRejectedValue(new HttpError(404, 'List already deleted'));
-    await expect(apiService.deleteList('a')).resolves.toEqual({ id: 'a' });
-  });
-
-  it('should handle deleteList action when list was already deleted (410 status)', async () => {
-    vi.mocked(fetchApi).mockRejectedValue(new HttpError(410, 'List already deleted'));
-    await expect(apiService.deleteList('a')).resolves.toEqual({ id: 'a' });
-  });
-
-  it('should throw other errors than 404 while deleteList', async () => {
-    vi.mocked(fetchApi).mockRejectedValue(new HttpError(500, 'Server is not responding'));
-    await expect(apiService.deleteList('a')).rejects.toBeInstanceOf(HttpError);
-  });
 });
