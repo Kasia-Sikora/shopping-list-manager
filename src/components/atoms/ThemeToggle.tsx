@@ -22,10 +22,11 @@ const ThemeToggle = () => {
   }, [setTheme])
 
   useEffect(() => {
-    document.body.setAttribute('data-theme', `theme-${theme}`);
+    if (!theme) return;
+    document.documentElement.dataset.theme = `theme-${theme}`;
   }, [theme]);
 
-  const ariaLabel = theme === 'light' ? t('header.settings.theme.lightMode'): t('header.settings.theme.darkMode')
+  const ariaLabel = theme === 'light' ? t('header.settings.theme.lightMode') : t('header.settings.theme.darkMode')
 
   const isThemeLight = theme === 'light'
 

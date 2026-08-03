@@ -1,4 +1,4 @@
-export const LOCAL_STORAGE_THEME_KEY = 'theme';
+export const LOCAL_STORAGE_THEME_KEY = 'theme'; //used also in index.html as plain string
 export const LOCAL_STORAGE_LANG_KEY = 'lang';
 export const MAX_LIST_DEPTH = 1;
 export const DELETE_BUTTON_W_GAP_SIZE = 36;
