@@ -6,6 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { useStore } from '../../stores/store';
 import { syncEngine } from '../../services/syncEngine';
 import { getSampleData } from '../../stores/sampleData';
+import EmptyBoard from '../EmptyBoard';
 
 describe('EmptyBoard', () => {
   const user = userEvent.setup()
@@ -65,11 +66,13 @@ describe('EmptyBoard', () => {
   });
 
   it('logs an error when db throws', async () => {
-    const insertListSpy = vi.spyOn(db, 'insertList').mockRejectedValueOnce(new Error("Failed to create list"))
-    await loadApp()
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    const button = await loadDatabutton()
+    render(<EmptyBoard />)
 
+    const button = await loadDatabutton()
+    expect(button).toBeVisible()
+    const insertListSpy = vi.spyOn(db, 'insertList').mockRejectedValueOnce(new Error("Failed to create list"))
+
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     await user.click(button)
     await waitFor(() => expect(console.error).toHaveBeenCalledWith("Failed to create list:", expect.any(Error)))
     insertListSpy.mockRestore()

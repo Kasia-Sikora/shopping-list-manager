@@ -21,15 +21,4 @@ export const apiService = {
       throw error;
     }
   },
-
-  async deleteList(id: string): Promise<{ id: string }> {
-    try {
-      return await fetchApi(`${BASE_URL}/lists/${id}`, { method: 'DELETE' });
-    } catch (error) {
-      if (error instanceof HttpError && (error.status === 404 || error.status === 410)) {
-        return { id };
-      }
-      throw error;
-    }
-  },
 };

@@ -5,6 +5,7 @@ import { resolveConflict } from '../utils/resolveConflict';
 import { updateSyncState } from '../utils/storeUtils';
 import { apiService } from './apiService';
 import {
+  getList,
   getPendingItems,
   getPendingOrFailedItems,
   getSyncQueue,
@@ -57,15 +58,26 @@ export const syncEngine = {
     await updateSyncState();
     // eslint-disable-next-line no-useless-assignment
     let promise = null;
+    const current = await getList(action.listId);
+    if (!current) {
+      await removeFromQueue(action.id);
+      console.warn(`List id: ${action.listId} was not found in IndexedDB. Data was already deleted or action was in wrong order (update before create).`)
+      return;
+    }
+    const pendingOrFailedItems = await getPendingOrFailedItems();
+    const hasPendingDelete = pendingOrFailedItems.some(
+      (item) => item.action === 'update' && item.listDeleted && action.listId === item.listId
+    );
+    if (hasPendingDelete) {
+      await removeFromQueue(action.id);
+      return;
+    }
     switch (action.action) {
       case 'create':
-        promise = apiService.createList(action.data as List);
+        promise = apiService.createList(current);
         break;
       case 'update':
-        promise = apiService.updateList(action.data.id, action.data as List);
-        break;
-      case 'delete':
-        promise = apiService.deleteList(action.data.id);
+        promise = apiService.updateList(action.listId, current);
         break;
       default:
         throw new Error('Missing action in upload');
@@ -124,7 +136,9 @@ export const syncEngine = {
     for (const id of allIds) {
       const local = localById.get(id);
       const remote = remoteById.get(id);
-      const hasPendingDelete = pendingOrFailedItems.some((item) => item.action === 'delete' && id === item.listId);
+      const hasPendingDelete = pendingOrFailedItems.some(
+        (item) => item.action === 'update' && item.listDeleted && id === item.listId
+      );
 
       if (!hasPendingDelete) {
         if (local && remote) {
