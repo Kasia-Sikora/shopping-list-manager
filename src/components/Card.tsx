@@ -8,6 +8,7 @@ import { generateId } from '../utils/utils';
 import { EMPTY_CARD_ID } from '../consts';
 import { dbActions } from '../utils/storeUtils';
 import { useMasonrySpan } from '../hooks/useMasonrySpan';
+import { useShallow } from 'zustand/shallow';
 
 type Card = {
   emptyCardId?: string;
@@ -18,10 +19,10 @@ type Card = {
 
 const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const { isSaving, setIsSaving } = useSyncStore();
+  const { isSaving, setIsSaving } = useSyncStore(useShallow(s => ({ isSaving: s.isSaving, setIsSaving: s.setIsSaving })));
 
-  const { addList, updateList } = useStore()
-  const { editingCardId, setEditingCardId } = useActiveCardIdStore()
+  const { addList, updateList } = useStore(useShallow(s => ({ addList: s.addList, updateList: s.updateList })))
+  const { editingCardId, setEditingCardId } = useActiveCardIdStore(useShallow(s => ({ editingCardId: s.editingCardId, setEditingCardId: s.setEditingCardId })))
   useMasonrySpan(cardRef)
 
   const cardId = editedList?.id ?? emptyCardId;
@@ -160,7 +161,7 @@ const Card = ({ emptyCardId, editedList, index, styles }: Card) => {
       data-testid={cardDataId}
     >
       {editedList && <EditIndicator id={editedList.id} isEdit={editingCardId === cardId} />}
-      {(isSaving && editingCardId === cardId) && <div data-testid={`${cardId}-spinner`} className='absolute right-2 top-2  w-6 aspect-square rounded-full border-5 border-primary border-solid border-r-accent animate-spin'/>}
+      {(isSaving && editingCardId === cardId) && <div data-testid={`${cardId}-spinner`} className='absolute right-2 top-2  w-6 aspect-square rounded-full border-5 border-primary border-solid border-r-accent animate-spin' />}
       <CardContent
         editedList={currentData}
         cardRef={cardRef}

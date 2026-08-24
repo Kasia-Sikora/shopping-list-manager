@@ -3,10 +3,17 @@ import { useNetworkStatus } from './useNetworkStatus';
 import { apiService } from '../services/apiService';
 import { useSyncStore } from '../stores/store';
 import { HEALTH_POLL_DELAY } from '../consts';
+import { useShallow } from 'zustand/shallow';
 
 export function useConnectionStatus() {
   const { isOnline } = useNetworkStatus();
-  const { connectionStatus, setConnectionStatus, setIsOnline } = useSyncStore();
+  const { connectionStatus, setConnectionStatus, setIsOnline } = useSyncStore(
+    useShallow((s) => ({
+      connectionStatus: s.connectionStatus,
+      setConnectionStatus: s.setConnectionStatus,
+      setIsOnline: s.setIsOnline,
+    }))
+  );
 
   useEffect(() => {
     if (isOnline) {

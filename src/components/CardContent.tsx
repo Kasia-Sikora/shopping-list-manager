@@ -10,6 +10,7 @@ import ListOfItems from './ListOfItems';
 import { EMPTY_CARD_ID } from '../consts';
 import { dbActions } from '../utils/storeUtils';
 import { useTranslation } from '../hooks/useTranslationHook';
+import { useShallow } from 'zustand/shallow';
 
 interface CardContentProps {
   editedList: List;
@@ -20,8 +21,8 @@ interface CardContentProps {
 }
 
 const CardContent = ({ editedList, cardRef, cardDataId, cardId, actions }: CardContentProps) => {
-  const { editingCardId, setFocusItemId } = useActiveCardIdStore()
-  const { removeList } = useStore()
+  const { editingCardId, setFocusItemId } = useActiveCardIdStore(useShallow(s => ({ editingCardId: s.editingCardId, setFocusItemId: s.setFocusItemId })))
+  const removeList = useStore(s => s.removeList)
   const t = useTranslation()
 
   const { uncheckedItems, checkedItems } = splitItemsToDoneAndUndoneLists(editedList.content);

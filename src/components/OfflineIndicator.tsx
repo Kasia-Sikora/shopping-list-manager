@@ -10,6 +10,7 @@ import FailedIcon from '../assets/failed.svg?react'
 import { useTranslation } from "../hooks/useTranslationHook"
 import type { LocaleKeys } from "../interfaces"
 import { useConnectionStatus } from "../hooks/useConnectionStatus"
+import { useShallow } from "zustand/shallow"
 
 type SyncState = 'failed' | 'pending' | 'syncing' | 'synced'
 
@@ -33,7 +34,7 @@ const PILL_STYLE: Record<PillState, { background: string; color: string }> = {
 
 export const OfflineIndicator = ({ loading }: OfflineIndicator) => {
   const { connectionStatus } = useConnectionStatus()
-  const { syncStatus, failedChangesCount, pendingChangesCount } = useSyncStore()
+  const { syncStatus, failedChangesCount, pendingChangesCount } = useSyncStore(useShallow(s=> ({syncStatus: s.syncStatus, failedChangesCount: s.failedChangesCount, pendingChangesCount: s.pendingChangesCount})))
   const t = useTranslation()
   const lang = useLocaleStore(s => s.lang)
   const localeRules = useMemo(() => new Intl.PluralRules(lang), [lang])

@@ -3,10 +3,11 @@ import { useThemeStore } from "../../stores/store";
 import Moon from '../../assets/moon.svg?react'
 import Sun from '../../assets/sun.svg?react'
 import { useTranslation } from "../../hooks/useTranslationHook";
+import { useShallow } from "zustand/shallow";
 
 const ThemeToggle = () => {
   const t = useTranslation()
-  const { theme, setTheme } = useThemeStore()
+  const { theme, setTheme } = useThemeStore(useShallow(s => ({ theme: s.theme, setTheme: s.setTheme })))
 
   const switchTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';

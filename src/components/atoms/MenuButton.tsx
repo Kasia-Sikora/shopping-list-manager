@@ -56,7 +56,7 @@ const MenuDropdown = ({ cardId, list, actions }: MenuDropdown) => {
   const removeCheckedListItems = useStore(s => s.removeCheckedListItems)
   const t = useTranslation()
 
-  const { editingCardId } = useActiveCardIdStore()
+  const editingCardId = useActiveCardIdStore(s => s.editingCardId)
 
   const popoverPlacement = () => {
     // return { 'translate(70px, 100px)'}

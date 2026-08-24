@@ -13,13 +13,14 @@ type ChevronButton = {
 
 export const ChevronButton = ({ toggle, contentExpanded, quantity }: ChevronButton) => {
   const t = useTranslation()
-  const { lang } = useLocaleStore()
+  const lang = useLocaleStore(s => s.lang)
   const localeRules = useMemo(() => new Intl.PluralRules(lang), [lang])
 
   const key = localeRules.select(quantity) as LocaleKeys
 
   return (
     <button
+      type="button"
       onClick={toggle}
       className="flex flex-row items-center text-muted gap-1"
       aria-expanded={contentExpanded}

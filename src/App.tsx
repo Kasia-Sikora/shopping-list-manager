@@ -17,11 +17,12 @@ import { SpeedInsights } from "@vercel/speed-insights/react"
 import { Analytics } from '@vercel/analytics/react';
 import { useTranslation } from './hooks/useTranslationHook';
 import SettingsButton from './components/atoms/SettingsButton';
+import { useShallow } from 'zustand/shallow';
 
 const App = () => {
-  const { lists, setLists, moveList } = useStore()
-  const { connectionStatus, setConnectionStatus } = useSyncStore()
-  const { lang, setLang } = useLocaleStore()
+  const { lists, setLists, moveList } = useStore(useShallow(s => ({ lists: s.lists, setLists: s.setLists, moveList: s.moveList })))
+  const { connectionStatus, setConnectionStatus } = useSyncStore(useShallow(s => ({ connectionStatus: s.connectionStatus, setConnectionStatus: s.setConnectionStatus })))
+  const { lang, setLang } = useLocaleStore(useShallow(s => ({ lang: s.lang, setLang: s.setLang })))
   const [isReady, setIsReady] = useState(false);
   const t = useTranslation()
 

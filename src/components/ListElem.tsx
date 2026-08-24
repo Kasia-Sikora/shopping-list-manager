@@ -8,6 +8,7 @@ import { useDragOperation } from '@dnd-kit/react';
 import { useMemo, memo, useState } from 'react';
 import DragHandleIcon from '../assets/dragHandle.svg?react'
 import { useTranslation } from '../hooks/useTranslationHook';
+import { useShallow } from 'zustand/shallow';
 
 function DraggingIndicator() {
   const { source } = useDragOperation();
@@ -52,7 +53,7 @@ const ListElem = ({
   isActive = false,
   cardDataId
 }: ListElement) => {
-  const { editingCardId, setEditingCardId, focusItemId, setFocusItemId } = useActiveCardIdStore()
+  const { editingCardId, setEditingCardId, focusItemId, setFocusItemId } = useActiveCardIdStore(useShallow(s => ({ editingCardId: s.editingCardId, setEditingCardId: s.setEditingCardId, focusItemId: s.focusItemId, setFocusItemId: s.setFocusItemId })))
   const [tempValue, setTempValue] = useState(item.value);
   const t = useTranslation()
 

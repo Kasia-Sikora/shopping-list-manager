@@ -1,8 +1,9 @@
+import { useShallow } from "zustand/shallow"
 import { useTranslation } from "../../hooks/useTranslationHook"
 import { AVAILABLE_LANGUAGES, useLocaleStore, type LocaleTypes } from "../../stores/store"
 
 const LanguageSwitcher = () => {
-  const { lang, setLang } = useLocaleStore()
+  const { lang, setLang } = useLocaleStore(useShallow(s => ({lang: s.lang, setLang: s.setLang})))
   const t = useTranslation()
 
   const handleChange: React.ChangeEventHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
