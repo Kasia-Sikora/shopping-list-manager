@@ -12,6 +12,7 @@ export type HeaderLabels = {
   title: string;
   syncStatus: SyncStatusLabels;
   offlineMessage: OfflineLabels;
+  serverNotReachableMessage: OfflineLabels;
   settings: SettingsLabels;
 };
 

@@ -3,6 +3,15 @@ import type { List } from '../interfaces';
 import { fetchApi, HttpError } from './apiClient';
 
 export const apiService = {
+  async health(): Promise<boolean> {
+    try {
+      await fetchApi(`${BASE_URL}/health`, {}, 2000);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
   async getAllLists(): Promise<List[]> {
     return await fetchApi(`${BASE_URL}/lists`);
   },

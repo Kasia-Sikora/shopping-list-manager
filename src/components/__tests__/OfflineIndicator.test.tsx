@@ -80,6 +80,43 @@ ${5}   | ${'Offline - 5 zmian zapisze się po ponownym połączeniu'}
     expect(getSyncIndicator()).toHaveTextContent(statusText)
   })
 
+  it.each`
+    quantity               | statusText      
+${0}   | ${"Can't reach the server - 0 changes will sync when the server is available"} 
+${1}   | ${"Can't reach the server - 1 change will sync when the server is available"}
+${5}   | ${"Can't reach the server - 5 changes will sync when the server is available"} 
+    ` ('should set $statusText text in English for $quantity pending items when server is not reachable', ({ quantity, statusText }) => {
+    Object.defineProperty(navigator, 'onLine', { configurable: true, value: true });
+
+    useLocaleStore.getState().setLang('en')
+    useSyncStore.getState().setPendingChangesCount(quantity)
+    useSyncStore.getState().setConnectionStatus('server-unreachable')
+
+    render(<OfflineIndicator loading={false} />)
+
+    expect(getServUnavailableIcon()).toBeInTheDocument()
+    expect(getSyncIndicator()).toHaveTextContent(statusText)
+  })
+
+    it.each`
+    quantity               | statusText      
+${0}   | ${"Brak połączenia z serwerem - 0 zmian zapisze się, gdy serwer znów będzie dostępny"} 
+${1}   | ${'Brak połączenia z serwerem - 1 zmiana zapisze się, gdy serwer znów będzie dostępny'}
+${3}   | ${'Brak połączenia z serwerem - 3 zmiany zapiszą się, gdy serwer znów będzie dostępny'}
+${5}   | ${'Brak połączenia z serwerem - 5 zmian zapisze się, gdy serwer znów będzie dostępny'} 
+    ` ('should set $statusText text in Polish for $quantity pending items when server is not reachable', ({ quantity, statusText }) => {
+    Object.defineProperty(navigator, 'onLine', { configurable: true, value: true });
+
+    useLocaleStore.getState().setLang('pl')
+    useSyncStore.getState().setPendingChangesCount(quantity)
+    useSyncStore.getState().setConnectionStatus('server-unreachable')
+
+    render(<OfflineIndicator loading={false} />)
+
+    expect(getServUnavailableIcon()).toBeInTheDocument()
+    expect(getSyncIndicator()).toHaveTextContent(statusText)
+  })
+
   it('should display loading pill when loading', () => {
 
     render(<OfflineIndicator loading={true} />)
@@ -92,4 +129,5 @@ ${5}   | ${'Offline - 5 zmian zapisze się po ponownym połączeniu'}
 const getSyncIndicator = () => screen.getByRole("status")
 const getPillIcon = (iconName: string = 'syncedIcon') => screen.queryByTitle(iconName)
 const getOfflineIcon = () => screen.queryByTitle('offlineIcon')
+const getServUnavailableIcon = () => screen.queryByTitle('serverUnreachableIcon')
 const getLoadingPill = () => screen.getByTitle('loadingPill')

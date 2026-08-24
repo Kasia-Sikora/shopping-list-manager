@@ -16,10 +16,9 @@ export type SyncQueueWithIdValue = SyncQueueValue & {
   id: number;
 };
 
-export type MetadataKey = 'lastSync' | 'isOnline' | 'schemaVersion' | 'listOrder';
+export type MetadataKey = 'lastSync' | 'schemaVersion' | 'listOrder';
 export type MetadataValue = string | boolean | number | string[];
 export type MetadataKeyValuePairs =
-  | { key: 'isOnline'; value: boolean }
   | { key: 'lastSync'; value: string }
   | { key: 'schemaVersion'; value: number }
   | { key: 'listOrder'; value: string[] };

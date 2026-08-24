@@ -15,6 +15,13 @@ const en: Labels = {
         other: 'changes',
       },
     },
+    serverNotReachableMessage: {
+      label: "Can't reach the server - {count} {change} will sync when the server is available",
+      change: {
+        one: 'change',
+        other: 'changes',
+      },
+    },
     settings: {
       label: 'Settings',
       theme: {

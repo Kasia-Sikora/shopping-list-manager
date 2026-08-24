@@ -6,6 +6,7 @@ import * as db from '../src/services/indexedDB';
 import { appGuards } from '../src/consts';
 import { configure } from '@testing-library/dom';
 import { useLocaleStore } from '../src/stores/store';
+import { apiService } from '../src/services/apiService';
 
 configure({ asyncUtilTimeout: 5000 });
 
@@ -15,6 +16,7 @@ beforeEach(async () => {
   db._resetDbForTests(); // drop the app's cached connection
   appGuards._resetForTests();
   useLocaleStore.setState({ lang: 'en' })
+  vi.mocked(apiService.health).mockResolvedValue(true);
 });
 
 afterEach(() => {

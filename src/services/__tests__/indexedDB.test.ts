@@ -337,15 +337,10 @@ describe('indexedDB — sync queue', () => {
 
 describe('indexedDB — metadata', () => {
   it('setMetadata then getMetadata returns the stored value', async () => {
-    await db.setMetadata('isOnline', true);
     await db.setMetadata('schemaVersion', 1);
     await db.setMetadata('listOrder', ['4', '1', '2']);
     await db.setMetadata('lastSync', '24.05.2025');
 
-    await expect(db.getMetadata('isOnline')).resolves.toEqual({
-      key: 'isOnline',
-      value: true,
-    });
     await expect(db.getMetadata('schemaVersion')).resolves.toEqual({
       key: 'schemaVersion',
       value: 1,
@@ -355,27 +350,20 @@ describe('indexedDB — metadata', () => {
   });
 
   it('getMetadata returns undefined for a key that was never set', async () => {
-    await expect(db.getMetadata('isOnline')).resolves.toBeUndefined();
     await expect(db.getMetadata('schemaVersion')).resolves.toBeUndefined();
     await expect(db.getMetadata('listOrder')).resolves.toBeUndefined();
     await expect(db.getMetadata('lastSync')).resolves.toBeUndefined();
   });
 
   it('setMetadata overwrites an existing value for the same key', async () => {
-    await db.setMetadata('isOnline', true);
     await db.setMetadata('schemaVersion', 1);
     await db.setMetadata('listOrder', ['4', '1', '2']);
     await db.setMetadata('lastSync', '24.05.2025');
 
-    await db.setMetadata('isOnline', false);
     await db.setMetadata('schemaVersion', 34);
     await db.setMetadata('listOrder', ['55', '52', '15']);
     await db.setMetadata('lastSync', '20.05.2003');
 
-    await expect(db.getMetadata('isOnline')).resolves.toEqual({
-      key: 'isOnline',
-      value: false,
-    });
     await expect(db.getMetadata('schemaVersion')).resolves.toEqual({
       key: 'schemaVersion',
       value: 34,
