@@ -68,4 +68,16 @@ describe('apiService', () => {
 
     await expect(apiService.updateList('a', updatedData)).rejects.toBeInstanceOf(HttpError);
   });
+
+  it('health returns true on 200', async () => {
+    vi.mocked(fetchApi).mockResolvedValueOnce({ status: 200 });
+
+    await expect(apiService.health()).resolves.toBe(true);
+  });
+
+  it('health returns false when endpoint throws', async () => {
+    vi.mocked(fetchApi).mockRejectedValue(new HttpError(500, 'Server is not responding'));
+
+    await expect(apiService.health()).resolves.toBe(false);
+  });
 });

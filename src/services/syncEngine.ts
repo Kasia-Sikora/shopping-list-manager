@@ -61,7 +61,9 @@ export const syncEngine = {
     const current = await getList(action.listId);
     if (!current) {
       await removeFromQueue(action.id);
-      console.warn(`List id: ${action.listId} was not found in IndexedDB. Data was already deleted or action was in wrong order (update before create).`)
+      console.warn(
+        `List id: ${action.listId} was not found in IndexedDB. Data was already deleted or action was in wrong order (update before create).`
+      );
       return;
     }
     const pendingOrFailedItems = await getPendingOrFailedItems();
@@ -90,10 +92,17 @@ export const syncEngine = {
       await updateSyncState();
     } catch (error) {
       if (useSyncStore.getState().isOnline) {
-        console.error('Upload failed:', error);
-        await syncEngine._retry({ ...action, retryCount: action.retryCount + 1 });
+        const isServerReachable = await apiService.health();
+        if (isServerReachable) {
+          console.error('Upload failed:', error);
+          await syncEngine._retry({ ...action, retryCount: action.retryCount + 1 });
+        } else {
+          await updateQueueItemStatus(action.id, 'pending', action.retryCount);
+          useSyncStore.getState().setConnectionStatus('server-unreachable');
+        }
       } else {
         await updateQueueItemStatus(action.id, 'pending', action.retryCount);
+        useSyncStore.getState().setConnectionStatus('offline');
       }
       await updateSyncState();
     }

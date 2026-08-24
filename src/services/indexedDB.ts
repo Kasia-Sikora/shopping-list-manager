@@ -228,7 +228,6 @@ export const removeFromQueue = async (id: number) => {
 export function getMetadata(key: 'listOrder'): Promise<{ key: 'listOrder'; value: string[] } | undefined>;
 export function getMetadata(key: 'schemaVersion'): Promise<{ key: 'schemaVersion'; value: number } | undefined>;
 export function getMetadata(key: 'lastSync'): Promise<{ key: 'lastSync'; value: string } | undefined>;
-export function getMetadata(key: 'isOnline'): Promise<{ key: 'isOnline'; value: boolean } | undefined>;
 export async function getMetadata(key: MetadataKey): Promise<MetadataKeyValuePairs | undefined> {
   const database = await getDb();
   return database.get('metadata', key);
@@ -237,7 +236,6 @@ export async function getMetadata(key: MetadataKey): Promise<MetadataKeyValuePai
 export function setMetadata(key: 'listOrder', value: string[]): Promise<void>;
 export function setMetadata(key: 'schemaVersion', value: number): Promise<void>;
 export function setMetadata(key: 'lastSync', value: string): Promise<void>;
-export function setMetadata(key: 'isOnline', value: boolean): Promise<void>;
 export async function setMetadata(key: MetadataKey, value: MetadataValue): Promise<void> {
   try {
     const database = await getDb();

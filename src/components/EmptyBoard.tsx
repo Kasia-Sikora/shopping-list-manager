@@ -34,7 +34,7 @@ const EmptyBoard = () => {
         </div>
         <h2 className='text-xl'>{t('emptyBoard.header')}</h2>
         <p className='flex text-primary/50 gap-2'> <ArrowUp />{t('emptyBoard.hint')}</p>
-        <button onClick={handleLoadData} className='text-accent hover:text-active rounded-full border-border border px-4 py-2 cursor-pointer'>{t('emptyBoard.ctaButton')}</button>
+        <button type="button" onClick={handleLoadData} className='text-accent hover:text-active rounded-full border-border border px-4 py-2 cursor-pointer'>{t('emptyBoard.ctaButton')}</button>
       </div>
     </div>
   )

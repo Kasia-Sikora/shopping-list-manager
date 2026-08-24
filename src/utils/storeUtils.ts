@@ -48,7 +48,7 @@ export const dbActions = async (params: DbAction) => {
     }
 
     await db.addToQueue(params);
-    if (useSyncStore.getState().isOnline) {
+    if (useSyncStore.getState().connectionStatus === "online") {
       syncEngine.syncChanges();
     }
   } catch (error) {

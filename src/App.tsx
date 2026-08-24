@@ -20,7 +20,7 @@ import SettingsButton from './components/atoms/SettingsButton';
 
 const App = () => {
   const { lists, setLists, moveList } = useStore()
-  const { isOnline } = useSyncStore()
+  const { connectionStatus, setConnectionStatus } = useSyncStore()
   const { lang, setLang } = useLocaleStore()
   const [isReady, setIsReady] = useState(false);
   const t = useTranslation()
@@ -54,6 +54,7 @@ const App = () => {
             currentIndexDBLists = await db.getLists()
           } catch (e) {
             console.error('Pull-on-init failed; falling back to local data', e)
+            setConnectionStatus('server-unreachable')
           }
         }
 
@@ -91,7 +92,7 @@ const App = () => {
       getIndexDBLists()
       appGuards.addMount()
     }
-  }, [setLists])
+  }, [setConnectionStatus, setLists])
 
   const [active, setActive] = useState<boolean>(false)
   const { ref } = useDroppable({ id: 'board' })
@@ -144,7 +145,7 @@ auto-rows-[8px] gap-x-4 gap-y-0 items-start my-5 lg:my-10 gap-4`}>
   }
 
   return (
-    <div className={`font-display text-primary p-2 lg:p-5 placeholder:text-primary/50 ${!isOnline ? 'mt-4' : ''}`}>
+    <div className={`font-display text-primary p-2 lg:p-5 placeholder:text-primary/50 ${connectionStatus !== "online" ? 'mt-4' : ''}`}>
       <Analytics />
       <SpeedInsights />
       <header className='flex justify-between items-center w-full mb-5 lg:mb-10'>

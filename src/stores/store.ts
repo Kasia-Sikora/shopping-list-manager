@@ -73,7 +73,6 @@ export const useStore = create<StoreState>()(
   }))
 );
 
-
 type StoreThemeState = {
   theme: string;
   setTheme: (theme: 'light' | 'dark') => void;
@@ -103,14 +102,18 @@ export const useActiveCardIdStore = create<ActiveCardIdStore>((set) => ({
   setFocusItemId: (id) => set(() => ({ focusItemId: id })),
 }));
 
+type ConnectionStatus = 'offline' | 'server-unreachable' | 'online';
+
 type SyncStore = {
   isSaving: boolean;
   isOnline: boolean;
+  connectionStatus: ConnectionStatus;
   syncStatus: SyncStatus | undefined;
   pendingChangesCount: number;
   failedChangesCount: number;
   setIsSaving: (saving: boolean) => void;
   setIsOnline: (isOnline: boolean) => void;
+  setConnectionStatus: (connectionStatus: ConnectionStatus) => void;
   setSyncStatus: (syncStatus: SyncStatus) => void;
   setPendingChangesCount: (pendingChangesCount: number) => void;
   setFailedChangesCount: (failedChangesCount: number) => void;
@@ -124,11 +127,13 @@ export const useSyncStore = create<SyncStore>((set) => ({
   // incognito visitors). When genuinely offline, navigator.onLine is false, so the gate still
   // prevents offline API hammering.
   isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
+  connectionStatus: typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'online',
   syncStatus: undefined,
   pendingChangesCount: 0,
   failedChangesCount: 0,
   setIsSaving: (isSaving) => set(() => ({ isSaving })),
   setIsOnline: (isOnline) => set(() => ({ isOnline })),
+  setConnectionStatus: (connectionStatus) => set(() => ({ connectionStatus })),
   setSyncStatus: (syncStatus) => set(() => ({ syncStatus })),
   setPendingChangesCount: (pendingChangesCount) => set(() => ({ pendingChangesCount })),
   setFailedChangesCount: (failedChangesCount) => set(() => ({ failedChangesCount })),

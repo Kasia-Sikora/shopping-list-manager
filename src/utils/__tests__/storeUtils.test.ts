@@ -98,7 +98,7 @@ describe('storeUtils', () => {
 
   it('dbActions does not trigger a sync when offline', async () => {
     const syncSpy = vi.spyOn(syncEngine, 'syncChanges');
-    useSyncStore.setState({ isOnline: false });
+    useSyncStore.setState({ isOnline: false, connectionStatus: 'offline' });
 
     await dbActions({ action: 'create', data: makeList('b') });
     

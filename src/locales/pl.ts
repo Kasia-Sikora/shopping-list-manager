@@ -16,6 +16,14 @@ const pl: Labels = {
         many: 'zmian zapisze',
       },
     },
+    serverNotReachableMessage: {
+      label: 'Brak połączenia z serwerem - {count} {change} się, gdy serwer znów będzie dostępny',
+      change: {
+        one: 'zmiana zapisze',
+        few: 'zmiany zapiszą',
+        many: 'zmian zapisze',
+      },
+    },
     settings: {
       label: 'Ustawienia',
       theme: {

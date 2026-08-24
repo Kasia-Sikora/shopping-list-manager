@@ -3,6 +3,7 @@ import { fetchApi, HttpError } from '../apiClient';
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.unstubAllGlobals();
 });
 
 describe('apiClient', () => {
@@ -86,5 +87,14 @@ describe('apiClient', () => {
         headers: expect.objectContaining({ 'Content-Type': 'application/json', 'Content-Language': 'en-US' }),
       })
     );
+  });
+
+  it('fetchApi rejects with status 408 when the request is aborted', async () => {
+    const spyConsole = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const fetchMock = vi.fn().mockRejectedValue(new DOMException('Aborted', 'AbortError'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(fetchApi('/health')).rejects.toMatchObject({ status: 408 });
+    spyConsole.mockRestore();
   });
 });

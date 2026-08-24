@@ -1,15 +1,15 @@
-import { useNetworkStatus } from "../hooks/useNetworkStatus"
-import { setMetadata } from "../services/indexedDB"
 import { useCallback, useEffect, useMemo, type ReactElement } from "react"
 import { useLocaleStore, useSyncStore } from "../stores/store"
 import { syncEngine } from "../services/syncEngine"
 import { SYNC_DELAY } from "../consts"
 import OfflineIcon from '../assets/offline.svg?react'
+import ServerUnreachableIcon from '../assets/server.svg?react'
 import SyncingIcon from '../assets/syncing.svg?react';
 import SyncedIcon from '../assets/synced.svg?react';
 import FailedIcon from '../assets/failed.svg?react'
 import { useTranslation } from "../hooks/useTranslationHook"
 import type { LocaleKeys } from "../interfaces"
+import { useConnectionStatus } from "../hooks/useConnectionStatus"
 
 type SyncState = 'failed' | 'pending' | 'syncing' | 'synced'
 
@@ -32,8 +32,8 @@ const PILL_STYLE: Record<PillState, { background: string; color: string }> = {
 }
 
 export const OfflineIndicator = ({ loading }: OfflineIndicator) => {
-  const { isOnline } = useNetworkStatus()
-  const { syncStatus, failedChangesCount, pendingChangesCount, setIsOnline } = useSyncStore()
+  const { connectionStatus } = useConnectionStatus()
+  const { syncStatus, failedChangesCount, pendingChangesCount } = useSyncStore()
   const t = useTranslation()
   const lang = useLocaleStore(s => s.lang)
   const localeRules = useMemo(() => new Intl.PluralRules(lang), [lang])
@@ -54,32 +54,31 @@ export const OfflineIndicator = ({ loading }: OfflineIndicator) => {
 
   useEffect(() => {
     const setData = async () => {
-      if (isOnline) {
+      if (connectionStatus === "online") {
         await syncEngine.retryFailed()
       }
-      await setMetadata('isOnline', isOnline)
-      setIsOnline(isOnline)
     }
     setData()
-  }, [isOnline, setIsOnline])
+  }, [connectionStatus])
 
   useEffect(() => {
-    if (!isOnline) return;
+    if (connectionStatus !== "online") return;
 
     const retryInterval = setInterval(() => {
       syncEngine.syncChanges();
     }, SYNC_DELAY);
 
     return () => clearInterval(retryInterval);
-  }, [isOnline]);
+  }, [connectionStatus]);
 
-  if (!isOnline) {
+  if (connectionStatus !== "online") {
     return (
       <output
         className="fixed top-0 left-0 z-10 flex w-full items-center justify-center gap-2 px-3 py-1 text-sm"
         style={{ background: 'var(--sync-pending-bg)', color: 'var(--sync-pending-fg)' }}
       >
-        <OfflineIcon title="offlineIcon" />{t('header.offlineMessage.label', { count: `${pendingChangesCount}`, change: t(`header.offlineMessage.change.${key}`) })}
+        {connectionStatus === "offline" && <><OfflineIcon title="offlineIcon" />{t('header.offlineMessage.label', { count: `${pendingChangesCount}`, change: t(`header.offlineMessage.change.${key}`) })}</>}
+        {connectionStatus === "server-unreachable" && <><ServerUnreachableIcon title="serverUnreachableIcon" />{t('header.serverNotReachableMessage.label', { count: `${pendingChangesCount}`, change: t(`header.serverNotReachableMessage.change.${key}`) })}</>}
       </output>
     )
   }
@@ -89,6 +88,7 @@ export const OfflineIndicator = ({ loading }: OfflineIndicator) => {
   const generateStatusPill = () => {
     return status.status === 'failed' ?
       <button
+        type="button"
         onClick={syncEngine.retryFailed}
         className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold border border-border cursor-pointer"
         style={PILL_STYLE[status.status]}
